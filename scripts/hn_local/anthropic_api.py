@@ -20,20 +20,31 @@ USAGE = {
 def api_error(error):
     if isinstance(error, anthropic.APIStatusError):
         return PipelineError(f'anthropic-api-status-{error.status_code}')
-    return PipelineError('anthropic-api-unreachable')
+    if isinstance(error, anthropic.APIError):
+        return PipelineError('anthropic-api-unreachable')
+    # What is left is a stored sign-in that could not be read or renewed.
+    return PipelineError('anthropic-api-credential-failed')
 
 
 class AnthropicClassifier(Classifier):
-    """Sends scrubbed comment text to Anthropic. The key comes from ANTHROPIC_API_KEY and is never stored."""
+    """Sends scrubbed comment text to Anthropic.
+
+    The credential is ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN if set, otherwise the sign-in
+    stored by `ant auth login`. The pipeline stores none of them.
+    """
 
     review_tokens = 512
 
     def __init__(self, model, client=None):
         if client is None:
-            # The address is fixed so that an environment setting cannot send comment text elsewhere.
-            client = anthropic.Anthropic(base_url=API_URL, max_retries=6)
-            if not client.api_key:
-                raise PipelineError('anthropic-api-key-missing')
+            # The address is fixed so that neither an environment setting nor a sign-in profile
+            # can send comment text elsewhere.
+            try:
+                client = anthropic.Anthropic(base_url=API_URL, max_retries=6)
+            except anthropic.AnthropicError as error:
+                raise api_error(error) from None
+            if client.api_key is None and client.auth_token is None and client.credentials is None:
+                raise PipelineError('anthropic-api-credential-missing')
         self.client = client
         self.model = model
         self.usage = Counter()
@@ -58,7 +69,7 @@ class AnthropicClassifier(Classifier):
     def request(self, system, prompt, max_tokens):
         try:
             return self.read(self.client.messages.create(**self.params(system, prompt, max_tokens)))
-        except anthropic.APIError as error:
+        except anthropic.AnthropicError as error:
             raise api_error(error) from None
 
     def submit(self, prompts):
@@ -69,13 +80,13 @@ class AnthropicClassifier(Classifier):
         ]
         try:
             return self.client.messages.batches.create(requests=requests).id
-        except anthropic.APIError as error:
+        except anthropic.AnthropicError as error:
             raise api_error(error) from None
 
     def ended(self, batch_id):
         try:
             return self.client.messages.batches.retrieve(batch_id).processing_status == 'ended'
-        except anthropic.APIError as error:
+        except anthropic.AnthropicError as error:
             raise api_error(error) from None
 
     def results(self, batch_id):
@@ -90,5 +101,5 @@ class AnthropicClassifier(Classifier):
                     yield entry.custom_id, self.read(entry.result.message)
                 elif entry.result.type == 'errored':
                     yield entry.custom_id, None
-        except anthropic.APIError as error:
+        except anthropic.AnthropicError as error:
             raise api_error(error) from None

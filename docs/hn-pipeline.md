@@ -59,7 +59,16 @@ The same command without the limits resumes that directory's entire run. `Ctrl+C
 
 The app reads only `.local/hn/threads/`, so use that directory for a run the app should show and serve. Move a run made with another classifier out of it first, because `run` refuses to continue one. While the directory holds a run whose classifier is not the local one, the Data page shows its progress with the controls disabled, `/api/hn/start` answers 409 and `runner.external` is true.
 
-The default model is `claude-haiku-5-5` and the default classifier ID is `claude-haiku-5.5-thread-v1`; `--model` and `--classifier-id` change them. The key is read from the `ANTHROPIC_API_KEY` environment variable when the command starts and is never written anywhere by the pipeline. Without it the command stops with `anthropic-api-key-missing`. On macOS the key can stay in the login keychain and be passed for one command only:
+The default model is `claude-haiku-5-5` and the default classifier ID is `claude-haiku-5.5-thread-v1`; `--model` and `--classifier-id` change them. The command uses the `ANTHROPIC_API_KEY` or `ANTHROPIC_AUTH_TOKEN` environment variable if one is set, and otherwise the sign-in that Anthropic's `ant` CLI stores under `~/.config/anthropic/`. The pipeline writes none of them anywhere. Sign in once, in a terminal:
+
+```sh
+brew install anthropics/tap/ant
+ant auth login
+```
+
+The sign-in opens a browser and is tied to one Console organization and workspace, whose credit the run spends. It expires some weeks after the login. With no credential the command stops with `anthropic-api-credential-missing`. With a sign-in that can no longer be read or renewed it stops with `anthropic-api-credential-failed`; run `ant auth login` again and resume. A sign-in profile cannot change the address either: requests still go to `api.anthropic.com`.
+
+An API key works instead of the sign-in. On macOS it can stay in the login keychain and be passed for one command only:
 
 ```sh
 security add-generic-password -U -a "$USER" -s ai-help-anthropic-api-key -w
@@ -163,7 +172,7 @@ Four development disagreements narrowed a mixed reference to a single sentiment.
 
 On the same holdout, the earlier grouped 4B requests agreed with 20 of 37 reference assessments and reversed six signs. A focused 30B trial agreed with seven and labeled 20 of the differing pairs mixed. The previous scan used focused 4B requests. Treat the local polarity estimates as experimental and consult original comments when drawing conclusions.
 
-Run the evaluation while the local model is listening, or with `--backend anthropic` and an API key, which makes about 60 paid requests and adds the token counts to the output. It reads original items transiently and prints aggregate counts and a confusion matrix. Subsequent edits or deletions on HN can change the comparison.
+Run the evaluation while the local model is listening, or with `--backend anthropic` and an Anthropic credential, which makes about 45 paid requests (under one US cent with Haiku 5.5) and adds the token counts to the output. It reads original items transiently and prints aggregate counts and a confusion matrix. Subsequent edits or deletions on HN can change the comparison.
 
 ```sh
 .local/hn/venv/bin/python -B scripts/evaluate_hn_classifier.py
@@ -193,5 +202,7 @@ The three models were also timed on the same 248 queued comments with the run's 
 | GLM-4.7-Flash   |      0.98 |       1.57 |        1.33 |        1.60 |                    19 |
 
 On those comments the 35B-A3B model gave the same stance as the 27B model for 236 of 380 comment and model pairs, and GLM-4.7-Flash for 151. A reading of 22 and 16 of the disagreements found the same faults in both faster models: they attribute the opinion in the parent comment to the writer, and they give a stance to comments that say nothing about the model. The 35B-A3B model gave a stance for 79 pairs where the 27B model gave none; the reverse happened for 14. Both were rejected for those faults. A larger prompt cache did not change the 27B model's speed, because the shared instructions were already cached.
+
+The same check was run that day for Claude Haiku 5.5 through the API, with thinking off as in a run. It agreed with 11 of 20 development pairs and 22 of 37 holdout pairs. Of its 12 holdout disagreements, 11 returned neutral for a positive reference and one reversed the sign. It returned no stance for one pair in each sample, missed one development and two holdout targets, and no reply failed. That is two holdout agreements fewer than the 27B model, on a sample too small to rank the two.
 
 The check and timing outputs are kept in the ignored `.local/hn/thread-model-check/`.

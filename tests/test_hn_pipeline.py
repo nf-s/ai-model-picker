@@ -417,13 +417,41 @@ class TestClassifier(unittest.TestCase):
         self.assertIsNone(classifier.review(self.targets.subject('GPT-6 Astra is useful.')))
         self.assertEqual(next(replies, None), None)
 
-    def test_api_needs_a_key_and_keeps_its_address(self):
-        with patch.dict(os.environ, {'ANTHROPIC_BASE_URL': 'http://127.0.0.1:9'}, clear=True):
-            with self.assertRaisesRegex(PipelineError, 'anthropic-api-key-missing'):
+    def test_api_needs_a_credential_and_keeps_its_address(self):
+        # HOME is a temporary directory so that a sign-in stored on this machine is not found.
+        with tempfile.TemporaryDirectory() as home, patch.dict(
+            os.environ, {'ANTHROPIC_BASE_URL': 'http://127.0.0.1:9', 'HOME': home}, clear=True,
+        ):
+            with self.assertRaisesRegex(PipelineError, 'anthropic-api-credential-missing'):
                 AnthropicClassifier('fixture-model')
             os.environ['ANTHROPIC_API_KEY'] = 'synthetic-test-key'
             classifier = AnthropicClassifier('fixture-model')
+            self.assertEqual(str(classifier.client.base_url).rstrip('/'), API_URL)
+            self.assertIsNone(classifier.client.credentials)
+
+            # The files `ant auth login` leaves: a pointer to the active profile and its settings.
+            del os.environ['ANTHROPIC_API_KEY']
+            profile = Path(home, '.config/anthropic/configs/default.json')
+            profile.parent.mkdir(parents=True)
+            Path(home, '.config/anthropic/active_config').write_text('default')
+            profile.write_text('not json')
+            with self.assertRaisesRegex(PipelineError, 'anthropic-api-credential-failed'):
+                AnthropicClassifier('fixture-model')
+            profile.write_text(json.dumps({
+                'authentication': {'type': 'user_oauth'}, 'base_url': 'https://elsewhere.invalid',
+            }))
+            classifier = AnthropicClassifier('fixture-model')
+        self.assertIsNone(classifier.client.api_key)
+        self.assertIsNotNone(classifier.client.credentials)
         self.assertEqual(str(classifier.client.base_url).rstrip('/'), API_URL)
+
+    def test_a_sign_in_that_cannot_be_used_stops_the_run_with_a_reason(self):
+        def refuse(**_params):
+            raise anthropic.CredentialsError('synthetic')
+
+        classifier = api_classifier(create=refuse)
+        with self.assertRaisesRegex(PipelineError, 'anthropic-api-credential-failed'):
+            classifier.request(SYSTEM, 'Synthetic prompt.', 8)
 
     def test_api_errors_stop_the_run_with_a_reason(self):
         def refuse(**_params):
