@@ -96,7 +96,7 @@ After labelling, `assess` reads each paper labelled `evaluation` once more and r
 
 Names the model returns are matched to the paper's targets ignoring case, spacing and punctuation. Other names are dropped, and a name in both lists makes the response invalid. Results follow the same rules as labels: one stricter second request, failures stored and retried once per invocation, and `--exact-models` and `--max-papers` apply, with label and result requests counted together. Results are keyed to the label set and `RESULT_VERSION`, so a new labelling identity or a changed result prompt starts a new set. A paper whose label is no longer `evaluation` has no result in exports.
 
-**Current status:** on 18 November 2026 `assess` was run over the 1,383 papers that name an exact tracked model: 1,382 are labelled and 1 is stored as a failure. The 9,648 papers that name only a family have not been labelled; `--exact-models` keeps a later run to the same scope. The Papers page counts papers without a label as Unlabelled, and hides the kind and topic filters when no paper has a label. The result pass over the 414 papers labelled `evaluation` was stopped part-way on the same day: 199 have a result, 1 is stored as a failure and 214 remain. The views show the 199. Running the command below again continues with the remaining papers.
+**Current status:** on 18 November 2026 `assess` was run over the 1,383 papers that name an exact tracked model: 1,382 are labelled and 1 is stored as a failure. The 9,648 papers that name only a family have not been labelled; `--exact-models` keeps a later run to the same scope. The Papers page counts papers without a label as Unlabelled, and hides the kind and topic filters when no paper has a label. The result pass over the 414 papers labelled `evaluation` ran the same day in two parts: 413 have a result and 1 is stored as a failure. Running the command below again retries the two stored failures and works on any papers added by a later harvest.
 
 To run it, start a model server on loopback port 8790 first. The run used the MLX server from the HN pipeline's virtual environment with the model the HN pipeline currently uses:
 
@@ -107,7 +107,7 @@ To run it, start a model server on loopback port 8790 first. The run used the ML
 npm run arxiv:assess -- --exact-models
 ```
 
-Labelling took about 3.5 seconds per abstract with 4 workers on a 64 GB Apple Silicon machine (1,359 abstracts in 79 minutes). The result pass was slower, at 8 to 12 seconds per paper while the machine was in use. Stop the server when the run ends, and do not run it alongside the HN pipeline's model runtime: each process loads its own copy of the model. `run` and `assess` cannot run at the same time on one state directory.
+Labelling took about 3.5 seconds per abstract with 4 workers on a 64 GB Apple Silicon machine (1,359 abstracts in 79 minutes). The result pass was slower while the machine was in use: 8 to 12 seconds per paper in its first part and about 7 seconds in its second (214 papers in 25 minutes). Stop the server when the run ends, and do not run it alongside the HN pipeline's model runtime: each process loads its own copy of the model. `run` and `assess` cannot run at the same time on one state directory.
 
 ## Local outputs
 

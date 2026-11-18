@@ -51,7 +51,7 @@ See [pipeline instructions](docs/hn-pipeline.md), [archive verification](docs/hn
 
 ## Local arXiv index
 
-`npm run arxiv:run` harvests arXiv metadata over OAI-PMH into ignored `.local/arxiv/` files, paced at one request every three seconds. It needs no model. Abstract labelling with a local model is optional; so far it covers the papers that name an exact tracked model, and evaluation results cover 199 of the 414 evaluation papers among them. See [arXiv pipeline instructions](docs/arxiv-pipeline.md).
+`npm run arxiv:run` harvests arXiv metadata over OAI-PMH into ignored `.local/arxiv/` files, paced at one request every three seconds. It needs no model. Abstract labelling with a local model is optional; so far it covers the papers that name an exact tracked model, and evaluation results cover 413 of the 414 evaluation papers among them. See [arXiv pipeline instructions](docs/arxiv-pipeline.md).
 
 ## Data in the app
 
