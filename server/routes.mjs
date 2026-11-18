@@ -9,8 +9,8 @@ export async function routeAuth(request, env) {
   return (await handleAuthRequest(request, env)) ?? notFound();
 }
 
-export async function routeApi(request, env, { results, ...dependencies }) {
+export async function routeApi(request, env, { payload, ...dependencies }) {
   if (new URL(request.url).pathname === '/api/restricted')
-    return handleRestrictedRequest(request, env, { results, ...dependencies });
+    return handleRestrictedRequest(request, env, { payload, ...dependencies });
   return (await handleAuthRequest(request, env, dependencies)) ?? notFound();
 }

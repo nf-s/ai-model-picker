@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
-import { benchmarks, reports, restrictedHidden, results } from '../lib/data';
+import { benchmarks, reports, results } from '../lib/data';
 import type { BenchmarkResult } from '../lib/data';
 import type { Scope } from '../lib/model-filter';
 import { dollars, duration } from '../lib/metrics';
@@ -14,7 +14,6 @@ import {
   standing,
 } from '../lib/site-data';
 import { RankNote } from './ModelFilter';
-import { RestrictedNote } from './parts';
 import Reports from './Reports';
 import './benchmark.css';
 
@@ -166,7 +165,6 @@ export default function Benchmark({ id, scope }: { id: string; scope: Scope }) {
         </a>
       </section>
 
-      {restrictedHidden(benchmark.id) && <RestrictedNote />}
       <section className="rd-section" aria-labelledby="rd-bm-results">
         <div className="rd-bm-controls">
           <h2 className="rd-h" id="rd-bm-results">

@@ -1,59 +1,69 @@
 import { z } from 'zod';
-import rawRestricted from './restricted-benchmarks.json' with { type: 'json' };
-import { resultSchema } from './schema.ts';
-import type { BenchmarkResult } from './schema.ts';
+import { benchmarkSchema, resultSchema, sourceSchema } from './schema.ts';
 
-const restrictedListSchema = z.object({
+const text = z.string().min(1);
+
+// Benchmarks whose source terms do not allow republishing reach the browser
+// only through this payload, for approved accounts.
+export const restrictedPayloadSchema = z.object({
   checkedAt: z.iso.date(),
-  benchmarks: z
-    .array(
-      z.object({
-        id: z.string().min(1),
-        termsUrl: z.url(),
-        reason: z.string().min(1),
-      }),
-    )
-    .min(1),
-});
-export const restrictedList = restrictedListSchema.parse(rawRestricted);
-export type RestrictedBenchmark = (typeof restrictedList.benchmarks)[number];
-export const restrictedById = new Map(
-  restrictedList.benchmarks.map((benchmark) => [benchmark.id, benchmark]),
-);
-
-// Result IDs are `<benchmark id>:<n>`, so guide references to results that
-// are not in the public bundle can still be recognised.
-export function restrictedResultId(id: string) {
-  const mark = id.lastIndexOf(':');
-  return mark > 0 && restrictedById.has(id.slice(0, mark));
-}
-
-export const restrictedResponseSchema = z.object({
+  benchmarks: z.array(benchmarkSchema),
   results: z.array(resultSchema),
+  sources: z.array(sourceSchema),
+  evidence: z.array(
+    z.object({
+      taskId: text,
+      kind: z.literal('result'),
+      id: text,
+      note: text,
+    }),
+  ),
+  attributions: z.array(
+    z.object({
+      source: text,
+      material: text,
+      url: z.httpUrl(),
+      licence: z.object({ name: text, url: z.httpUrl() }).nullable(),
+      credit: text,
+      changes: text.nullable(),
+      termsUrl: z.httpUrl(),
+    }),
+  ),
 });
+export type RestrictedPayload = z.infer<typeof restrictedPayloadSchema>;
 
-/** Checks that a restricted payload only adds results for known records. */
-export function validRestrictedResults(
+/** Accepts a payload only if it adds new records that refer to known ones. */
+export function validRestrictedPayload(
   payload: unknown,
   known: {
     modelIds: ReadonlySet<string>;
     benchmarkIds: ReadonlySet<string>;
     resultIds: ReadonlySet<string>;
+    sourceIds: ReadonlySet<string>;
   },
-): BenchmarkResult[] | null {
-  const parsed = restrictedResponseSchema.safeParse(payload);
+): RestrictedPayload | null {
+  const parsed = restrictedPayloadSchema.safeParse(payload);
   if (!parsed.success) return null;
-  const ids = new Set<string>();
-  for (const result of parsed.data.results) {
-    if (
-      !restrictedById.has(result.benchmarkId) ||
-      !known.modelIds.has(result.modelId) ||
-      !known.benchmarkIds.has(result.benchmarkId) ||
-      known.resultIds.has(result.id) ||
-      ids.has(result.id)
-    )
-      return null;
-    ids.add(result.id);
-  }
-  return parsed.data.results;
+  const { benchmarks, results, sources, evidence } = parsed.data;
+  const benchmarkIds = new Set(benchmarks.map((benchmark) => benchmark.id));
+  const resultIds = new Set(results.map((result) => result.id));
+  const sourceIds = new Set(sources.map((source) => source.id));
+  const fresh = (
+    ids: ReadonlySet<string>,
+    count: number,
+    old: ReadonlySet<string>,
+  ) => ids.size === count && [...ids].every((id) => !old.has(id));
+  if (
+    !fresh(benchmarkIds, benchmarks.length, known.benchmarkIds) ||
+    !fresh(resultIds, results.length, known.resultIds) ||
+    !fresh(sourceIds, sources.length, known.sourceIds) ||
+    results.some(
+      (result) =>
+        !benchmarkIds.has(result.benchmarkId) ||
+        !known.modelIds.has(result.modelId),
+    ) ||
+    evidence.some((item) => !resultIds.has(item.id))
+  )
+    return null;
+  return parsed.data;
 }

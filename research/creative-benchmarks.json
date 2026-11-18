@@ -83,28 +83,6 @@
       ],
       "costMethod": "Source-reported mean USD per app-cloning run across nine app tasks; billing components are not itemized.",
       "timeMethod": "Source-reported mean wall-clock time per app-cloning run; rounded minutes converted to seconds."
-    },
-    {
-      "id": "designarena-agentic",
-      "name": "DesignArena · Overall Agentic",
-      "category": "design",
-      "unit": "Elo",
-      "url": "https://www.designarena.ai/leaderboard",
-      "description": "Community preference across agent-built creative artifacts.",
-      "methodology": "Top 15 visible rows; Bradley–Terry ratings. Task mix includes frontend, fullstack, games, mobile, slides and spreadsheets. Unstated efforts remain unknown.",
-      "updatedAt": "2026-11-16T02:03:00Z",
-      "results": []
-    },
-    {
-      "id": "arena-creative-writing",
-      "name": "Arena · Creative writing",
-      "category": "writing",
-      "unit": "rating",
-      "url": "https://arena.ai/leaderboard/chat/text/creative-writing",
-      "description": "Selected model configurations from the writing preference board.",
-      "methodology": "Default published view, dated November 11. Category-specific pairwise preference; retain displayed uncertainty and effort. Scores do not measure factual correctness.",
-      "updatedAt": "2026-11-11",
-      "results": []
     }
   ],
   "sources": [
@@ -115,22 +93,6 @@
       "coverage": "Nine reference apps, visual/functional scores, average run cost and duration",
       "access": "Public results",
       "limitations": "Best effort differs by model; billing inclusions unspecified."
-    },
-    {
-      "name": "DesignArena Overall Agentic",
-      "url": "https://www.designarena.ai/leaderboard",
-      "kind": "human preference",
-      "coverage": "Agent-built artifact preference",
-      "access": "Public leaderboard; authenticated API available",
-      "limitations": "Dynamic snapshot; first 15 visible rows only."
-    },
-    {
-      "name": "Arena Creative Writing",
-      "url": "https://arena.ai/leaderboard/chat/text/creative-writing",
-      "kind": "human preference",
-      "coverage": "Writing-category ratings",
-      "access": "Public leaderboard",
-      "limitations": "Selected rows; default view; uncertainty overlaps."
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { addRestrictedResults, restrictedRemote } from './data';
+import { addRestricted, restrictedRemote } from './data';
 
 // The readable CSRF cookie is set with every session, so a browser without it
 // has no session and the app skips the session request.
@@ -99,9 +99,25 @@ function failure(payload: unknown, status: number) {
   );
 }
 
-/** Reads the session and, for an approved account, the restricted results. */
+// Locally the dev server serves the payload when .local/restricted/ has it.
+async function loadRestricted() {
+  try {
+    const response = await fetch('/api/restricted', {
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+    });
+    return response.ok && addRestricted(await readJson(response));
+  } catch {
+    return false;
+  }
+}
+
+/** Reads the session and, for an approved account, the restricted records. */
 export async function loadAccess(): Promise<Access> {
-  if (!restrictedRemote) return { kind: 'local' };
+  if (!restrictedRemote) {
+    await loadRestricted();
+    return { kind: 'local' };
+  }
   if (!hasSessionCookie()) return { kind: 'anonymous' };
   try {
     const response = await fetch('/api/session', {
@@ -112,17 +128,12 @@ export async function loadAccess(): Promise<Access> {
     const session = sessionSchema.safeParse(await readJson(response));
     if (!session.success) return { kind: 'unavailable' };
     if (!session.data.authenticated) return { kind: 'anonymous' };
-    const restricted = await fetch('/api/restricted', {
-      credentials: 'same-origin',
-      headers: { Accept: 'application/json' },
-    });
     return {
       kind: 'signed-in',
       email: session.data.email,
       isAdmin: session.data.isAdmin,
       csrfToken: session.data.csrfToken,
-      restricted:
-        restricted.ok && addRestrictedResults(await readJson(restricted)),
+      restricted: await loadRestricted(),
     };
   } catch {
     return { kind: 'unavailable' };

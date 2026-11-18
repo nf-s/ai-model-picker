@@ -537,38 +537,6 @@
       "coverage": "Parallelism, coordination and sequential dependencies",
       "access": "Public research summary with paper",
       "limitations": "Aggregate architecture findings, not model recommendations."
-    },
-    {
-      "name": "DesignArena",
-      "url": "https://www.designarena.ai/leaderboard",
-      "kind": "human preference",
-      "coverage": "Agentic app, website, image and other creative leaderboards",
-      "access": "Public leaderboard",
-      "limitations": "Dynamic vote pools; ratings differ by arena."
-    },
-    {
-      "name": "DesignArena methodology",
-      "url": "https://notes.designarena.ai/methodology/",
-      "kind": "methodology",
-      "coverage": "Bradley–Terry ratings and voting protocol",
-      "access": "Public documentation",
-      "limitations": "Read board-specific caveats for uncertainty."
-    },
-    {
-      "name": "DesignArena API",
-      "url": "https://docs.designarena.ai/api-reference/overview",
-      "kind": "data access",
-      "coverage": "Leaderboard endpoints and model mapping",
-      "access": "API key application and attribution required",
-      "limitations": "No API key was used or added."
-    },
-    {
-      "name": "Arena creative writing",
-      "url": "https://arena.ai/leaderboard/chat/text/creative-writing",
-      "kind": "human preference",
-      "coverage": "Creative-writing preference ratings and uncertainty",
-      "access": "Public leaderboard",
-      "limitations": "Category and adjustment selection affect scores; no factuality guarantee."
     }
   ]
 }

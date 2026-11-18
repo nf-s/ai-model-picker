@@ -738,18 +738,6 @@
   ],
   "benchmarks": [
     {
-      "id": "aa-intelligence",
-      "name": "Artificial Analysis Intelligence Index v5.0.1",
-      "source": "Artificial Analysis",
-      "category": "general",
-      "unit": "Index points",
-      "description": "Composite evaluation across knowledge work, coding, science and general knowledge.",
-      "methodology": "Composite evaluation across knowledge work, coding, science and general knowledge. Methodology: https://artificialanalysis.ai/methodology/intelligence-benchmarking One source-listed configuration per model.",
-      "url": "https://artificialanalysis.ai/leaderboards/models",
-      "costMethod": "Weighted cost of one Intelligence Index task at provider token and cache prices; not the cost of building an app.",
-      "timeMethod": "Estimated from answer/reasoning tokens and representative API output speed; not measured end-to-end task duration."
-    },
-    {
       "id": "terminal-bench-4-1",
       "name": "Terminal-Bench 4.1",
       "source": "Terminal-Bench 4.1",
@@ -781,22 +769,10 @@
       "category": "general",
       "unit": "ECI points",
       "description": "A capability estimate fitted across benchmarks; ECI is unbounded and is not a percentage.",
-      "methodology": "A capability estimate fitted across benchmarks; ECI is unbounded and is not a percentage. Methodology: https://epoch.ai/eci 25 models, prioritizing current models also listed by Artificial Analysis. Attribution: Epoch AI, CC-BY 4.0",
+      "methodology": "A capability estimate fitted across benchmarks; ECI is unbounded and is not a percentage. Methodology: https://epoch.ai/eci 25 models. Attribution: Epoch AI, CC-BY 4.0",
       "url": "https://epoch.ai/eci",
       "costMethod": "No task costs are reported in this dataset.",
       "timeMethod": "No task durations are reported in this dataset."
-    },
-    {
-      "id": "arc-agi-3-standard",
-      "name": "ARC-AGI-3 · Standard harness",
-      "source": "ARC Prize",
-      "category": "reasoning",
-      "unit": "Score (%)",
-      "description": "Verified semi-private interactive-reasoning results; Provider Adapter results are deliberately separate and not imported here.",
-      "methodology": "Verified semi-private interactive-reasoning results; Provider Adapter results are deliberately separate and not imported here. Methodology: https://arcprize.org/arc-agi/3/ Primary is highest published effort in the Standard harness, not independently maximized across harnesses.",
-      "url": "https://arcprize.org/leaderboard",
-      "costMethod": "Omitted: published aggregate evaluation spend is not a per-task quote.",
-      "timeMethod": "No comparable average duration imported."
     },
     {
       "id": "plato-web-clone-bench",
@@ -809,28 +785,6 @@
       "url": "https://plato.so/research/web-clone-bench/",
       "costMethod": "Source-reported mean USD per app-cloning run across nine app tasks; billing components are not itemized.",
       "timeMethod": "Source-reported mean wall-clock time per app-cloning run; rounded minutes converted to seconds."
-    },
-    {
-      "id": "designarena-agentic",
-      "name": "DesignArena · Overall Agentic",
-      "source": "DesignArena",
-      "category": "design",
-      "unit": "Elo",
-      "description": "Community preference across agent-built creative artifacts.",
-      "methodology": "Top 15 visible rows; Bradley–Terry ratings. Task mix includes frontend, fullstack, games, mobile, slides and spreadsheets. Unstated efforts remain unknown.",
-      "url": "https://www.designarena.ai/leaderboard",
-      "updatedAt": "2026-11-16T02:03:00Z"
-    },
-    {
-      "id": "arena-creative-writing",
-      "name": "Arena · Creative writing",
-      "source": "Arena",
-      "category": "writing",
-      "unit": "rating",
-      "description": "Selected model configurations from the writing preference board.",
-      "methodology": "Default published view, dated November 11. Category-specific pairwise preference; retain displayed uncertainty and effort. Scores do not measure factual correctness.",
-      "url": "https://arena.ai/leaderboard/chat/text/creative-writing",
-      "updatedAt": "2026-11-11"
     }
   ],
   "results": [
@@ -2679,33 +2633,6 @@
       "limitations": "Pricing table uses ≥200K for long context while individual model prose says exceed 200K; this dataset conservatively follows the pricing table."
     },
     {
-      "id": "artificial-analysis-model-leaderboard",
-      "name": "Artificial Analysis model leaderboard",
-      "url": "https://artificialanalysis.ai/leaderboards/models",
-      "kind": "Independent benchmark",
-      "coverage": "Intelligence, benchmark-workload costs, estimated latency and context.",
-      "access": "Public table; documented Data API requires a key.",
-      "limitations": "Results depend on evaluation version and exact reasoning settings."
-    },
-    {
-      "id": "artificial-analysis-methodology",
-      "name": "Artificial Analysis methodology",
-      "url": "https://artificialanalysis.ai/methodology",
-      "kind": "Methodology",
-      "coverage": "Meaning of cost/task, estimated time/task and endpoint measurements.",
-      "access": "Public documentation.",
-      "limitations": "Benchmark task costs cannot predict arbitrary work."
-    },
-    {
-      "id": "artificial-analysis-data-api",
-      "name": "Artificial Analysis Data API",
-      "url": "https://artificialanalysis.ai/api-reference",
-      "kind": "Data access",
-      "coverage": "Programmatic benchmark and model data.",
-      "access": "API key required; no key used for this snapshot.",
-      "limitations": "Access and redistribution terms need review before automated ingestion."
-    },
-    {
       "id": "terminal-bench",
       "name": "Terminal-Bench",
       "url": "https://www.tbench.ai/",
@@ -2751,15 +2678,6 @@
       "limitations": "Component evaluations differ by source, configuration and date."
     },
     {
-      "id": "arc-prize-verified-leaderboard",
-      "name": "ARC Prize verified leaderboard",
-      "url": "https://arcprize.org/leaderboard",
-      "kind": "Reasoning benchmark",
-      "coverage": "ARC-AGI-1, 2 and 3 with verified configurations.",
-      "access": "Public tables and individual result pages.",
-      "limitations": "ARC-AGI-3 Standard and Provider Adapter harnesses produce materially different results; checkpoint and timeout caveats matter."
-    },
-    {
       "id": "plato-web-clone-bench",
       "name": "Plato Web Clone Bench",
       "url": "https://plato.so/research/web-clone-bench/",
@@ -2767,24 +2685,6 @@
       "coverage": "Nine reference apps, visual/functional scores, average run cost and duration",
       "access": "Public results",
       "limitations": "Best effort differs by model; billing inclusions unspecified."
-    },
-    {
-      "id": "designarena-overall-agentic",
-      "name": "DesignArena Overall Agentic",
-      "url": "https://www.designarena.ai/leaderboard",
-      "kind": "human preference",
-      "coverage": "Agent-built artifact preference",
-      "access": "Public leaderboard; authenticated API available",
-      "limitations": "Dynamic snapshot; first 15 visible rows only."
-    },
-    {
-      "id": "arena-creative-writing",
-      "name": "Arena Creative Writing",
-      "url": "https://arena.ai/leaderboard/chat/text/creative-writing",
-      "kind": "human preference",
-      "coverage": "Writing-category ratings",
-      "access": "Public leaderboard",
-      "limitations": "Selected rows; default view; uncertainty overlaps."
     },
     {
       "id": "contra-labs-research",
@@ -2911,24 +2811,6 @@
       "coverage": "Parallelism, coordination and sequential dependencies",
       "access": "Public research summary with paper",
       "limitations": "Aggregate architecture findings, not model recommendations."
-    },
-    {
-      "id": "designarena-methodology",
-      "name": "DesignArena methodology",
-      "url": "https://notes.designarena.ai/methodology/",
-      "kind": "methodology",
-      "coverage": "Bradley–Terry ratings and voting protocol",
-      "access": "Public documentation",
-      "limitations": "Read board-specific caveats for uncertainty."
-    },
-    {
-      "id": "designarena-api",
-      "name": "DesignArena API",
-      "url": "https://docs.designarena.ai/api-reference/overview",
-      "kind": "data access",
-      "coverage": "Leaderboard endpoints and model mapping",
-      "access": "API key application and attribution required",
-      "limitations": "No API key was used or added."
     }
   ]
 }

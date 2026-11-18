@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import rawGuide from '../../research/app-model-choices.json' with { type: 'json' };
 import rawSnapshot from './snapshot.json' with { type: 'json' };
-import { restrictedResultId } from './restricted.ts';
 const { models, reports, results } = rawSnapshot;
 
 const text = z.string().trim().min(1);
@@ -90,8 +89,7 @@ export const guideSchema = z
         if (
           !(evidence.kind === 'result' ? results : reports).some(
             (item) => item.id === evidence.id,
-          ) &&
-          !(evidence.kind === 'result' && restrictedResultId(evidence.id))
+          )
         )
           issue('Unknown supporting evidence');
     }

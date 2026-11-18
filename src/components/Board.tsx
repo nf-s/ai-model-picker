@@ -6,7 +6,7 @@ import type { ArxivData } from '../lib/arxiv-client';
 import { areaLabels, tallyResults } from '../lib/arxiv-papers';
 import type { AreaTallies } from '../lib/arxiv-papers';
 import type { ArxivArea } from '../lib/arxiv-schema';
-import { benchmarks, models, restrictedHidden } from '../lib/data';
+import { benchmarks, models } from '../lib/data';
 import type { Benchmark, Category, Model } from '../lib/data';
 import { positiveShare, sumWeeks, tallyTotal } from '../lib/hn-insights';
 import type { HnAspect } from '../lib/hn-index';
@@ -159,8 +159,6 @@ function paperColumns(task: Task): Column[] {
       ];
 }
 
-const restrictedUnit = 'approved accounts only';
-
 function buildColumns(task: Task): Column[] {
   const topic = topicOf(task);
   return [
@@ -169,7 +167,7 @@ function buildColumns(task: Task): Column[] {
       kind: 'benchmark',
       id: `benchmark:${benchmark.id}`,
       label: benchmarkLabel(benchmark),
-      unit: restrictedHidden(benchmark.id) ? restrictedUnit : benchmark.unit,
+      unit: benchmark.unit,
       benchmark,
     })),
     ...paperColumns(task),
@@ -222,9 +220,7 @@ function compareValues(a: SortValue, b: SortValue, direction: Direction) {
 }
 
 function defaultSort(task: Task): { id: string; direction: Direction } {
-  const first = taskBenchmarks(task).find(
-    (benchmark) => !restrictedHidden(benchmark.id),
-  );
+  const first = taskBenchmarks(task)[0];
   return {
     id: task === 'all' || !first ? 'comments' : `benchmark:${first.id}`,
     direction: 'desc',
@@ -377,9 +373,7 @@ function Leaders({
             key={benchmark.id}
             title={benchmarkLabel(benchmark)}
             href={routeHref({ view: 'benchmark', id: benchmark.id })}
-            note={
-              restrictedHidden(benchmark.id) ? restrictedUnit : benchmark.unit
-            }
+            note={benchmark.unit}
             leaders={benchmarkLeaders(benchmark, scope)}
           />
         ))

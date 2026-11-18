@@ -31,14 +31,10 @@ export type Standing = {
 };
 
 const shortBenchmarkNames: Record<string, string> = {
-  'aa-intelligence': 'AA Index',
   'epoch-eci': 'Epoch ECI',
   'terminal-bench-4-1': 'Terminal-Bench',
   'swe-rebench-2026-05-15-2026-07-01': 'SWE-rebench',
   'plato-web-clone-bench': 'Web Clone',
-  'arc-agi-3-standard': 'ARC-AGI-3',
-  'designarena-agentic': 'DesignArena',
-  'arena-creative-writing': 'Arena Writing',
 };
 
 export const modelById = new Map(models.map((model) => [model.id, model]));
@@ -47,7 +43,9 @@ export const benchmarkById = new Map(
 );
 
 export function benchmarkLabel(benchmark: Benchmark) {
-  return shortBenchmarkNames[benchmark.id] ?? benchmark.name;
+  return (
+    benchmark.shortName ?? shortBenchmarkNames[benchmark.id] ?? benchmark.name
+  );
 }
 
 export const standings = new Map<string, Map<string, Standing>>(

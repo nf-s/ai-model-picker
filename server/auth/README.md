@@ -66,17 +66,17 @@ migration to any other database.
 
 ## Routes
 
-| Route                        | Request                               | Result                                                                                                      |
-| ---------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `GET /auth/google/start`     | Optional `next` local URL             | 303 to Google, sets browser-binding cookie                                                                  |
-| `GET /auth/google/callback`  | Google `code`/`state`, binding cookie | 303 to the safe `next` URL with session and CSRF cookies; on failure 303 to `/#/account?error=<code>`       |
-| `POST /auth/logout`          | Session, `X-CSRF-Token`, `Origin`     | `{ok:true}`; revokes the session and clears all four cookies                                                |
-| `GET /api/session`           | Session cookie                        | `{authenticated:false}` or `{authenticated:true,email,sub,isAdmin,csrfToken,expiresAt}`                     |
-| `GET /api/enrollment`        | Enrollment cookie                     | `{enrollment:null}` or `{enrollment:{email,subject,expiresAt}}`                                             |
-| `GET /api/admin/access`      | Administrator session                 | `{adminEmail,grants:[{email,subject,enabled,isAdmin,updatedAt}]}`                                           |
-| `POST /api/admin/access`     | `{email,subject?:string\|null}`       | Grant, re-enable or rebind; `{ok:true}`                                                                     |
-| `DELETE /api/admin/access`   | `{email}`                             | Revoke the grant and its sessions; `{ok:true}`                                                              |
-| `GET`/`HEAD /api/restricted` | Session of any granted user           | `{results:[...]}` from the ignored `.local/restricted/results.json`, bundled by `functions/api/[[path]].js` |
+| Route                        | Request                               | Result                                                                                                                                          |
+| ---------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /auth/google/start`     | Optional `next` local URL             | 303 to Google, sets browser-binding cookie                                                                                                      |
+| `GET /auth/google/callback`  | Google `code`/`state`, binding cookie | 303 to the safe `next` URL with session and CSRF cookies; on failure 303 to `/#/account?error=<code>`                                           |
+| `POST /auth/logout`          | Session, `X-CSRF-Token`, `Origin`     | `{ok:true}`; revokes the session and clears all four cookies                                                                                    |
+| `GET /api/session`           | Session cookie                        | `{authenticated:false}` or `{authenticated:true,email,sub,isAdmin,csrfToken,expiresAt}`                                                         |
+| `GET /api/enrollment`        | Enrollment cookie                     | `{enrollment:null}` or `{enrollment:{email,subject,expiresAt}}`                                                                                 |
+| `GET /api/admin/access`      | Administrator session                 | `{adminEmail,grants:[{email,subject,enabled,isAdmin,updatedAt}]}`                                                                               |
+| `POST /api/admin/access`     | `{email,subject?:string\|null}`       | Grant, re-enable or rebind; `{ok:true}`                                                                                                         |
+| `DELETE /api/admin/access`   | `{email}`                             | Revoke the grant and its sessions; `{ok:true}`                                                                                                  |
+| `GET`/`HEAD /api/restricted` | Session of any granted user           | The ignored `.local/restricted/payload.json` (`{benchmarks, results, sources, evidence, attributions}`), bundled by `functions/api/[[path]].js` |
 
 Errors are JSON `{error,message}` with a 4xx or 5xx status. Unknown `/auth/*`
 and `/api/*` paths return 404 `not_found`; known paths with another method

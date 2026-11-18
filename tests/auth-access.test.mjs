@@ -491,7 +491,7 @@ test('access checks deny cookies missing, duplicated, malformed and Basic fallba
   const admin = await h.login();
   for (const path of [
     '/api/restricted',
-    '/api/restricted?benchmark=aa-intelligence',
+    '/api/restricted?benchmark=restricted-bench',
   ]) {
     for (const method of ['GET', 'HEAD']) {
       const denied = await requireAccess(

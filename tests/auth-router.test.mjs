@@ -10,7 +10,7 @@ import { routeApi } from '../server/routes.mjs';
 
 // The API Function reads the ignored restricted file; tests use a fixture.
 const apiFunction = ({ request, env }) =>
-  routeApi(request, env, { results: restrictedFixture });
+  routeApi(request, env, { payload: restrictedFixture });
 
 const opened = [];
 afterEach(() => {
@@ -75,7 +75,7 @@ test('Pages Functions route auth and API paths and return JSON 404 otherwise', a
     env: h.env,
   });
   assert.equal(allowed.status, 200);
-  assert.deepEqual(await allowed.json(), { results: restrictedFixture });
+  assert.deepEqual(await allowed.json(), restrictedFixture);
   const unconfigured = { ...h.env };
   delete unconfigured.GOOGLE_CLIENT_SECRET;
   const failed = await apiFunction({

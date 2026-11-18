@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ArrowUpRight, X } from 'lucide-react';
-import { benchmarks, models, reports, restrictedHidden } from '../lib/data';
+import { benchmarks, models, reports } from '../lib/data';
 import type { Model } from '../lib/data';
 import { formatHnDate, formatHnRange } from '../lib/hn-client';
 import { hnAspects } from '../lib/hn-index';
@@ -215,15 +215,7 @@ function BenchmarkTiles({ model, scope }: { model: Model; scope: Scope }) {
                   </p>
                 </>
               ) : (
-                <p className="rd-note">
-                  {restrictedHidden(benchmark.id) ? (
-                    <a href={routeHref({ view: 'account', error: null })}>
-                      Approved accounts only
-                    </a>
-                  ) : (
-                    'No published result'
-                  )}
-                </p>
+                <p className="rd-note">No published result</p>
               )}
             </article>
           );

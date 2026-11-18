@@ -7,18 +7,14 @@ import {
   models,
   reports,
   results,
+  restrictedAttributions,
   sources,
 } from '../lib/data';
-import {
-  attributionCheckedAt,
-  attributions,
-  restrictedCredit,
-} from '../lib/attribution';
+import { attributionCheckedAt, attributions } from '../lib/attribution';
 import { guide } from '../lib/guide';
 import { formatHnRange, hnClassifierCheck, hnSources } from '../lib/hn-client';
 import type { HnPipeline } from '../lib/hn-client';
 import { hnPublished } from '../lib/hn-published';
-import { restrictedList } from '../lib/restricted';
 import { routeHref } from '../lib/route';
 import './data-page.css';
 
@@ -399,7 +395,7 @@ function Licences() {
         endorsed by any source.
       </p>
       <ul className="rd-panel rd-dp-sources">
-        {attributions.map((entry) => (
+        {[...attributions, ...restrictedAttributions].map((entry) => (
           <li key={entry.source}>
             <a
               className="rd-dp-link rd-dp-source-name"
@@ -429,32 +425,6 @@ function Licences() {
             )}
           </li>
         ))}
-        {restrictedList.benchmarks.map((entry) => {
-          const benchmark = benchmarks.find((item) => item.id === entry.id);
-          return (
-            <li key={entry.id}>
-              <a
-                className="rd-dp-link rd-dp-source-name"
-                href={benchmark?.url ?? entry.termsUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {benchmark?.name ?? entry.id}
-                <ArrowUpRight size={13} aria-hidden="true" />
-              </a>
-              <span className="rd-muted rd-dp-kind">
-                Shown to approved accounts only ·{' '}
-                <a href={entry.termsUrl} target="_blank" rel="noreferrer">
-                  Terms
-                </a>
-              </span>
-              <p className="rd-dp-coverage">
-                {restrictedCredit[entry.id]}. {entry.reason} Not included in the
-                download.
-              </p>
-            </li>
-          );
-        })}
         <li>
           <span className="rd-dp-source-name">Software and fonts</span>
           <p className="rd-dp-coverage">

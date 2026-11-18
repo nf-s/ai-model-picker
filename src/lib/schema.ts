@@ -55,6 +55,7 @@ export const benchmarkSchema = z.object({
   costMethod: text.optional(),
   timeMethod: text.optional(),
   updatedAt: text.optional(),
+  shortName: text.optional(),
 });
 export const resultSchema = z.object({
   id: text,

@@ -2,19 +2,6 @@
   "checkedAt": "2026-11-16",
   "benchmarks": [
     {
-      "id": "aa-intelligence",
-      "name": "Artificial Analysis Intelligence Index v5.0.1",
-      "category": "general",
-      "unit": "Index points",
-      "description": "Composite evaluation across knowledge work, coding, science and general knowledge.",
-      "url": "https://artificialanalysis.ai/leaderboards/models",
-      "methodology": "https://artificialanalysis.ai/methodology/intelligence-benchmarking",
-      "costMethod": "Weighted cost of one Intelligence Index task at provider token and cache prices; not the cost of building an app.",
-      "timeMethod": "Estimated from answer/reasoning tokens and representative API output speed; not measured end-to-end task duration.",
-      "selectionMethod": "One source-listed configuration per model.",
-      "results": []
-    },
-    {
       "id": "terminal-bench-4-1",
       "name": "Terminal-Bench 4.1",
       "category": "coding",
@@ -1506,7 +1493,7 @@
       "attribution": "Epoch AI, CC-BY 4.0",
       "costMethod": "No task costs are reported in this dataset.",
       "timeMethod": "No task durations are reported in this dataset.",
-      "selectionMethod": "25 models, prioritizing current models also listed by Artificial Analysis.",
+      "selectionMethod": "25 models.",
       "results": [
         {
           "modelName": "Claude Fable 5.2",
@@ -1859,46 +1846,9 @@
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         }
       ]
-    },
-    {
-      "id": "arc-agi-3-standard",
-      "name": "ARC-AGI-3 · Standard harness",
-      "category": "reasoning",
-      "unit": "Score (%)",
-      "description": "Verified semi-private interactive-reasoning results; Provider Adapter results are deliberately separate and not imported here.",
-      "url": "https://arcprize.org/leaderboard",
-      "methodology": "https://arcprize.org/arc-agi/3/",
-      "costMethod": "Omitted: published aggregate evaluation spend is not a per-task quote.",
-      "timeMethod": "No comparable average duration imported.",
-      "selectionMethod": "Primary is highest published effort in the Standard harness, not independently maximized across harnesses.",
-      "results": []
     }
   ],
   "sources": [
-    {
-      "name": "Artificial Analysis model leaderboard",
-      "url": "https://artificialanalysis.ai/leaderboards/models",
-      "kind": "Independent benchmark",
-      "coverage": "Intelligence, benchmark-workload costs, estimated latency and context.",
-      "access": "Public table; documented Data API requires a key.",
-      "limitations": "Results depend on evaluation version and exact reasoning settings."
-    },
-    {
-      "name": "Artificial Analysis methodology",
-      "url": "https://artificialanalysis.ai/methodology",
-      "kind": "Methodology",
-      "coverage": "Meaning of cost/task, estimated time/task and endpoint measurements.",
-      "access": "Public documentation.",
-      "limitations": "Benchmark task costs cannot predict arbitrary work."
-    },
-    {
-      "name": "Artificial Analysis Data API",
-      "url": "https://artificialanalysis.ai/api-reference",
-      "kind": "Data access",
-      "coverage": "Programmatic benchmark and model data.",
-      "access": "API key required; no key used for this snapshot.",
-      "limitations": "Access and redistribution terms need review before automated ingestion."
-    },
     {
       "name": "Terminal-Bench",
       "url": "https://www.tbench.ai/",
@@ -1938,14 +1888,6 @@
       "coverage": "Component model-by-benchmark observations behind ECI.",
       "access": "Public CSV.",
       "limitations": "Component evaluations differ by source, configuration and date."
-    },
-    {
-      "name": "ARC Prize verified leaderboard",
-      "url": "https://arcprize.org/leaderboard",
-      "kind": "Reasoning benchmark",
-      "coverage": "ARC-AGI-1, 2 and 3 with verified configurations.",
-      "access": "Public tables and individual result pages.",
-      "limitations": "ARC-AGI-3 Standard and Provider Adapter harnesses produce materially different results; checkpoint and timeout caveats matter."
     }
   ]
 }

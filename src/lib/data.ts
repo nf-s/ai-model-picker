@@ -1,6 +1,7 @@
 import rawSnapshot from './snapshot.json';
 import { attributionCheckedAt, attributions } from './attribution';
-import { restrictedById, validRestrictedResults } from './restricted';
+import { validRestrictedPayload } from './restricted';
+import type { RestrictedPayload } from './restricted';
 import { snapshotSchema } from './schema';
 import type { ModelRecord } from './schema';
 
@@ -10,27 +11,36 @@ export const { checkedAt, benchmarks, results, reports, sources } = snapshot;
 export type Model = ModelRecord;
 export const models: Model[] = snapshot.models;
 
-// The published build leaves out results whose source terms do not allow
-// republishing; approved accounts load them before the app renders.
+// Copied before any restricted records are added, so the download stays public.
+const publicSnapshot = {
+  ...snapshot,
+  benchmarks: [...benchmarks],
+  results: [...results],
+  sources: [...sources],
+};
+
+// The published build calls /api/restricted for signed-in accounts; local
+// builds read the same payload from .local/restricted/ through the dev server.
 export const restrictedRemote = import.meta.env?.VITE_RESTRICTED === 'remote';
-let restrictedLoaded = results.some((result) =>
-  restrictedById.has(result.benchmarkId),
-);
+export const restrictedEvidence: RestrictedPayload['evidence'] = [];
+export const restrictedAttributions: RestrictedPayload['attributions'] = [];
+let restrictedLoaded = false;
 
-export function restrictedHidden(benchmarkId: string) {
-  return !restrictedLoaded && restrictedById.has(benchmarkId);
-}
-
-/** Adds the restricted results once; returns false for an invalid payload. */
-export function addRestrictedResults(payload: unknown) {
+/** Adds the restricted records once, before the app renders. */
+export function addRestricted(payload: unknown) {
   if (restrictedLoaded) return true;
-  const added = validRestrictedResults(payload, {
+  const added = validRestrictedPayload(payload, {
     modelIds: new Set(models.map((model) => model.id)),
     benchmarkIds: new Set(benchmarks.map((benchmark) => benchmark.id)),
     resultIds: new Set(results.map((result) => result.id)),
+    sourceIds: new Set(sources.map((source) => source.id)),
   });
   if (!added) return false;
-  results.push(...added);
+  benchmarks.push(...added.benchmarks);
+  results.push(...added.results);
+  sources.push(...added.sources);
+  restrictedEvidence.push(...added.evidence);
+  restrictedAttributions.push(...added.attributions);
   restrictedLoaded = true;
   return true;
 }
@@ -41,11 +51,7 @@ export function downloadSnapshot() {
       [
         JSON.stringify(
           {
-            ...snapshot,
-            // Restricted results are for viewing only and are never exported.
-            results: results.filter(
-              (result) => !restrictedById.has(result.benchmarkId),
-            ),
+            ...publicSnapshot,
             attribution: { checkedAt: attributionCheckedAt, attributions },
           },
           null,

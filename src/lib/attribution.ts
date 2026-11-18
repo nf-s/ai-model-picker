@@ -122,10 +122,3 @@ export const attributions: Attribution[] = [
     changes: null,
   },
 ];
-
-export const restrictedCredit: Record<string, string> = {
-  'aa-intelligence': 'Source: Artificial Analysis (artificialanalysis.ai)',
-  'arc-agi-3-standard': 'Source: ARC Prize (arcprize.org)',
-  'designarena-agentic': 'Source: DesignArena (designarena.ai)',
-  'arena-creative-writing': 'Source: Arena (arena.ai)',
-};

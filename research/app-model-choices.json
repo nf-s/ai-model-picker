@@ -322,13 +322,7 @@
           "tradeoff": "Suited to direct drafting and revision from supplied material."
         }
       ],
-      "evidence": [
-        {
-          "kind": "result",
-          "id": "arena-creative-writing:2",
-          "note": "Opus 5.5 High's Arena Creative Writing rating. The rating measures writing preference."
-        }
-      ]
+      "evidence": []
     },
     {
       "id": "research",
@@ -376,11 +370,6 @@
         }
       ],
       "evidence": [
-        {
-          "kind": "result",
-          "id": "designarena-agentic:1",
-          "note": "Opus 5.5 High led the DesignArena Agentic results in this snapshot."
-        },
         {
           "kind": "result",
           "id": "plato-web-clone-bench:1",
@@ -452,18 +441,7 @@
           "tradeoff": "You can move to Extra High in the same model family if the analysis is shallow."
         }
       ],
-      "evidence": [
-        {
-          "kind": "result",
-          "id": "arc-agi-3-standard:3",
-          "note": "Fable 5.2 High's score on 55 interactive ARC-AGI-3 games in the standard harness."
-        },
-        {
-          "kind": "result",
-          "id": "arc-agi-3-standard:6",
-          "note": "Astra Max's score in the same benchmark harness. These scores describe model runs on puzzles."
-        }
-      ]
+      "evidence": []
     },
     {
       "id": "images",

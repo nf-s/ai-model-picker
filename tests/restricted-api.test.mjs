@@ -9,7 +9,7 @@ const opened = [];
 function setup() {
   const value = harness();
   opened.push(value.binding);
-  value.dependencies = { ...value.dependencies, results: restrictedFixture };
+  value.dependencies = { ...value.dependencies, payload: restrictedFixture };
   return value;
 }
 afterEach(() => {
@@ -75,7 +75,7 @@ test('a granted session receives the restricted results with private headers', a
     ['referrer-policy', 'no-referrer'],
   ])
     assert.equal(allowed.headers.get(name), value, name);
-  assert.deepEqual(await allowed.json(), { results: restrictedFixture });
+  assert.deepEqual(await allowed.json(), restrictedFixture);
   const head = await handleRestrictedRequest(
     request(session, 'HEAD'),
     h.env,

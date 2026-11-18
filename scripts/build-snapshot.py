@@ -20,15 +20,20 @@ def rates(value):
 pricing = read('pricing')
 benchmark_inputs = [read('benchmarks'), read('creative-benchmarks')]
 report_input = read('reports')
-# Results whose source terms do not allow republishing stay in an ignored local
-# file and are written to a separate local output, never to the tracked snapshot.
-restricted_ids = {item['id'] for item in json.loads((ROOT / 'src' / 'lib' / 'restricted-benchmarks.json').read_text())['benchmarks']}
+# Benchmarks whose source terms do not allow republishing are kept in an ignored
+# local file, with their sources, guide evidence and credits. They are written to
+# a separate local payload, never to the tracked snapshot. `position` restores
+# each benchmark's place so model identities keep their order.
 restricted_input = ROOT / '.local' / 'restricted' / 'research.json'
 if not restricted_input.exists():
-    raise SystemExit(f'Missing {restricted_input.relative_to(ROOT)}: the restricted benchmark results are kept outside Git.')
-restricted_rows = json.loads(restricted_input.read_text())
-if set(restricted_rows) != restricted_ids:
-    raise SystemExit('The local restricted results do not match src/lib/restricted-benchmarks.json.')
+    raise SystemExit(f'Missing {restricted_input.relative_to(ROOT)}: benchmarks that cannot be republished are kept outside Git.')
+restricted = json.loads(restricted_input.read_text())
+restricted_ids = {item['id'] for item in restricted['benchmarks']}
+benchmark_items = [item for dataset in benchmark_inputs for item in dataset['benchmarks']]
+if restricted_ids & {item['id'] for item in benchmark_items}:
+    raise SystemExit(f'Restricted benchmarks must stay in {restricted_input.relative_to(ROOT)}, not research/.')
+for item in sorted(restricted['benchmarks'], key=lambda entry: entry['position']):
+    benchmark_items.insert(item['position'], item)
 model_records = []
 name_to_id = {}
 for item in pricing['models']:
@@ -89,49 +94,43 @@ def interval_label(value):
     return f"{value['lower']}–{value['upper']} · {value['kind']}"
 
 benchmarks, results = [], []
-for dataset in benchmark_inputs:
-    for item in dataset['benchmarks']:
-        source = 'Artificial Analysis' if item['id'].startswith('aa-') else 'Epoch AI' if item['id'].startswith('epoch-') else 'ARC Prize' if item['id'].startswith('arc-') else item['name'].split(' · ')[0]
-        method = item['methodology']
-        if method.startswith('http'):
-            method = item['description'] + ' Methodology: ' + method
-        if item.get('selectionMethod'):
-            method += ' ' + item['selectionMethod']
-        if item.get('attribution'):
-            method += ' Attribution: ' + item['attribution']
-        record = {'id': item['id'], 'name': item['name'], 'source': source, 'category': item['category'], 'unit': item['unit'], 'description': item['description'], 'methodology': method, 'url': item['url']}
-        for key in ['costMethod', 'timeMethod']:
-            if item.get(key):
-                record[key] = item[key]
-        updated = item.get('updatedAt', item.get('publishedDataUpdatedAt'))
-        if updated:
-            record['updatedAt'] = updated
-        benchmarks.append(record)
-        rows = item['results']
-        if item['id'] in restricted_ids:
-            if rows:
-                raise SystemExit(f"{item['id']} results must stay in {restricted_input.relative_to(ROOT)}, not research/.")
-            rows = restricted_rows[item['id']]
-        for index, row in enumerate(rows):
-            details = [row.get('details', '')]
-            if row.get('sampleSize'):
-                details.append(f"Sample size: {row['sampleSize']}.")
-            if row.get('winRatePercent') is not None:
-                details.append(f"Reported win rate: {row['winRatePercent']}%.")
-            if row.get('displayedMarginPercent') is not None:
-                details.append(f"Displayed margin: ±{row['displayedMarginPercent']}% (as displayed; definition unclear).")
-            result = {'id': f"{item['id']}:{index + 1}", 'modelId': model_id(row['modelName'], row.get('provider')), 'benchmarkId': item['id'], 'score': row['score'], 'configuration': row['configuration'], 'details': ' '.join(part for part in details if part), 'sourceUrl': row.get('sourceUrl', item['url'])}
-            for key in ['costUsd', 'timeSeconds', 'totalCostUsd', 'trials']:
-                if key in row:
-                    result[key] = row[key]
-            if 'interval' in row:
-                result['interval'] = interval_label(row['interval'])
-            elif row.get('confidence'):
-                result['interval'] = row['confidence']
-            date = row.get('runDate', row.get('publicationDate'))
-            if date:
-                result['runDate'] = date
-            results.append(result)
+for item in benchmark_items:
+    source = item.get('source') or ('Epoch AI' if item['id'].startswith('epoch-') else item['name'].split(' · ')[0])
+    method = item['methodology']
+    if method.startswith('http'):
+        method = item['description'] + ' Methodology: ' + method
+    if item.get('selectionMethod'):
+        method += ' ' + item['selectionMethod']
+    if item.get('attribution'):
+        method += ' Attribution: ' + item['attribution']
+    record = {'id': item['id'], 'name': item['name'], 'source': source, 'category': item['category'], 'unit': item['unit'], 'description': item['description'], 'methodology': method, 'url': item['url']}
+    for key in ['costMethod', 'timeMethod', 'shortName']:
+        if item.get(key):
+            record[key] = item[key]
+    updated = item.get('updatedAt', item.get('publishedDataUpdatedAt'))
+    if updated:
+        record['updatedAt'] = updated
+    benchmarks.append(record)
+    for index, row in enumerate(item['results']):
+        details = [row.get('details', '')]
+        if row.get('sampleSize'):
+            details.append(f"Sample size: {row['sampleSize']}.")
+        if row.get('winRatePercent') is not None:
+            details.append(f"Reported win rate: {row['winRatePercent']}%.")
+        if row.get('displayedMarginPercent') is not None:
+            details.append(f"Displayed margin: ±{row['displayedMarginPercent']}% (as displayed; definition unclear).")
+        result = {'id': f"{item['id']}:{index + 1}", 'modelId': model_id(row['modelName'], row.get('provider')), 'benchmarkId': item['id'], 'score': row['score'], 'configuration': row['configuration'], 'details': ' '.join(part for part in details if part), 'sourceUrl': row.get('sourceUrl', item['url'])}
+        for key in ['costUsd', 'timeSeconds', 'totalCostUsd', 'trials']:
+            if key in row:
+                result[key] = row[key]
+        if 'interval' in row:
+            result['interval'] = interval_label(row['interval'])
+        elif row.get('confidence'):
+            result['interval'] = row['confidence']
+        date = row.get('runDate', row.get('publicationDate'))
+        if date:
+            result['runDate'] = date
+        results.append(result)
 
 reports = []
 for item in report_input['reports']:
@@ -145,11 +144,19 @@ for dataset in [pricing, *benchmark_inputs, report_input]:
         if url not in sources_by_url:
             sources_by_url[url] = {'id': slug(item['name']), **item}
 
-public_results = [result for result in results if result['benchmarkId'] not in restricted_ids]
-restricted_results = [result for result in results if result['benchmarkId'] in restricted_ids]
-snapshot = {'checkedAt': pricing['checkedAt'], 'models': model_records, 'benchmarks': benchmarks, 'results': public_results, 'reports': reports, 'sources': list(sources_by_url.values())}
+restricted_sources = {}
+for item in restricted['sources']:
+    url = item['url'].rstrip('/')
+    if url not in sources_by_url and url not in restricted_sources:
+        restricted_sources[url] = {'id': slug(item['name']), **item}
+
+def public(record, key='benchmarkId'):
+    return record[key] not in restricted_ids
+
+snapshot = {'checkedAt': pricing['checkedAt'], 'models': model_records, 'benchmarks': [item for item in benchmarks if public(item, 'id')], 'results': [item for item in results if public(item)], 'reports': reports, 'sources': list(sources_by_url.values())}
 path = ROOT / 'src' / 'lib' / 'snapshot.json'
 path.write_text(json.dumps(snapshot, indent=2, ensure_ascii=False) + '\n')
-restricted_path = ROOT / '.local' / 'restricted' / 'results.json'
-restricted_path.write_text(json.dumps({'results': restricted_results}, indent=2, ensure_ascii=False) + '\n')
-print(f"Saved {len(model_records)} model identities, {len(benchmarks)} benchmarks, {len(public_results)} public and {len(restricted_results)} restricted results, {len(reports)} reports, {len(sources_by_url)} sources.")
+payload = {'checkedAt': restricted['checkedAt'], 'benchmarks': [item for item in benchmarks if not public(item, 'id')], 'results': [item for item in results if not public(item)], 'sources': list(restricted_sources.values()), 'evidence': restricted['evidence'], 'attributions': restricted['attributions']}
+payload_path = ROOT / '.local' / 'restricted' / 'payload.json'
+payload_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + '\n')
+print(f"Saved {len(model_records)} model identities, {len(snapshot['benchmarks'])} benchmarks, {len(snapshot['results'])} results, {len(reports)} reports, {len(sources_by_url)} sources; {len(payload['benchmarks'])} restricted benchmarks with {len(payload['results'])} results in {payload_path.relative_to(ROOT)}.")

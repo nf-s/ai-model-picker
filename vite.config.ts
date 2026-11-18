@@ -5,14 +5,13 @@ import type { Connect, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { z } from 'zod';
 
-// Serves the local arXiv snapshot at the path the published build uses.
-// Only this one fixed file is ever read.
-function arxivSnapshot(): Plugin {
+// Serves a local file at the path the published site uses for it. Only the
+// one fixed file is ever read, and only by the dev and preview servers.
+function localJson(name: string, route: string, relative: string[]): Plugin {
   let file = '';
   const serve: Connect.NextHandleFunction = (request, response, next) => {
     const path = new URL(request.url ?? '/', 'http://localhost').pathname;
-    if (request.method !== 'GET' || path !== '/arxiv-snapshot.json')
-      return next();
+    if (request.method !== 'GET' || path !== route) return next();
     response.setHeader('Cache-Control', 'no-store');
     readFile(file).then(
       (body) => {
@@ -28,69 +27,15 @@ function arxivSnapshot(): Plugin {
     );
   };
   return {
-    name: 'arxiv-snapshot',
+    name,
     configResolved(config) {
-      file = join(config.root, '.local', 'arxiv', 'papers.json');
+      file = join(config.root, ...relative);
     },
     configureServer(server) {
       server.middlewares.use(serve);
     },
     configurePreviewServer(server) {
       server.middlewares.use(serve);
-    },
-  };
-}
-
-const SnapshotResults = z.looseObject({
-  results: z.array(z.looseObject({})),
-});
-
-// Results whose source terms do not allow republishing are kept outside Git
-// in .local/restricted/. Local builds merge them into the snapshot; the
-// published build leaves them out and signed-in users load them from
-// /api/restricted.
-function restrictedResults(): Plugin {
-  let merge = false;
-  let snapshotFile = '';
-  let restrictedFile = '';
-  return {
-    name: 'restricted-results',
-    enforce: 'pre',
-    configResolved(config) {
-      merge = config.env.VITE_RESTRICTED !== 'remote';
-      snapshotFile = join(config.root, 'src', 'lib', 'snapshot.json');
-      restrictedFile = join(
-        config.root,
-        '.local',
-        'restricted',
-        'results.json',
-      );
-    },
-    async transform(code, id) {
-      if (!merge || id.split('?')[0] !== snapshotFile) return null;
-      let restricted: string;
-      try {
-        restricted = await readFile(restrictedFile, 'utf8');
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          'code' in error &&
-          error.code === 'ENOENT'
-        )
-          return null;
-        throw error;
-      }
-      const snapshot = SnapshotResults.parse(JSON.parse(code));
-      return {
-        code: JSON.stringify({
-          ...snapshot,
-          results: [
-            ...snapshot.results,
-            ...SnapshotResults.parse(JSON.parse(restricted)).results,
-          ],
-        }),
-        map: null,
-      };
     },
   };
 }
@@ -158,9 +103,19 @@ function thirdPartyLicenses(): Plugin {
 
 export default defineConfig({
   plugins: [
-    restrictedResults(),
     react(),
-    arxivSnapshot(),
+    localJson('arxiv-snapshot', '/arxiv-snapshot.json', [
+      '.local',
+      'arxiv',
+      'papers.json',
+    ]),
+    // Benchmarks that cannot be republished; the published site serves them
+    // to approved accounts from a Pages Function instead.
+    localJson('restricted-payload', '/api/restricted', [
+      '.local',
+      'restricted',
+      'payload.json',
+    ]),
     thirdPartyLicenses(),
   ],
   server: {

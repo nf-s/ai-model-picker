@@ -6,11 +6,10 @@ import {
   benchmarks,
   models,
   reports,
-  restrictedHidden,
+  restrictedEvidence,
   results,
 } from '../lib/data';
 import { routeHref } from '../lib/route';
-import { RestrictedNote } from './parts';
 import {
   benchmarkLabel,
   formatScore,
@@ -104,12 +103,22 @@ function Choice({
   );
 }
 
+// Evidence from benchmarks that cannot be republished is added only when an
+// approved account has loaded it.
+function taskEvidence(task: GuideTask) {
+  return [
+    ...restrictedEvidence.filter((item) => item.taskId === task.id),
+    ...task.evidence,
+  ];
+}
+
 function Evidence({ task }: { task: GuideTask }) {
+  const evidence = taskEvidence(task);
   return (
     <div className="rd-ag-evidence">
-      <h4 className="rd-h">Supporting evidence ({task.evidence.length})</h4>
+      <h4 className="rd-h">Supporting evidence ({evidence.length})</h4>
       <ul>
-        {task.evidence.map((item) => {
+        {evidence.map((item) => {
           const result =
             item.kind === 'result'
               ? results.find((entry) => entry.id === item.id)
@@ -118,18 +127,11 @@ function Evidence({ task }: { task: GuideTask }) {
             item.kind === 'report'
               ? reports.find((entry) => entry.id === item.id)
               : undefined;
-          const benchmarkId =
-            result?.benchmarkId ??
-            (item.kind === 'result'
-              ? item.id.slice(0, item.id.lastIndexOf(':'))
-              : undefined);
           const benchmark = benchmarks.find(
-            (entry) => entry.id === benchmarkId,
+            (entry) => entry.id === result?.benchmarkId,
           );
-          const hidden =
-            benchmarkId !== undefined && restrictedHidden(benchmarkId);
           const model = models.find((entry) => entry.id === result?.modelId);
-          const href = result?.sourceUrl ?? report?.url ?? benchmark?.url;
+          const href = result?.sourceUrl ?? report?.url;
           const name = benchmark ? benchmarkLabel(benchmark) : report?.title;
           return (
             <li key={item.id}>
@@ -151,7 +153,6 @@ function Evidence({ task }: { task: GuideTask }) {
                 )}
               </div>
               <p>{item.note}</p>
-              {hidden && <RestrictedNote />}
               <p className="rd-note">
                 {report?.limitation ?? benchmark?.methodology}
               </p>
@@ -247,7 +248,7 @@ function Detail({
           </button>
         </p>
       )}
-      {task.evidence.length > 0 && <Evidence task={task} />}
+      {taskEvidence(task).length > 0 && <Evidence task={task} />}
       {sources.length > 0 && (
         <p className="rd-ag-sources">
           <span className="rd-muted">Sources</span>

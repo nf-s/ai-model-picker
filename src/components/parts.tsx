@@ -13,18 +13,6 @@ import type {
 import { readHnItems, readHnThread } from '../lib/hn-reader';
 import type { HnItem, HnThread } from '../lib/hn-reader';
 import { keyName, percent, weekLabel } from '../lib/site-data';
-import { routeHref } from '../lib/route';
-
-/** Stands in for results whose source terms do not allow republishing. */
-export function RestrictedNote() {
-  return (
-    <p className="rd-note">
-      This source's terms do not allow public republishing, so its results are
-      shown to approved accounts only.{' '}
-      <a href={routeHref({ view: 'account', error: null })}>Sign in</a>
-    </p>
-  );
-}
 
 export const sentimentLabels: Record<HnSentiment, string> = {
   positive: 'Positive',

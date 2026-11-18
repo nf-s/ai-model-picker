@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import { restrictedFixture } from '../server/auth/restricted-fixture.mjs';
 import {
-  restrictedById,
-  restrictedResponseSchema,
-  restrictedResultId,
-  validRestrictedResults,
+  restrictedPayloadSchema,
+  validRestrictedPayload,
 } from '../src/lib/restricted.ts';
 import { snapshotSchema } from '../src/lib/schema.ts';
 
@@ -14,72 +13,61 @@ const snapshot = snapshotSchema.parse(
     readFileSync(new URL('../src/lib/snapshot.json', import.meta.url), 'utf8'),
   ),
 );
-// The restricted results are kept outside Git; tests that need the real list
-// are skipped in a checkout without it.
-const localFile = new URL('../.local/restricted/results.json', import.meta.url);
-const local = existsSync(localFile);
-const restricted = local
-  ? restrictedResponseSchema.parse(JSON.parse(readFileSync(localFile, 'utf8')))
-      .results
-  : [];
-const open = snapshot.results;
 const known = {
   modelIds: new Set(snapshot.models.map((model) => model.id)),
   benchmarkIds: new Set(snapshot.benchmarks.map((benchmark) => benchmark.id)),
-  resultIds: new Set(open.map((result) => result.id)),
+  resultIds: new Set(snapshot.results.map((result) => result.id)),
+  sourceIds: new Set(snapshot.sources.map((source) => source.id)),
 };
 
-test('the tracked snapshot holds no restricted results', () => {
-  assert.ok(open.every((result) => !restrictedById.has(result.benchmarkId)));
-});
+// The real payload is kept outside Git; its test is skipped without it.
+const localFile = new URL('../.local/restricted/payload.json', import.meta.url);
+const local = existsSync(localFile);
 
 test(
-  'every restricted benchmark exists and has local results',
+  'the local payload adds only new records that refer to known models',
   { skip: !local },
   () => {
-    for (const id of restrictedById.keys()) {
-      assert.ok(known.benchmarkIds.has(id), id);
-      assert.ok(
-        restricted.some((result) => result.benchmarkId === id),
-        id,
-      );
-    }
-    assert.equal(restricted.length, 80);
+    const payload = restrictedPayloadSchema.parse(
+      JSON.parse(readFileSync(localFile, 'utf8')),
+    );
+    assert.ok(validRestrictedPayload(payload, known));
+    const ids = new Set(payload.benchmarks.map((benchmark) => benchmark.id));
+    assert.ok(snapshot.results.every((result) => !ids.has(result.benchmarkId)));
+    const urls = new Set(payload.sources.map((source) => source.url));
+    assert.ok(snapshot.sources.every((source) => !urls.has(source.url)));
   },
 );
 
-test('result IDs are recognised by their benchmark prefix', () => {
-  assert.equal(restrictedResultId('designarena-agentic:1'), true);
-  assert.equal(restrictedResultId('epoch-eci:1'), false);
-  assert.equal(restrictedResultId('designarena-agentic'), false);
+test('a payload is rejected when it repeats or breaks references', () => {
+  assert.deepEqual(
+    validRestrictedPayload(restrictedFixture, known),
+    restrictedFixture,
+  );
+  const [result] = restrictedFixture.results;
+  const [benchmark] = restrictedFixture.benchmarks;
+  assert.ok(result && benchmark);
+  for (const broken of [
+    { ...restrictedFixture, results: [result, result] },
+    {
+      ...restrictedFixture,
+      results: [{ ...result, modelId: 'missing-model' }],
+    },
+    {
+      ...restrictedFixture,
+      results: [{ ...result, benchmarkId: 'epoch-eci' }],
+    },
+    {
+      ...restrictedFixture,
+      benchmarks: [{ ...benchmark, id: 'epoch-eci' }],
+    },
+    {
+      ...restrictedFixture,
+      evidence: [
+        { taskId: 'coding', kind: 'result', id: 'missing:1', note: 'Note.' },
+      ],
+    },
+    { ...restrictedFixture, results: 'none' },
+  ])
+    assert.equal(validRestrictedPayload(broken, known), null);
 });
-
-test(
-  'a restricted payload is accepted only for restricted, unknown results',
-  { skip: !local },
-  () => {
-    assert.deepEqual(
-      validRestrictedResults({ results: restricted }, known),
-      restricted,
-    );
-    assert.equal(
-      validRestrictedResults({ results: open.slice(0, 1) }, known),
-      null,
-    );
-    assert.equal(
-      validRestrictedResults(
-        { results: [restricted[0], restricted[0]] },
-        known,
-      ),
-      null,
-    );
-    assert.equal(
-      validRestrictedResults(
-        { results: [{ ...restricted[0], modelId: 'missing-model' }] },
-        known,
-      ),
-      null,
-    );
-    assert.equal(validRestrictedResults({ results: 'none' }, known), null);
-  },
-);

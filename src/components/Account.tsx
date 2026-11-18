@@ -10,20 +10,9 @@ import {
   signOut,
 } from '../lib/access';
 import type { Access, Enrollment, Grant } from '../lib/access';
-import { benchmarks } from '../lib/data';
-import { restrictedList } from '../lib/restricted';
 import { routeHref } from '../lib/route';
 import './account.css';
 
-const restrictedSources = new Intl.ListFormat('en', {
-  type: 'conjunction',
-}).format(
-  restrictedList.benchmarks.map(
-    (entry) =>
-      benchmarks.find((benchmark) => benchmark.id === entry.id)?.source ??
-      entry.id,
-  ),
-);
 const accountHref = `/${routeHref({ view: 'account', error: null })}`;
 
 function message(error: unknown) {
@@ -244,17 +233,9 @@ export default function Account({
     <div className="rd-page rd-ac">
       <header className="rd-page-head">
         <h1>Account</h1>
-        <p>
-          Results from {restrictedSources} are shown only to approved accounts,
-          because these sources' terms do not allow public republishing.
-        </p>
       </header>
       {access.kind === 'local' && (
-        <p className="rd-note">
-          Sign-in is available on the published site. Local builds include the
-          restricted results from <code>.local/restricted/</code> when that file
-          is present.
-        </p>
+        <p className="rd-note">Sign-in is available on the published site.</p>
       )}
       {access.kind === 'unavailable' && (
         <>
@@ -287,8 +268,8 @@ export default function Account({
             </p>
             {!access.restricted && (
               <p className="rd-alert rd-ac-alert" role="alert">
-                Restricted results could not be loaded. Reload the page to try
-                again.
+                Some benchmark results could not be loaded. Reload the page to
+                try again.
               </p>
             )}
             <div>

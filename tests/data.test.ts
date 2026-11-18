@@ -26,12 +26,12 @@ function close(actual: number | undefined, expected: number) {
 }
 
 test('snapshot validates every record, source URL, unique identifier and relationship', () => {
-  assert.equal(snapshot.benchmarks.length, 8);
-  // Restricted results are kept outside Git (see restricted.test.ts).
+  assert.equal(snapshot.benchmarks.length, 4);
+  // Benchmarks that cannot be republished are kept outside Git.
   assert.equal(snapshot.results.length, 107);
   assert.equal(snapshot.models.filter((entry) => entry.pricing).length, 20);
   assert.ok(snapshot.reports.length >= 14);
-  assert.ok(snapshot.sources.length >= 30);
+  assert.ok(snapshot.sources.length >= 25);
   assert.equal(
     new Set(snapshot.models.map((entry) => entry.id)).size,
     snapshot.models.length,

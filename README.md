@@ -26,7 +26,7 @@ Open http://127.0.0.1:5186. The dev launcher also starts a loopback-only local a
 
 Views are hash routes: `#/` (Board), `#/model/<key>`, `#/discussion/<key>`, `#/papers/<key>`, `#/benchmark/<id>`, `#/apps` and `#/data`. A key is `model:<id>` or `family:<name>`.
 
-The [published app](https://ai-model-picker.pages.dev/) includes a dated HN results snapshot and loads comment text from the public HN API on demand. Results from Artificial Analysis, ARC Prize, DesignArena and Arena are shown there only to Google accounts the administrator approves under **Sign in → Manage access**, because those sources' terms do not allow republishing; the local dev build shows everything. Source licences and credits are on the Data page. Processing continues locally; republishing updates the hosted snapshot. See [Cloudflare Pages deployment](docs/deployment.md) for the build and release procedure.
+The [published app](https://ai-model-picker.pages.dev/) includes a dated HN results snapshot and loads comment text from the public HN API on demand. Benchmarks whose terms do not allow republishing are kept outside Git and shown only to Google accounts the administrator approves under **Sign in → Manage access**; the local dev server shows them from `.local/restricted/`. Source licences and credits are on the Data page. Processing continues locally; republishing updates the hosted snapshot. See [Cloudflare Pages deployment](docs/deployment.md) for the build and release procedure.
 
 ## Local Hacker News analysis
 
@@ -55,7 +55,7 @@ See [pipeline instructions](docs/hn-pipeline.md), [archive verification](docs/hn
 
 ## Data in the app
 
-The benchmark snapshot holds 187 published results across eight benchmarks (107 in Git; the other 80 are restricted, see above), 76 model/version identities, official API rates for 20 models and 14 reports. Scores keep each benchmark's own scale. A model's Board and tile score is its best published configuration; the benchmark page lists every configuration. Missing prices and results are not estimated.
+The public benchmark snapshot holds 107 published results across four benchmarks, 76 model/version identities, official API rates for 20 models and 14 reports. Scores keep each benchmark's own scale. A model's Board and tile score is its best published configuration; the benchmark page lists every configuration. Missing prices and results are not estimated.
 
 The HN views aggregate the full comment index in the browser: weekly sentiment, per-topic sentiment and co-mentions. Positive share is positive ÷ (positive + critical) and is hidden below a stated minimum. "What people say" on a model page comes from an AI-reviewed sample of recent comments for six models, [research/hn-themes-sample.json](research/hn-themes-sample.json); other models show only the automatic labels.
 
@@ -84,9 +84,9 @@ npm run format:check
 - `src/components/Benchmark.tsx`, `Reports.tsx`: one benchmark's results, and published reports.
 - `src/components/AppGuide.tsx`, `src/lib/guide.ts`, `research/app-model-choices.json`: app selections, alternatives and their sources.
 - `src/components/DataPage.tsx`, `src/lib/hn-client.ts`: collection status and controls, sources and download.
-- `src/components/Account.tsx`, `src/lib/access.ts`, `src/lib/restricted.ts`: sign-in, access management and the restricted results.
+- `src/components/Account.tsx`, `src/lib/access.ts`, `src/lib/restricted.ts`: sign-in, access management and loading the restricted payload.
 - `server/`, `functions/`: Google sign-in and `/api/restricted` as Pages Functions. See [Google sign-in](server/auth/README.md).
-- `.local/restricted/` (not in Git): the restricted benchmark results. Without it the app shows public data only; `npm run data:build` and the Pages deploy need it.
+- `.local/restricted/` (not in Git): benchmarks that cannot be republished. Without it the app shows public data only; `npm run data:build` and the Pages deploy need it.
 - `src/lib/attribution.ts`: source licences and credits.
 - `src/components/parts.tsx`: shared sentiment bars, weekly chart and comment stream.
 - `src/components/comment-views/`, `src/lib/hn-threads.ts`: the Discussion comment section, which lists comments under their stories and nests them by reply, with its thread loader.
