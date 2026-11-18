@@ -100,3 +100,27 @@ npm run format:check
 - `scripts/setup-hn.sh`, `scripts/dev.mjs`: isolated setup and local dev services.
 
 All model weights, local state and generated classifier results remain outside Git. The published build includes only allowlisted HN metadata and derived assessments; these also include the story and parent IDs of each listed comment and scrubbed story titles once they are recorded, and the model-written claims once a run made by the new pipeline is published. No account credentials, author fields or raw comment text are retained by the pipeline or included in the deployment.
+
+## Made with AI
+
+The code, documentation, app guide and report summaries were generated almost entirely by AI coding agents, directed by the author. Sentiment labels, topics, claims and paper labels are assigned by language models. All of it can be wrong. Follow the source link on a figure before relying on it.
+
+## Licence and attribution
+
+Original code and documentation are dedicated to the public domain under [CC0 1.0](LICENSE), without warranty. Data from other publishers keeps its own terms, and its credit must stay with it when reused:
+
+| Source                                                                           | Material                                                              | Terms                                                         |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------- |
+| [Epoch AI](https://epoch.ai/eci)                                                 | Epoch Capabilities Index scores                                       | CC BY 4.0                                                     |
+| [SWE-rebench](https://huggingface.co/datasets/nebius/SWE-rebench-leaderboard)    | Leaderboard results (Badertdinov et al., 2025, arXiv:2505.20411)      | CC BY 4.0                                                     |
+| [TokenSave](https://tokensave.app/data/claude-effort-cost)                       | Effort, cost and coding experiment datasets                           | CC BY 4.0                                                     |
+| [Terminal-Bench](https://www.tbench.ai/)                                         | Leaderboard runs                                                      | Apache-2.0 (benchmark code)                                   |
+| [Plato Web Clone Bench](https://plato.so/research/web-clone-bench/)              | Results                                                               | No data licence stated; cited with a link                     |
+| [Contra Labs](https://contralabs.com/research) and other report publishers       | Findings from published reports                                       | Summarised in this project's words with a link to each report |
+| [Hacker News](https://github.com/HackerNews/API)                                 | Comment and story IDs, timestamps, and comment text loaded on request | Provided by Y Combinator; comments belong to their authors    |
+| [open-index/hacker-news](https://huggingface.co/datasets/open-index/hacker-news) | Archive used to find comments                                         | ODC-By 1.0                                                    |
+| [arXiv](https://info.arxiv.org/help/api/tou.html)                                | Paper titles, identifiers, dates and categories                       | CC0 1.0 (metadata)                                            |
+| OpenAI, Anthropic, Google, DeepSeek and xAI                                      | API prices, model specifications and app documentation                | Quoted from public documentation with links                   |
+| Instrument Sans, Newsreader                                                      | Typefaces in `public/fonts/`                                          | SIL Open Font License 1.1                                     |
+
+The full credit lines and the changes made to each source are in [`src/lib/attribution.ts`](src/lib/attribution.ts) and on the app's Data page. Thank you to arXiv for use of its open access interoperability. This project was not reviewed or approved by arXiv. Product names are trademarks of their owners.
