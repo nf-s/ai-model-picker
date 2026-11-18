@@ -145,6 +145,7 @@ export const hnResponseSchema = z.object({
     installed: z.boolean(),
     message: z.string().nullable(),
     showingPrevious: z.boolean().optional(),
+    external: z.boolean().optional(),
   }),
 });
 export type HnResponse = z.infer<typeof hnResponseSchema>;

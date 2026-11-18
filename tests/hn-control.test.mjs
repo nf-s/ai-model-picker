@@ -101,8 +101,8 @@ async function writeRun(directory, commentId, label) {
   await writeFile(join(directory, 'results.json'), JSON.stringify({ label }));
 }
 
-function runStatus(state, totals) {
-  return JSON.stringify({ state, totals });
+function runStatus(state, totals, classifier) {
+  return JSON.stringify({ state, totals, classifier });
 }
 
 const finishedTotals = {
@@ -126,6 +126,11 @@ async function startController(t, root) {
   const { port } = address;
   return {
     overview: async () => (await contact(port, '/api/hn')).data,
+    start: () =>
+      contact(port, '/api/hn/start', {
+        method: 'POST',
+        headers: { Origin: appOrigin },
+      }),
     indexIds: async () =>
       (await contact(port, '/api/hn/index')).data.comments.map(
         (comment) => comment.id,
@@ -172,6 +177,7 @@ test('HN controller restricts actions and reads only its state files', async (t)
       runtimeReady: false,
       message: null,
       showingPrevious: false,
+      external: false,
     },
   });
 
@@ -286,4 +292,37 @@ test('HN controller serves the new run when there is no previous checkpoint', as
   assert.deepEqual(data.results, { label: 'new' });
   assert.equal(data.runner.showingPrevious, false);
   assert.deepEqual(await indexIds(), [202]);
+});
+
+test('HN controller leaves a run made with another classifier to the terminal', async (t) => {
+  const root = await mkdtemp(join(tmpdir(), 'hn-controller-'));
+  const runDir = join(root, '.local', 'hn', 'threads');
+  const { overview, start } = await startController(t, root);
+  const unfinished = { ...finishedTotals, commentsQueued: 4 };
+  await writeRun(runDir, 202, 'new');
+
+  await writeFile(
+    join(runDir, 'status.json'),
+    runStatus('paused', unfinished, 'qwen3.8-27b-4bit-thread-v1'),
+  );
+  assert.equal((await overview()).runner.external, false);
+  let started = await start();
+  assert.equal(started.status, 409);
+  assert.equal(started.data.error, 'Run the local model setup first.');
+
+  await writeFile(
+    join(runDir, 'status.json'),
+    runStatus('running', unfinished, 'claude-haiku-5.5-thread-v1'),
+  );
+  const data = await overview();
+  assert.equal(data.runner.external, true);
+  assert.equal(data.runner.active, false);
+  assert.equal(data.status.state, 'running');
+  started = await start();
+  assert.equal(started.status, 409);
+  assert.equal(
+    started.data.error,
+    'This run is started and paused from a terminal.',
+  );
+  assert.equal((await overview()).runner.active, false);
 });

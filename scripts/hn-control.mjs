@@ -23,6 +23,7 @@ const modelOrigin = `http://${host}:${modelPort}`;
 const allowedHosts = new Set([`${host}:${appPort}`, `${host}:${controlPort}`]);
 const allowedOrigins = new Set([appOrigin, controlOrigin]);
 const service = 'ai-help-hn';
+const localClassifier = 'qwen3.8-27b-4bit-thread-v1';
 
 function reply(response, status, payload) {
   response.writeHead(status, {
@@ -84,6 +85,16 @@ function reviewFinished(status) {
     partitionsComplete === partitionsTotal &&
     storiesPending === 0 &&
     commentsQueued === 0
+  );
+}
+
+// The controller starts and pauses only runs made with its own local classifier.
+// A run made with another one, such as a review through the Anthropic API, is
+// driven from a terminal.
+function drivenElsewhere(status) {
+  return (
+    typeof status?.classifier === 'string' &&
+    status.classifier !== localClassifier
   );
 }
 
@@ -273,7 +284,7 @@ export function createHnController(root = projectRoot) {
           '--model',
           'default_model',
           '--classifier-id',
-          'qwen3.8-27b-4bit-thread-v1',
+          localClassifier,
           '--classifier-workers',
           '8',
         ],
@@ -362,6 +373,7 @@ export function createHnController(root = projectRoot) {
           installed,
           message,
           showingPrevious: runStatus !== null && !useRun,
+          external: drivenElsewhere(runStatus),
         },
       });
       return;
@@ -389,6 +401,13 @@ export function createHnController(root = projectRoot) {
     if (request.url === '/api/hn/pause') {
       pauseRun();
       reply(response, 202, { active: activeRun !== null });
+      return;
+    }
+
+    if (drivenElsewhere((await servedSource()).runStatus)) {
+      reply(response, 409, {
+        error: 'This run is started and paused from a terminal.',
+      });
       return;
     }
 

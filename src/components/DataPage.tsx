@@ -47,6 +47,7 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
   const status = data?.status;
   const checkApplies = status?.classifier === hnClassifierCheck.classifierId;
   const active = data?.runner.active ?? false;
+  const external = data?.runner.external ?? false;
   const totalExpected =
     status?.partitions.reduce((sum, part) => sum + part.expectedItems, 0) ?? 0;
   const scanned = status?.totals.itemsScanned ?? 0;
@@ -67,9 +68,11 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
       ? 'Run finished'
       : blocked
         ? 'Needs attention'
-        : status
-          ? 'Paused'
-          : 'Ready to start';
+        : external && status?.state === 'running'
+          ? 'Running from a terminal'
+          : status
+            ? 'Paused'
+            : 'Ready to start';
   const label = hnPublished
     ? status
       ? finished
@@ -109,7 +112,11 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
                 ? formatHnRange(status.startAt, status.endAt)
                 : 'Last six months'}{' '}
               ·{' '}
-              {hnPublished ? 'Published snapshot' : 'Analysed on this computer'}
+              {hnPublished
+                ? 'Published snapshot'
+                : external
+                  ? 'Collected on this computer'
+                  : 'Analysed on this computer'}
             </p>
             <p className="rd-dp-state">
               <span
@@ -136,7 +143,10 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
               type="button"
               className="rd-button rd-button-primary"
               disabled={
-                pending || finished || (!active && !data?.runner.installed)
+                pending ||
+                finished ||
+                external ||
+                (!active && !data?.runner.installed)
               }
               onClick={() => void control(active ? 'pause' : 'start')}
             >
@@ -146,11 +156,13 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
                   ? 'Pause'
                   : finished
                     ? 'Scan finished'
-                    : blocked
-                      ? 'Retry scan'
-                      : status
-                        ? 'Resume scan'
-                        : 'Start six-month scan'}
+                    : external
+                      ? 'Controlled from a terminal'
+                      : blocked
+                        ? 'Retry scan'
+                        : status
+                          ? 'Resume scan'
+                          : 'Start six-month scan'}
             </button>
           )}
         </div>
@@ -167,8 +179,11 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
         )}
         {!hnPublished && blocked && (
           <p className="rd-alert rd-dp-alert" role="status">
-            The scan stopped before completion. Retry resumes from its
-            checkpoint. {status.reason && <span>{status.reason}.</span>}
+            The scan stopped before completion.{' '}
+            {external
+              ? 'Running it again from a terminal resumes from its checkpoint.'
+              : 'Retry resumes from its checkpoint.'}{' '}
+            {status.reason && <span>{status.reason}.</span>}
           </p>
         )}
         {data?.runner.message && (
@@ -215,7 +230,7 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
             </div>
             <div>
               <dt>Inference API charges</dt>
-              <dd>$0</dd>
+              <dd>{external ? 'Not tracked here' : '$0'}</dd>
             </div>
           </dl>
           <p className="rd-note">

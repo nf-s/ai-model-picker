@@ -49,20 +49,22 @@ The same command without the limits resumes that directory's entire run. `Ctrl+C
 
 ## Review through the Anthropic API
 
-`--backend anthropic` sends the title checks and the review to the Anthropic API instead of a local model. It is paid, and it sends text off this machine: the scrubbed story title, replied-to text, comment and target names described under [what the model reads](#what-the-model-reads-and-what-is-stored), to `api.anthropic.com`. The address is fixed in the code, so an environment setting cannot redirect it. The Data page controls always use the local backend; this one runs from a terminal.
+`--backend anthropic` sends the title checks and the review to the Anthropic API instead of a local model. It is paid, and it sends text off this machine: the scrubbed story title, replied-to text, comment and target names described under [what the model reads](#what-the-model-reads-and-what-is-stored), to `api.anthropic.com`. The address is fixed in the code, so an environment setting cannot redirect it. The Data page controls start only the local backend; this one runs from a terminal.
 
 ```sh
 .local/hn/venv/bin/python -B scripts/hn_pipeline.py run \
-  --state-dir .local/hn/threads-haiku \
+  --state-dir .local/hn/threads \
   --backend anthropic
 ```
+
+The app reads only `.local/hn/threads/`, so use that directory for a run the app should show and serve. Move a run made with another classifier out of it first, because `run` refuses to continue one. While the directory holds a run whose classifier is not the local one, the Data page shows its progress with the controls disabled, `/api/hn/start` answers 409 and `runner.external` is true.
 
 The default model is `claude-haiku-5-5` and the default classifier ID is `claude-haiku-5.5-thread-v1`; `--model` and `--classifier-id` change them. The key is read from the `ANTHROPIC_API_KEY` environment variable when the command starts and is never written anywhere by the pipeline. Without it the command stops with `anthropic-api-key-missing`. On macOS the key can stay in the login keychain and be passed for one command only:
 
 ```sh
 security add-generic-password -U -a "$USER" -s ai-help-anthropic-api-key -w
 ANTHROPIC_API_KEY="$(security find-generic-password -a "$USER" -s ai-help-anthropic-api-key -w)" \
-  .local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads-haiku --backend anthropic
+  .local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads --backend anthropic
 ```
 
 The first command asks for the key without showing it.
@@ -82,8 +84,7 @@ All local state is in ignored `.local/hn/` directories.
 | Path                                 | Contents                                                                                                                                     |
 | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `.local/hn/`                         | The previous analysis: `checkpoint.sqlite3`, `status.json` and `results.json`, produced by classifier `qwen3-4b-instruct-2507-4bit-v3`.      |
-| `.local/hn/threads/`                 | The `hn-thread-v1` run, with the same three files.                                                                                           |
-| `.local/hn/threads-haiku/`           | An `hn-thread-v1` run reviewed through the Anthropic API, when one is made.                                                                  |
+| `.local/hn/threads/`                 | The `hn-thread-v1` run, reviewed locally or through the Anthropic API, with the same three files.                                            |
 | `.local/hn/models/qwen3.8-27b-4bit/` | Model weights from `mlx-community/Qwen3.8-27B-4bit` at a pinned revision with checksums. The download is 16.1 GB; the licence is Apache-2.0. |
 
 The classifier ID for the local run is `qwen3.8-27b-4bit-thread-v1`, and for a run through the Anthropic API `claude-haiku-5.5-thread-v1`. The local model is served through an OpenAI-compatible loopback endpoint. The CLI also accepts an Ollama-compatible loopback endpoint with `--endpoint`, `--model` and `--classifier-id`. A checkpoint is tied to one classifier, pipeline version and target list; `run` refuses a mismatch, so use a separate state directory when any of them changes. The exception is a checkpoint that no model has touched, such as one made with `--collect-only`: its queue does not depend on the model, so `run` continues it with a different classifier.

@@ -46,6 +46,8 @@ The new run started on 18 November 2026 with the Qwen3.8 27B model. It reviews a
 
 An Anthropic API backend for the title checks and the review was added on 18 November 2026. Python tests run it against a stand-in client: the request shape, the fixed API address, the missing-key and unreachable-API reasons, batches that are sent, left running across a stop and stored on the next run without being sent twice, the retry of invalid and errored replies with the stricter instruction, expired requests staying queued, the budget and the cap on comments in batches, and the absence of comment text in the state files while a batch is out. No request had been made to the API when this was written, so the accepted parameters, cache behaviour, cost and label quality in this configuration are unverified.
 
+The controller reports a run in `.local/hn/threads/` made with any classifier other than the local one as external and refuses to start it; a controller test covers both cases. The Data page's presentation of such a run (disabled control, terminal state label, untracked API charges) was checked in a browser at desktop width and 375 CSS pixels against a stand-in status response, because no such run existed yet.
+
 ## arXiv paper index
 
 A full harvest on 17 November 2026 read every UTC day of the window over OAI-PMH: 314,096 records listed, 206,286 in-window papers stored, 71 records rejected as invalid and none deleted. 11,031 papers name a tracked model or family (57 models, 69 families); 1,383 of them name an exact tracked model. No weekday in the window is empty. The still-open final day held no records and is read again on the next run.
