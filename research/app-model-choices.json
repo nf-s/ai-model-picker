@@ -1,0 +1,643 @@
+{
+  "checkedAt": "2026-11-16",
+  "plans": [
+    {
+      "id": "chatgpt",
+      "name": "ChatGPT Pro 500",
+      "usage": "GPT-6 Pro in Chat has a weekly limit. Work and Codex share a separate allowance. Ultrafast is available for Astra and 6.1 Sol in Work and Codex.",
+      "sourceIds": ["chatgpt-pro", "openai-work-codex"]
+    },
+    {
+      "id": "claude",
+      "name": "Claude Ultra",
+      "usage": "Formerly Max 20x. Claude chat and Claude Code share the weekly allowance. Fable can use up to half of it. Verified accounts have no five-hour limit.",
+      "sourceIds": ["claude-ultra", "claude-fable", "claude-code-plan"]
+    }
+  ],
+  "choices": [
+    {
+      "id": "chat-instant",
+      "planId": "chatgpt",
+      "name": "GPT-6",
+      "surface": "ChatGPT",
+      "setting": "Instant",
+      "modelId": "gpt-6-sol",
+      "summary": "GPT-6 Sol powers the fast setting in Chat.",
+      "sourceIds": ["openai-chat", "openai-search"]
+    },
+    {
+      "id": "chat-medium",
+      "planId": "chatgpt",
+      "name": "GPT-6",
+      "surface": "ChatGPT",
+      "setting": "Medium",
+      "modelId": "gpt-6-sol",
+      "summary": "GPT-6 Sol with standard thinking.",
+      "sourceIds": ["openai-chat"]
+    },
+    {
+      "id": "chat-high",
+      "planId": "chatgpt",
+      "name": "GPT-6",
+      "surface": "ChatGPT",
+      "setting": "High",
+      "modelId": "gpt-6-sol",
+      "summary": "GPT-6 Sol with extended thinking.",
+      "sourceIds": ["openai-chat"]
+    },
+    {
+      "id": "chat-web-high",
+      "planId": "chatgpt",
+      "name": "GPT-6",
+      "surface": "ChatGPT",
+      "setting": "High",
+      "modelId": "gpt-6-sol",
+      "summary": "Ask for a self-contained prototype. Chat can preview mini apps in interactive code blocks.",
+      "sourceIds": ["openai-chat", "openai-release-notes"]
+    },
+    {
+      "id": "chat-extra-high",
+      "planId": "chatgpt",
+      "name": "GPT-6",
+      "surface": "ChatGPT",
+      "setting": "Extra High",
+      "modelId": "gpt-6-sol",
+      "summary": "The deepest GPT-6 Sol setting in Chat.",
+      "sourceIds": ["openai-chat"]
+    },
+    {
+      "id": "chat-pro",
+      "planId": "chatgpt",
+      "name": "GPT-6 Pro",
+      "surface": "ChatGPT",
+      "setting": "Pro",
+      "modelId": "gpt-6-astra",
+      "summary": "Powered by GPT-6 Astra. Parallel agents are rolling out to eligible accounts.",
+      "sourceIds": ["openai-chat", "openai-release-notes"]
+    },
+    {
+      "id": "chat-56-sol",
+      "planId": "chatgpt",
+      "name": "GPT-5.6 Sol",
+      "surface": "ChatGPT",
+      "setting": "Instant to Extra High",
+      "modelId": "gpt-5-6-sol",
+      "summary": "Select this family explicitly in Chat. It also has its own Pro option.",
+      "sourceIds": ["openai-chat"]
+    },
+    {
+      "id": "work-terra",
+      "planId": "chatgpt",
+      "name": "GPT-6.1 Terra",
+      "surface": "ChatGPT Work",
+      "setting": "Default effort",
+      "modelId": "gpt-6.1-terra",
+      "summary": "A quicker option for writing from supplied material, visual understanding and computer use.",
+      "sourceIds": ["openai-work-models"]
+    },
+    {
+      "id": "work-luna",
+      "planId": "chatgpt",
+      "name": "GPT-6 Luna",
+      "surface": "ChatGPT Work / Codex",
+      "setting": "Default effort",
+      "modelId": "gpt-6-luna",
+      "summary": "Use for focused work such as extraction, summaries or repetitive edits.",
+      "sourceIds": ["openai-work-codex", "openai-work-models"]
+    },
+    {
+      "id": "codex-sol-medium",
+      "planId": "chatgpt",
+      "name": "GPT-6.1 Sol",
+      "surface": "Codex",
+      "setting": "Medium",
+      "modelId": "gpt-6.1-sol",
+      "summary": "A starting point for scoped repo edits and reproducible bugs.",
+      "sourceIds": [
+        "openai-work-codex",
+        "openai-work-models",
+        "openai-subagents"
+      ]
+    },
+    {
+      "id": "codex-sol-high",
+      "planId": "chatgpt",
+      "name": "GPT-6.1 Sol",
+      "surface": "Codex",
+      "setting": "High",
+      "modelId": "gpt-6.1-sol",
+      "summary": "Allow more time for planning and multi-file work.",
+      "sourceIds": ["openai-work-models"]
+    },
+    {
+      "id": "codex-astra-high",
+      "planId": "chatgpt",
+      "name": "GPT-6 Astra",
+      "surface": "Codex",
+      "setting": "High",
+      "modelId": "gpt-6-astra",
+      "summary": "OpenAI positions Astra for demanding coding, research and analysis. Ultrafast is a separate speed setting.",
+      "sourceIds": ["openai-work-codex", "openai-work-models"]
+    },
+    {
+      "id": "codex-sol-agents",
+      "planId": "chatgpt",
+      "name": "GPT-6.1 Sol",
+      "surface": "Codex",
+      "setting": "Medium with Sol workers",
+      "modelId": "gpt-6.1-sol",
+      "summary": "Give workers independent tasks and specify their model and effort. The main agent integrates and checks the findings.",
+      "sourceIds": ["openai-subagents"]
+    },
+    {
+      "id": "chat-deep-research",
+      "planId": "chatgpt",
+      "name": "Deep research",
+      "surface": "ChatGPT",
+      "setting": "Tools → Deep research",
+      "summary": "Review the research plan, control its sources and get a cited report.",
+      "sourceIds": ["openai-deep-research"]
+    },
+    {
+      "id": "chat-images",
+      "planId": "chatgpt",
+      "name": "ChatGPT Images 2.6",
+      "surface": "ChatGPT",
+      "setting": "More → Images",
+      "summary": "Generate or edit raster images, including illustrations, photos and poster artwork.",
+      "sourceIds": ["openai-images"]
+    },
+    {
+      "id": "claude-haiku-low",
+      "planId": "claude",
+      "name": "Haiku 5.5",
+      "surface": "Claude",
+      "setting": "Low",
+      "modelId": "claude-haiku-5-5",
+      "summary": "Anthropic's fast small model suits brief summaries and straightforward questions.",
+      "sourceIds": ["claude-effort", "claude-haiku-release"]
+    },
+    {
+      "id": "claude-sonnet-medium",
+      "planId": "claude",
+      "name": "Sonnet 5.5",
+      "surface": "Claude",
+      "setting": "Medium",
+      "modelId": "claude-sonnet-5-5",
+      "summary": "A responsive choice for drafts and back-and-forth revision.",
+      "sourceIds": ["claude-effort", "claude-sonnet-release"]
+    },
+    {
+      "id": "claude-opus-high",
+      "planId": "claude",
+      "name": "Opus 5.5",
+      "surface": "Claude",
+      "setting": "High",
+      "modelId": "claude-opus-5-5",
+      "summary": "Try it when a longer draft needs a consistent voice, structure and careful editing.",
+      "sourceIds": ["claude-effort", "claude-opus-release"]
+    },
+    {
+      "id": "claude-web-opus-high",
+      "planId": "claude",
+      "name": "Opus 5.5",
+      "surface": "Claude",
+      "setting": "High",
+      "modelId": "claude-opus-5-5",
+      "summary": "Ask for a working prototype as an artifact. Use the Design template to iterate on the layout.",
+      "sourceIds": ["claude-effort", "claude-artifacts", "claude-design"]
+    },
+    {
+      "id": "claude-fable-high",
+      "planId": "claude",
+      "name": "Fable 5.2",
+      "surface": "Claude",
+      "setting": "High",
+      "modelId": "claude-fable-5-2",
+      "summary": "Anthropic positions Fable for difficult technical work. Higher effort can take longer.",
+      "sourceIds": ["claude-effort", "claude-fable", "claude-fable-release"]
+    },
+    {
+      "id": "claude-code-opus-high",
+      "planId": "claude",
+      "name": "Opus 5.5",
+      "surface": "Claude Code",
+      "setting": "High",
+      "modelId": "claude-opus-5-5",
+      "summary": "A starting point for building a polished interface and implementing its flows.",
+      "sourceIds": ["claude-code-models", "claude-opus-release"]
+    },
+    {
+      "id": "claude-code-fable-low",
+      "planId": "claude",
+      "name": "Fable 5.2",
+      "surface": "Claude Code",
+      "setting": "Low",
+      "modelId": "claude-fable-5-2",
+      "summary": "The configuration tested in the strongest reported web-app replication run.",
+      "sourceIds": ["claude-code-models", "claude-fable"]
+    },
+    {
+      "id": "claude-code-sonnet-medium",
+      "planId": "claude",
+      "name": "Sonnet 5.5",
+      "surface": "Claude Code",
+      "setting": "Medium",
+      "modelId": "claude-sonnet-5-5",
+      "summary": "Claude Code documents this as an everyday choice for clear engineering tasks.",
+      "sourceIds": ["claude-code-models", "claude-sonnet-release"]
+    },
+    {
+      "id": "claude-code-opus-agents",
+      "planId": "claude",
+      "name": "Opus 5.5",
+      "surface": "Claude Code",
+      "setting": "Medium with Haiku 5.5 Explore workers",
+      "modelId": "claude-opus-5-5",
+      "summary": "Configure a read-only Explore worker for focused code search.",
+      "sourceIds": ["claude-code-models", "claude-code-subagents"]
+    },
+    {
+      "id": "claude-research",
+      "planId": "claude",
+      "name": "Research",
+      "surface": "Claude",
+      "setting": "+ → Research, web search on",
+      "summary": "Runs a series of searches across the web and enabled connectors.",
+      "sourceIds": ["claude-research"]
+    },
+    {
+      "id": "claude-design",
+      "planId": "claude",
+      "name": "Claude Design",
+      "surface": "Claude",
+      "setting": "Artifacts → Design",
+      "summary": "Create and revise a one-pager, layout or prototype on an editable canvas.",
+      "sourceIds": ["claude-design", "claude-images"]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "quick-answers",
+      "label": "Quick answers",
+      "default": {
+        "choiceId": "chat-instant",
+        "why": "Use for definitions, quick lookups and short follow-ups."
+      },
+      "alternatives": [
+        {
+          "choiceId": "claude-haiku-low",
+          "when": "You already have the material open in Claude.",
+          "tradeoff": "Keeps the conversation in place and suits short summaries."
+        },
+        {
+          "choiceId": "chat-medium",
+          "when": "The answer needs a few steps or conflicting details need sorting out.",
+          "tradeoff": "Gives the same model more time to think."
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "id": "writing",
+      "label": "Writing and editing",
+      "default": {
+        "choiceId": "claude-opus-high",
+        "why": "Start here when tone, structure and a polished revision matter."
+      },
+      "alternatives": [
+        {
+          "choiceId": "claude-sonnet-medium",
+          "when": "You want fast rounds of edits or several variants.",
+          "tradeoff": "Quicker back-and-forth. Give it a sample when voice matters."
+        },
+        {
+          "choiceId": "chat-high",
+          "when": "You want to draft and revise in ChatGPT.",
+          "tradeoff": "Use High for a more considered edit with several constraints."
+        },
+        {
+          "choiceId": "work-terra",
+          "when": "You want a concise draft from notes, files or a reference.",
+          "tradeoff": "Suited to direct drafting and revision from supplied material."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "result",
+          "id": "arena-creative-writing:2",
+          "note": "Opus 5.5 High's Arena Creative Writing rating. The rating measures writing preference."
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "label": "Deep research",
+      "default": {
+        "choiceId": "chat-deep-research",
+        "why": "Choose this for a cited report across many sources. You can review the plan and restrict its sources."
+      },
+      "alternatives": [
+        {
+          "choiceId": "claude-research",
+          "when": "The question depends on material in connectors you already use in Claude.",
+          "tradeoff": "Searches enabled sources and follows leads across several searches."
+        },
+        {
+          "choiceId": "chat-instant",
+          "when": "One or two current sources can answer the question.",
+          "tradeoff": "Select Search from the tools menu for a quick lookup with sources."
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "id": "web-apps",
+      "label": "Build a web app",
+      "default": {
+        "choiceId": "claude-web-opus-high",
+        "why": "Ask for an interactive artifact to try the main flow before building the full app."
+      },
+      "alternatives": [
+        {
+          "choiceId": "chat-web-high",
+          "when": "You want a self-contained demo or code you can inspect in Chat.",
+          "tradeoff": "Good for trying one flow. Use a coding agent to edit and test your repo."
+        },
+        {
+          "choiceId": "codex-sol-high",
+          "when": "Your design is settled and you need iterative changes in an existing repo.",
+          "tradeoff": "A practical starting point for implementation and verification."
+        },
+        {
+          "choiceId": "claude-code-fable-low",
+          "when": "You are recreating a complex reference app.",
+          "tradeoff": "Its strongest replication run used Low effort and still averaged roughly six hours per app."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "result",
+          "id": "designarena-agentic:1",
+          "note": "Opus 5.5 High led the DesignArena Agentic results in this snapshot."
+        },
+        {
+          "kind": "result",
+          "id": "plato-web-clone-bench:1",
+          "note": "Fable 5.2 Low scored 62% on nine app clones. The runs used differing budgets and provider tools."
+        }
+      ],
+      "codingDefault": {
+        "choiceId": "claude-code-opus-high",
+        "why": "Start here for a new app where the interface and working flows both matter."
+      }
+    },
+    {
+      "id": "bug-fixes",
+      "label": "Debug and fix code",
+      "default": {
+        "choiceId": "chat-high",
+        "why": "Paste the relevant code, error and steps to reproduce. Ask for a diagnosis and a targeted test."
+      },
+      "alternatives": [
+        {
+          "choiceId": "claude-sonnet-medium",
+          "when": "You have a small, localized issue and want a quick review in Claude.",
+          "tradeoff": "Give it just enough surrounding code to explain the failure and run the suggested test locally."
+        },
+        {
+          "choiceId": "claude-code-sonnet-medium",
+          "when": "The issue is localized and you already work in Claude Code.",
+          "tradeoff": "Suited to tight reproduce, edit and test loops."
+        },
+        {
+          "choiceId": "codex-astra-high",
+          "when": "The bug is intermittent, crosses subsystems or survives the first pass.",
+          "tradeoff": "Allow more reasoning for diagnosis and verify the result against the repro."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "report",
+          "id": "tokensave-real-bugs",
+          "note": "Clean fixes were 49/75 for Sonnet, 52/75 for Haiku and 54/75 for Opus on bounded bugs in public libraries."
+        },
+        {
+          "kind": "report",
+          "id": "tokensave-fable-bugs",
+          "note": "Fable 5.2 and Opus 5.5 both produced 37 clean fixes in 50 attempts on another set of bounded bugs."
+        }
+      ],
+      "codingDefault": {
+        "choiceId": "codex-sol-medium",
+        "why": "Start here when you can reproduce the issue and check a focused fix."
+      }
+    },
+    {
+      "id": "reasoning",
+      "label": "Hard reasoning",
+      "default": {
+        "choiceId": "claude-fable-high",
+        "why": "Use for unfamiliar, technical problems that need a careful chain of reasoning."
+      },
+      "alternatives": [
+        {
+          "choiceId": "chat-pro",
+          "when": "You want an independent second analysis or need ChatGPT tools.",
+          "tradeoff": "Use Pro when you can wait for a deeper review. It has its own Chat allowance."
+        },
+        {
+          "choiceId": "chat-high",
+          "when": "The problem needs deliberate thinking and you want faster iteration.",
+          "tradeoff": "You can move to Extra High in the same model family if the analysis is shallow."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "result",
+          "id": "arc-agi-3-standard:3",
+          "note": "Fable 5.2 High's score on 55 interactive ARC-AGI-3 games in the standard harness."
+        },
+        {
+          "kind": "result",
+          "id": "arc-agi-3-standard:6",
+          "note": "Astra Max's score in the same benchmark harness. These scores describe model runs on puzzles."
+        }
+      ]
+    },
+    {
+      "id": "images",
+      "label": "Posters and images",
+      "default": {
+        "choiceId": "chat-images",
+        "why": "Use the image tool for new artwork, photo edits or a poster concept. Check the final lettering before export."
+      },
+      "alternatives": [
+        {
+          "choiceId": "claude-design",
+          "when": "You need an editable layout with exact copy or an interactive design.",
+          "tradeoff": "You can edit the layout on the canvas and bring in your own artwork."
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "id": "subagents",
+      "label": "Parallel work",
+      "default": {
+        "choiceId": "chat-pro",
+        "why": "Where available, GPT-6 Pro can parallelize parts of a task in Chat. Follow each agent’s progress in the conversation."
+      },
+      "alternatives": [
+        {
+          "choiceId": "claude-research",
+          "when": "You need Claude to investigate several leads from public or connected sources.",
+          "tradeoff": "Research chooses its own searches. Use Claude Code for explicit worker model and effort settings."
+        },
+        {
+          "choiceId": "claude-code-opus-agents",
+          "when": "You want multiple read-only searches in a Claude Code session.",
+          "tradeoff": "Haiku workers can gather facts while Opus keeps responsibility for the final result."
+        },
+        {
+          "choiceId": "codex-sol-medium",
+          "when": "The next step depends on the preceding one or edits overlap.",
+          "tradeoff": "A single agent can follow the sequence with less coordination."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "report",
+          "id": "tokensave-explore-subagents",
+          "note": "Haiku and Opus Explore workers found the complete answer key in one code-search experiment."
+        },
+        {
+          "kind": "report",
+          "id": "google-agent-scaling",
+          "note": "A study across 180 configurations found gains on a parallel task and losses on sequential planning."
+        }
+      ],
+      "codingDefault": {
+        "choiceId": "codex-sol-agents",
+        "why": "Delegate independent repo investigations or changes with separate file ownership. Have one agent review and integrate."
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "chatgpt-pro",
+      "name": "OpenAI · ChatGPT Pro tiers",
+      "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+    },
+    {
+      "id": "openai-chat",
+      "name": "OpenAI · GPT-6 in ChatGPT",
+      "url": "https://help.openai.com/en/articles/20001354-gpt-6-and-other-models-in-chatgpt"
+    },
+    {
+      "id": "openai-work-codex",
+      "name": "OpenAI · ChatGPT Work and Codex",
+      "url": "https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex"
+    },
+    {
+      "id": "openai-work-models",
+      "name": "OpenAI · Work and Codex models",
+      "url": "https://learn.chatgpt.com/docs/models"
+    },
+    {
+      "id": "openai-release-notes",
+      "name": "OpenAI · ChatGPT release notes",
+      "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
+    },
+    {
+      "id": "openai-deep-research",
+      "name": "OpenAI · Deep research",
+      "url": "https://help.openai.com/en/articles/10500283-deep-research-in-chatgpt"
+    },
+    {
+      "id": "openai-search",
+      "name": "OpenAI · ChatGPT web search",
+      "url": "https://help.openai.com/en/articles/9237897-chatgpt-search"
+    },
+    {
+      "id": "openai-images",
+      "name": "OpenAI · Images in ChatGPT",
+      "url": "https://help.openai.com/en/articles/11084440-images-in-chatgpt"
+    },
+    {
+      "id": "openai-subagents",
+      "name": "OpenAI · Subagents",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents"
+    },
+    {
+      "id": "claude-ultra",
+      "name": "Anthropic · Claude Ultra",
+      "url": "https://support.claude.com/en/articles/17728952-what-is-the-ultra-plan"
+    },
+    {
+      "id": "claude-effort",
+      "name": "Anthropic · Claude model and effort picker",
+      "url": "https://support.claude.com/en/articles/8664678-change-the-model-effort-and-thinking-settings"
+    },
+    {
+      "id": "claude-fable",
+      "name": "Anthropic · Fable access and limits",
+      "url": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+    },
+    {
+      "id": "claude-fable-release",
+      "name": "Anthropic · Fable 5.2",
+      "url": "https://www.anthropic.com/claude/fable"
+    },
+    {
+      "id": "claude-opus-release",
+      "name": "Anthropic · Opus 5.5",
+      "url": "https://www.anthropic.com/claude-opus-5-5"
+    },
+    {
+      "id": "claude-sonnet-release",
+      "name": "Anthropic · Sonnet 5.5",
+      "url": "https://www.anthropic.com/claude-sonnet-5-5"
+    },
+    {
+      "id": "claude-haiku-release",
+      "name": "Anthropic · Haiku 5.5",
+      "url": "https://www.anthropic.com/claude-haiku-5-5"
+    },
+    {
+      "id": "claude-code-plan",
+      "name": "Anthropic · Claude Code subscription access",
+      "url": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-max-or-ultra-plan"
+    },
+    {
+      "id": "claude-code-models",
+      "name": "Anthropic · Claude Code model configuration",
+      "url": "https://code.claude.com/docs/en/model-config"
+    },
+    {
+      "id": "claude-code-subagents",
+      "name": "Anthropic · Claude Code subagents",
+      "url": "https://code.claude.com/docs/en/sub-agents"
+    },
+    {
+      "id": "claude-research",
+      "name": "Anthropic · Research",
+      "url": "https://support.claude.com/en/articles/11088861-use-research-on-claude"
+    },
+    {
+      "id": "claude-design",
+      "name": "Anthropic · Claude Design",
+      "url": "https://support.claude.com/en/articles/14604416-get-started-with-claude-design"
+    },
+    {
+      "id": "claude-images",
+      "name": "Anthropic · Image and visual capabilities",
+      "url": "https://support.claude.com/en/articles/9002504-can-claude-produce-images"
+    },
+    {
+      "id": "claude-artifacts",
+      "name": "Anthropic · Artifacts in Claude",
+      "url": "https://support.claude.com/en/articles/17153992-what-are-artifacts-and-how-do-i-use-them"
+    }
+  ]
+}

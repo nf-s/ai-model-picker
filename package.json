@@ -1,0 +1,38 @@
+{
+  "name": "model-reference-prototypes",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "tsc -b && vite build",
+    "build:pages": "VITE_HN_MODE=published VITE_RESTRICTED=remote npm run build && python3 -B scripts/export-hn-site.py && python3 -B scripts/export-arxiv-site.py",
+    "preview": "vite preview --host 127.0.0.1 --port 5186",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --experimental-strip-types --test tests/*.test.ts tests/*.test.mjs",
+    "data:build": "python3 scripts/build-snapshot.py",
+    "hn:setup": "bash scripts/setup-hn.sh",
+    "hn:control": "node scripts/hn-control.mjs",
+    "hn:test": ".local/hn/venv/bin/python -m unittest discover -s tests -p \"test_hn*.py\"",
+    "arxiv:run": "python3 -B scripts/arxiv_pipeline.py run",
+    "arxiv:assess": "python3 -B scripts/arxiv_pipeline.py assess",
+    "arxiv:test": "python3 -B -m unittest discover -s tests -p \"test_arxiv*.py\""
+  },
+  "dependencies": {
+    "lucide-react": "^1.72.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "prettier": "^3.10.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}

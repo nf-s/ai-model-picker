@@ -1,0 +1,1951 @@
+{
+  "checkedAt": "2026-11-16",
+  "benchmarks": [
+    {
+      "id": "aa-intelligence",
+      "name": "Artificial Analysis Intelligence Index v5.0.1",
+      "category": "general",
+      "unit": "Index points",
+      "description": "Composite evaluation across knowledge work, coding, science and general knowledge.",
+      "url": "https://artificialanalysis.ai/leaderboards/models",
+      "methodology": "https://artificialanalysis.ai/methodology/intelligence-benchmarking",
+      "costMethod": "Weighted cost of one Intelligence Index task at provider token and cache prices; not the cost of building an app.",
+      "timeMethod": "Estimated from answer/reasoning tokens and representative API output speed; not measured end-to-end task duration.",
+      "selectionMethod": "One source-listed configuration per model.",
+      "results": []
+    },
+    {
+      "id": "terminal-bench-4-1",
+      "name": "Terminal-Bench 4.1",
+      "category": "coding",
+      "unit": "Resolved tasks (%)",
+      "description": "Terminal-based agent tasks; model, agent harness and effort are part of each result.",
+      "url": "https://www.tbench.ai/",
+      "methodology": "https://www.tbench.ai/",
+      "costMethod": "Derived mean per trial: reported total evaluation cost divided by reported trial count. Raw totals retained; not a per-success cost.",
+      "timeMethod": "Source-reported average trial duration in seconds.",
+      "selectionMethod": "Primary is the first source-ranked configuration for each model; alternate runs remain separate.",
+      "publishedDataUpdatedAt": "2026-11-14T06:10:26.015148+00:00",
+      "results": [
+        {
+          "modelName": "Claude Opus 5.5",
+          "sourceModelName": "Opus 5.5",
+          "provider": "Anthropic",
+          "score": 65.76,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/claude-opus-5-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.11
+          },
+          "trials": 330,
+          "totalCostUsd": 4718.65,
+          "costUsd": 14.298939,
+          "releaseDate": "2026-09-22",
+          "timeSeconds": 4790.4,
+          "passAt5": 80.3
+        },
+        {
+          "modelName": "Claude Fable 5.2",
+          "sourceModelName": "Fable 5.2",
+          "provider": "Anthropic",
+          "score": 65.76,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/claude-fable-and-mythos-5-2",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.85
+          },
+          "trials": 330,
+          "totalCostUsd": 16492.76,
+          "costUsd": 49.978061,
+          "releaseDate": "2026-11-09",
+          "timeSeconds": 7333,
+          "passAt5": 78.79
+        },
+        {
+          "modelName": "Gemini 4 Carbon",
+          "sourceModelName": "Gemini 4 Carbon",
+          "provider": "Google",
+          "score": 64.55,
+          "configuration": "Antigravity CLI · high effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/",
+          "agentUrl": "https://antigravity.google/docs/overview?tab=cli",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.23
+          },
+          "trials": 330,
+          "totalCostUsd": 1358.25,
+          "costUsd": 4.115909,
+          "releaseDate": "2026-10-28",
+          "timeSeconds": 3495.8,
+          "passAt5": 78.79
+        },
+        {
+          "modelName": "Claude Sonnet 5.5",
+          "sourceModelName": "Sonnet 5.5",
+          "provider": "Anthropic",
+          "score": 63.94,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/claude-sonnet-5-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3
+          },
+          "trials": 330,
+          "totalCostUsd": 7333.64,
+          "costUsd": 22.223152,
+          "releaseDate": "2026-09-28",
+          "timeSeconds": 7431.6,
+          "passAt5": 80.3
+        },
+        {
+          "modelName": "GPT-6.1 Sol",
+          "sourceModelName": "GPT-6.1 Sol",
+          "provider": "OpenAI",
+          "score": 60.91,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.97
+          },
+          "trials": 330,
+          "totalCostUsd": 634.24,
+          "costUsd": 1.921939,
+          "releaseDate": "2026-09-29",
+          "timeSeconds": 3176.7,
+          "passAt5": 74.24
+        },
+        {
+          "modelName": "GPT-6 Astra",
+          "sourceModelName": "GPT-6 Astra",
+          "provider": "OpenAI",
+          "score": 60.3,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.82
+          },
+          "trials": 330,
+          "totalCostUsd": 3267.18,
+          "costUsd": 9.900545,
+          "releaseDate": "2026-09-03",
+          "timeSeconds": 2796.3,
+          "passAt5": 72.73
+        },
+        {
+          "modelName": "GPT-6 Astra",
+          "sourceModelName": "GPT-6 Astra",
+          "provider": "OpenAI",
+          "score": 60,
+          "configuration": "Codex · high effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.79
+          },
+          "trials": 330,
+          "totalCostUsd": 2269.42,
+          "costUsd": 6.87703,
+          "releaseDate": "2026-09-03",
+          "timeSeconds": 2113.7,
+          "passAt5": 71.21
+        },
+        {
+          "modelName": "GPT-6 Astra",
+          "sourceModelName": "GPT-6 Astra",
+          "provider": "OpenAI",
+          "score": 59.7,
+          "configuration": "Codex · xhigh effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.69
+          },
+          "trials": 330,
+          "totalCostUsd": 2350.51,
+          "costUsd": 7.122758,
+          "releaseDate": "2026-09-03",
+          "timeSeconds": 2208.5,
+          "passAt5": 69.7
+        },
+        {
+          "modelName": "Kimi K3.1 Pro",
+          "sourceModelName": "Kimi K3.1 Pro",
+          "provider": "Moonshot AI",
+          "score": 59.7,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.kimi.ai/blog/kimi-k3-1-pro",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 4.18
+          },
+          "trials": 330,
+          "totalCostUsd": 1086.66,
+          "costUsd": 3.292909,
+          "releaseDate": "2026-10-24",
+          "timeSeconds": 123.2,
+          "passAt5": 84.85
+        },
+        {
+          "modelName": "Claude Fable 5.1",
+          "sourceModelName": "Fable 5.1",
+          "provider": "Anthropic",
+          "score": 57.58,
+          "configuration": "Claude Code · xhigh effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.anthropic.com/en/docs/about-claude/models/all-models",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.31
+          },
+          "trials": 330,
+          "totalCostUsd": 4872.04,
+          "costUsd": 14.763758,
+          "releaseDate": "2026-09-01",
+          "timeSeconds": 3202.1,
+          "passAt5": 74.24
+        },
+        {
+          "modelName": "Claude Fable 5.1",
+          "sourceModelName": "Fable 5.1",
+          "provider": "Anthropic",
+          "score": 57.27,
+          "configuration": "Claude Code · max effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.anthropic.com/en/docs/about-claude/models/all-models",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.83
+          },
+          "trials": 330,
+          "totalCostUsd": 6243.5,
+          "costUsd": 18.919697,
+          "releaseDate": "2026-09-01",
+          "timeSeconds": 3893.5,
+          "passAt5": 78.79
+        },
+        {
+          "modelName": "Gemini 4 Hydrogen",
+          "sourceModelName": "Gemini 4 Hydrogen",
+          "provider": "Google",
+          "score": 56.36,
+          "configuration": "Antigravity CLI · high effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/",
+          "agentUrl": "https://antigravity.google/docs/overview?tab=cli",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.97
+          },
+          "trials": 330,
+          "totalCostUsd": 784.24,
+          "costUsd": 2.376485,
+          "releaseDate": "2026-11-12",
+          "timeSeconds": 1926.2,
+          "passAt5": 69.7
+        },
+        {
+          "modelName": "Gemini 4 Argon",
+          "sourceModelName": "Gemini 4 Argon",
+          "provider": "Google",
+          "score": 55.45,
+          "configuration": "Antigravity CLI · high effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+          "agentUrl": "https://antigravity.google/cli",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.85
+          },
+          "trials": 330,
+          "totalCostUsd": 1108.98,
+          "costUsd": 3.360545,
+          "releaseDate": "2026-09-30",
+          "timeSeconds": 125.2,
+          "passAt5": 65.15
+        },
+        {
+          "modelName": "GPT-6 Astra",
+          "sourceModelName": "GPT-6 Astra",
+          "provider": "OpenAI",
+          "score": 55.15,
+          "configuration": "Codex · medium effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.66
+          },
+          "trials": 330,
+          "totalCostUsd": 1914.8,
+          "costUsd": 5.802424,
+          "releaseDate": "2026-09-03",
+          "timeSeconds": 1885.9,
+          "passAt5": 68.18
+        },
+        {
+          "modelName": "Claude Fable 5.1",
+          "sourceModelName": "Fable 5.1",
+          "provider": "Anthropic",
+          "score": 54.85,
+          "configuration": "Claude Code · high effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.anthropic.com/en/docs/about-claude/models/all-models",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.41
+          },
+          "trials": 330,
+          "totalCostUsd": 3985.38,
+          "costUsd": 12.076909,
+          "releaseDate": "2026-09-01",
+          "timeSeconds": 3017.7,
+          "passAt5": 75.76
+        },
+        {
+          "modelName": "Claude Fable 5.1",
+          "sourceModelName": "Fable 5.1",
+          "provider": "Anthropic",
+          "score": 53.94,
+          "configuration": "Claude Code · medium effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.anthropic.com/en/docs/about-claude/models/all-models",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.39
+          },
+          "trials": 330,
+          "totalCostUsd": 2832.9,
+          "costUsd": 8.584545,
+          "releaseDate": "2026-09-01",
+          "timeSeconds": 2528.3,
+          "passAt5": 71.21
+        },
+        {
+          "modelName": "Claude Opus 5",
+          "sourceModelName": "Opus 5",
+          "provider": "Anthropic",
+          "score": 53.33,
+          "configuration": "Claude Code · xhigh effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/news/claude-opus-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.09
+          },
+          "trials": 330,
+          "totalCostUsd": 6086.22,
+          "costUsd": 18.443091,
+          "releaseDate": "2026-07-24",
+          "timeSeconds": 4514.7,
+          "passAt5": 68.18
+        },
+        {
+          "modelName": "GPT-6.1 Terra",
+          "sourceModelName": "GPT-6.1 Terra",
+          "provider": "OpenAI",
+          "score": 53.33,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.1-terra",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.09
+          },
+          "trials": 330,
+          "totalCostUsd": 874.44,
+          "costUsd": 2.649818,
+          "releaseDate": "2026-10-26",
+          "timeSeconds": 123.1,
+          "passAt5": 66.67
+        },
+        {
+          "modelName": "Claude Opus 5",
+          "sourceModelName": "Opus 5",
+          "provider": "Anthropic",
+          "score": 52.12,
+          "configuration": "Claude Code · max effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/news/claude-opus-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.39
+          },
+          "trials": 330,
+          "totalCostUsd": 5969.11,
+          "costUsd": 18.088212,
+          "releaseDate": "2026-07-24",
+          "timeSeconds": 4792.8,
+          "passAt5": 69.7
+        },
+        {
+          "modelName": "GPT-6 Astra",
+          "sourceModelName": "GPT-6 Astra",
+          "provider": "OpenAI",
+          "score": 50.91,
+          "configuration": "Codex · low effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.79
+          },
+          "trials": 330,
+          "totalCostUsd": 1557.3,
+          "costUsd": 4.719091,
+          "releaseDate": "2026-09-03",
+          "timeSeconds": 1683.7,
+          "passAt5": 63.64
+        },
+        {
+          "modelName": "GPT-6 Sol",
+          "sourceModelName": "GPT-6 Sol",
+          "provider": "OpenAI",
+          "score": 50.3,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.23
+          },
+          "trials": 330,
+          "totalCostUsd": 1451.32,
+          "costUsd": 4.397939,
+          "releaseDate": "2026-09-22",
+          "timeSeconds": 2662.2,
+          "passAt5": 66.67
+        },
+        {
+          "modelName": "Claude Opus 5",
+          "sourceModelName": "Opus 5",
+          "provider": "Anthropic",
+          "score": 49.7,
+          "configuration": "Claude Code · high effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/news/claude-opus-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.69
+          },
+          "trials": 330,
+          "totalCostUsd": 4662.27,
+          "costUsd": 14.128091,
+          "releaseDate": "2026-07-24",
+          "timeSeconds": 3822.2,
+          "passAt5": 72.73
+        },
+        {
+          "modelName": "Muse Wonder",
+          "sourceModelName": "Muse Wonder",
+          "provider": "Meta",
+          "score": 46.97,
+          "configuration": "Muse Code · xhigh effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://dev.meta.ai/models/muse-wonder",
+          "agentUrl": "https://dev.meta.ai/docs/muse-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.78
+          },
+          "trials": 330,
+          "totalCostUsd": 2452.31,
+          "costUsd": 7.431242,
+          "releaseDate": "2026-10-12",
+          "timeSeconds": 2827.5,
+          "passAt5": 71.21
+        },
+        {
+          "modelName": "Claude Opus 5",
+          "sourceModelName": "Opus 5",
+          "provider": "Anthropic",
+          "score": 45.15,
+          "configuration": "Claude Code · medium effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/news/claude-opus-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.85
+          },
+          "trials": 330,
+          "totalCostUsd": 3191.59,
+          "costUsd": 9.671485,
+          "releaseDate": "2026-07-24",
+          "timeSeconds": 3292.9,
+          "passAt5": 69.7
+        },
+        {
+          "modelName": "Claude Fable 5",
+          "sourceModelName": "Fable 5",
+          "provider": "Anthropic",
+          "score": 44.85,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/news/claude-fable-5-mythos-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.83
+          },
+          "trials": 330,
+          "totalCostUsd": 7265.01,
+          "costUsd": 22.015182,
+          "releaseDate": "2026-06-09",
+          "timeSeconds": 4202.8,
+          "passAt5": 68.18
+        },
+        {
+          "modelName": "Claude Fable 5.1",
+          "sourceModelName": "Fable 5.1",
+          "provider": "Anthropic",
+          "score": 43.33,
+          "configuration": "Claude Code · low effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.anthropic.com/en/docs/about-claude/models/all-models",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.61
+          },
+          "trials": 330,
+          "totalCostUsd": 2358.72,
+          "costUsd": 7.147636,
+          "releaseDate": "2026-09-01",
+          "timeSeconds": 2290.8,
+          "passAt5": 65.15
+        },
+        {
+          "modelName": "GLM-5.3",
+          "sourceModelName": "GLM-5.3",
+          "provider": "Z.ai",
+          "score": 41.21,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.z.ai/guides/llm/glm-5.3",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.28
+          },
+          "trials": 330,
+          "totalCostUsd": 2727.63,
+          "costUsd": 8.265545,
+          "releaseDate": "2026-08-14",
+          "timeSeconds": 5831,
+          "passAt5": 57.58
+        },
+        {
+          "modelName": "Claude Haiku 5.5",
+          "sourceModelName": "Haiku 5.5",
+          "provider": "Anthropic",
+          "score": 40,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/claude-haiku-5-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.61
+          },
+          "trials": 330,
+          "totalCostUsd": 952.47,
+          "costUsd": 2.886273,
+          "releaseDate": "2026-10-07",
+          "timeSeconds": 140.5,
+          "passAt5": 60.61
+        },
+        {
+          "modelName": "Grok 4.7",
+          "sourceModelName": "Grok 4.7",
+          "provider": "xAI",
+          "score": 38.79,
+          "configuration": "Grok Build · xhigh effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.x.ai/developers/models/grok-4.7",
+          "agentUrl": "https://x.ai/build",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.59
+          },
+          "trials": 330,
+          "totalCostUsd": 3683.287146,
+          "costUsd": 11.161476,
+          "releaseDate": "2026-09-21",
+          "timeSeconds": 5700.9,
+          "passAt5": 62.12
+        },
+        {
+          "modelName": "GPT-5.6 Sol",
+          "sourceModelName": "GPT-5.6 Sol",
+          "provider": "OpenAI",
+          "score": 38.48,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-5.6-sol",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.83
+          },
+          "trials": 330,
+          "totalCostUsd": 2541.7,
+          "costUsd": 7.702121,
+          "releaseDate": "2026-06-26",
+          "timeSeconds": 2388.4,
+          "passAt5": 62.12
+        },
+        {
+          "modelName": "DeepSeek V4.1 Flash 1017",
+          "sourceModelName": "DeepSeek V4.1 Flash 1017",
+          "provider": "DeepSeek",
+          "score": 38.48,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.76
+          },
+          "trials": 330,
+          "totalCostUsd": 184.89,
+          "costUsd": 0.560273,
+          "releaseDate": "2026-10-17",
+          "timeSeconds": 148.4,
+          "passAt5": 65.15
+        },
+        {
+          "modelName": "Hy4",
+          "sourceModelName": "Hy4",
+          "provider": "Tencent",
+          "score": 37.88,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/tencent/hy4",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.51
+          },
+          "trials": 330,
+          "totalCostUsd": 347.6,
+          "costUsd": 1.053333,
+          "releaseDate": "2026-11-04",
+          "timeSeconds": 126.2,
+          "passAt5": 59.09
+        },
+        {
+          "modelName": "GLM-5.3-Flash",
+          "sourceModelName": "GLM-5.3-Flash",
+          "provider": "Z.ai",
+          "score": 36.97,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/z-ai/glm-5.3-flash",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.64
+          },
+          "trials": 330,
+          "totalCostUsd": 374.72,
+          "costUsd": 1.135515,
+          "releaseDate": "2026-08-26",
+          "timeSeconds": 120.4,
+          "passAt5": 62.12
+        },
+        {
+          "modelName": "GLM-5.3-Flash",
+          "sourceModelName": "GLM-5.3-Flash",
+          "provider": "Z.ai",
+          "score": 35.45,
+          "configuration": "Claude Code · none effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://z.ai/blog/glm-5.3-flash",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.56
+          },
+          "trials": 330,
+          "totalCostUsd": 118.73752448,
+          "costUsd": 0.359811,
+          "releaseDate": "2026-08-26",
+          "timeSeconds": 6209.8,
+          "passAt5": 56.06
+        },
+        {
+          "modelName": "Claude Opus 5",
+          "sourceModelName": "Opus 5",
+          "provider": "Anthropic",
+          "score": 34.85,
+          "configuration": "Claude Code · low effort",
+          "primary": false,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/news/claude-opus-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.92
+          },
+          "trials": 330,
+          "totalCostUsd": 2393.88,
+          "costUsd": 7.254182,
+          "releaseDate": "2026-07-24",
+          "timeSeconds": 2947.3,
+          "passAt5": 60.61
+        },
+        {
+          "modelName": "Muse Ember",
+          "sourceModelName": "Muse Ember",
+          "provider": "Meta",
+          "score": 30.61,
+          "configuration": "Muse Code · xhigh effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://dev.meta.ai/models/muse-ember",
+          "agentUrl": "https://dev.meta.ai/docs/muse-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.8
+          },
+          "trials": 330,
+          "totalCostUsd": 157.18,
+          "costUsd": 0.476303,
+          "releaseDate": "2026-11-09",
+          "timeSeconds": 2288.4,
+          "passAt5": 59.09
+        },
+        {
+          "modelName": "Mistral Large 4",
+          "sourceModelName": "Mistral Large 4",
+          "provider": "Mistral AI",
+          "score": 27.58,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/mistralai/mistral-large-4-0",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.87
+          },
+          "trials": 330,
+          "totalCostUsd": 718.4,
+          "costUsd": 2.17697,
+          "releaseDate": "2026-10-06",
+          "timeSeconds": 142.7,
+          "passAt5": 57.58
+        },
+        {
+          "modelName": "Qwen3.8-Max-0902",
+          "sourceModelName": "Qwen3.8-Max-0902",
+          "provider": "Alibaba",
+          "score": 26.97,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.alibabacloud.com/en/notice/model_studio_update_notice_for_qwen38max_models_863",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.87
+          },
+          "trials": 330,
+          "totalCostUsd": 4635.67,
+          "costUsd": 14.047485,
+          "releaseDate": "2026-09-02",
+          "timeSeconds": 9953,
+          "passAt5": 54.55
+        },
+        {
+          "modelName": "MiMo V2.6 Pro",
+          "sourceModelName": "MiMo V2.6 Pro",
+          "provider": "Xiaomi",
+          "score": 26.97,
+          "configuration": "mini-swe-agent · none effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/xiaomi/mimo-v2.6-pro",
+          "agentUrl": "https://github.com/SWE-agent/mini-swe-agent",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.61
+          },
+          "trials": 330,
+          "totalCostUsd": 282.32,
+          "costUsd": 0.855515,
+          "releaseDate": "2026-09-22",
+          "timeSeconds": 168.2,
+          "passAt5": 53.03
+        },
+        {
+          "modelName": "Claude Opus 4.8",
+          "sourceModelName": "Opus 4.8",
+          "provider": "Anthropic",
+          "score": 23.64,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/news/claude-opus-4-8",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.59
+          },
+          "trials": 330,
+          "totalCostUsd": 6481.26,
+          "costUsd": 19.640182,
+          "releaseDate": "2026-05-28",
+          "timeSeconds": 5163,
+          "passAt5": 46.97
+        },
+        {
+          "modelName": "Kimi K3",
+          "sourceModelName": "Kimi K3",
+          "provider": "Moonshot AI",
+          "score": 23.03,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/moonshotai/kimi-k3",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.73
+          },
+          "trials": 330,
+          "totalCostUsd": 1919.83,
+          "costUsd": 5.817667,
+          "releaseDate": "2026-07-16",
+          "timeSeconds": 141.9,
+          "passAt5": 53.03
+        },
+        {
+          "modelName": "GPT-5.6 Terra",
+          "sourceModelName": "GPT-5.6 Terra",
+          "provider": "OpenAI",
+          "score": 21.52,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.25
+          },
+          "trials": 330,
+          "totalCostUsd": 1733.52,
+          "costUsd": 5.253091,
+          "releaseDate": "2026-06-26",
+          "timeSeconds": 2514.6,
+          "passAt5": 43.94
+        },
+        {
+          "modelName": "Grok 4.6",
+          "sourceModelName": "Grok 4.6",
+          "provider": "xAI",
+          "score": 19.7,
+          "configuration": "Grok Build · high effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.x.ai/developers/models/grok-4.6",
+          "agentUrl": "https://x.ai/build",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.09
+          },
+          "trials": 330,
+          "totalCostUsd": 3591.58,
+          "costUsd": 10.883576,
+          "releaseDate": "2026-08-12",
+          "timeSeconds": 2351.5,
+          "passAt5": 39.39
+        },
+        {
+          "modelName": "Gemini 3.8 Flash",
+          "sourceModelName": "Gemini 3.8 Flash",
+          "provider": "Google",
+          "score": 18.18,
+          "configuration": "mini-SWE-agent · high effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash",
+          "agentUrl": "https://github.com/SWE-agent/mini-swe-agent",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.36
+          },
+          "trials": 330,
+          "totalCostUsd": 1828.77,
+          "costUsd": 5.541727,
+          "releaseDate": "2026-09-02",
+          "timeSeconds": 1995.1,
+          "passAt5": 43.94
+        },
+        {
+          "modelName": "GPT-5.6 Luna",
+          "sourceModelName": "GPT-5.6 Luna",
+          "provider": "OpenAI",
+          "score": 17.58,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-5.6-luna",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.91
+          },
+          "trials": 330,
+          "totalCostUsd": 346.67,
+          "costUsd": 1.050515,
+          "releaseDate": "2026-06-26",
+          "timeSeconds": 4088.3,
+          "passAt5": 34.85
+        },
+        {
+          "modelName": "MiMo V2.6 Flash",
+          "sourceModelName": "MiMo V2.6 Flash",
+          "provider": "Xiaomi",
+          "score": 16.06,
+          "configuration": "mini-swe-agent · none effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/xiaomi/mimo-v2.6-flash",
+          "agentUrl": "https://github.com/SWE-agent/mini-swe-agent",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.36
+          },
+          "trials": 330,
+          "totalCostUsd": 194.6,
+          "costUsd": 0.589697,
+          "releaseDate": "2026-09-22",
+          "timeSeconds": 160.8,
+          "passAt5": 37.88
+        },
+        {
+          "modelName": "GPT-6 Luna",
+          "sourceModelName": "GPT-6 Luna",
+          "provider": "OpenAI",
+          "score": 15.15,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.66
+          },
+          "trials": 330,
+          "totalCostUsd": 72.14,
+          "costUsd": 0.218606,
+          "releaseDate": "2026-09-22",
+          "timeSeconds": 2284.1,
+          "passAt5": 28.79
+        },
+        {
+          "modelName": "Muse Spark 1.3",
+          "sourceModelName": "Muse Spark 1.3",
+          "provider": "Meta",
+          "score": 14.85,
+          "configuration": "Muse Code · xhigh effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://ai.meta.com/tools/muse/",
+          "agentUrl": "https://dev.meta.ai/docs/muse-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3
+          },
+          "trials": 330,
+          "totalCostUsd": 0,
+          "costUsd": 0.0,
+          "releaseDate": "2026-09-02",
+          "timeSeconds": 4341.7,
+          "passAt5": 34.85
+        },
+        {
+          "modelName": "Inkling Small 2",
+          "sourceModelName": "Inkling Small 2",
+          "provider": "Thinking Machines Lab",
+          "score": 13.03,
+          "configuration": "mini-swe-agent · xhigh effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://thinkingmachines.ai/news/inkling-2-small/",
+          "agentUrl": "https://github.com/SWE-agent/mini-swe-agent",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.85
+          },
+          "trials": 330,
+          "totalCostUsd": 963.65,
+          "costUsd": 2.920152,
+          "releaseDate": "2026-11-05",
+          "timeSeconds": 7272.7,
+          "passAt5": 30.3
+        },
+        {
+          "modelName": "Gemini 3.7 Flash",
+          "sourceModelName": "Gemini 3.7 Flash",
+          "provider": "Google",
+          "score": 12.42,
+          "configuration": "mini-SWE-agent · high effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash",
+          "agentUrl": "https://github.com/SWE-agent/mini-swe-agent",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.52
+          },
+          "trials": 330,
+          "totalCostUsd": 1261.87,
+          "costUsd": 3.823848,
+          "releaseDate": "2026-08-13",
+          "timeSeconds": 1688.9,
+          "passAt5": 27.27
+        },
+        {
+          "modelName": "Grok 4.5",
+          "sourceModelName": "Grok 4.5",
+          "provider": "xAI",
+          "score": 12.42,
+          "configuration": "Grok Build · high effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.x.ai/developers/models/grok-4.5",
+          "agentUrl": "https://x.ai/build",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.62
+          },
+          "trials": 330,
+          "totalCostUsd": 2094.11,
+          "costUsd": 6.345788,
+          "releaseDate": "2026-07-16",
+          "timeSeconds": 3162.1,
+          "passAt5": 27.27
+        },
+        {
+          "modelName": "Claude Sonnet 5",
+          "sourceModelName": "Sonnet 5",
+          "provider": "Anthropic",
+          "score": 12.12,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://www.anthropic.com/news/claude-sonnet-5",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3
+          },
+          "trials": 330,
+          "totalCostUsd": 9603.86,
+          "costUsd": 29.102606,
+          "releaseDate": "2026-06-30",
+          "timeSeconds": 6510.3,
+          "passAt5": 33.33
+        },
+        {
+          "modelName": "MiniMax M3",
+          "sourceModelName": "MiniMax M3",
+          "provider": "MiniMax",
+          "score": 7.58,
+          "configuration": "mini-swe-agent · none effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/minimax/minimax-m3",
+          "agentUrl": "https://github.com/SWE-agent/mini-swe-agent",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.75
+          },
+          "trials": 330,
+          "totalCostUsd": 1149.33,
+          "costUsd": 3.482818,
+          "releaseDate": "2026-06-01",
+          "timeSeconds": 204,
+          "passAt5": 27.27
+        },
+        {
+          "modelName": "DeepSeek V4 Pro 0813",
+          "sourceModelName": "DeepSeek V4 Pro 0813",
+          "provider": "DeepSeek",
+          "score": 6.67,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/deepseek/deepseek-v4-pro-0813",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.52
+          },
+          "trials": 330,
+          "totalCostUsd": 727.02,
+          "costUsd": 2.203091,
+          "releaseDate": "2026-08-13",
+          "timeSeconds": 138.2,
+          "passAt5": 22.73
+        },
+        {
+          "modelName": "Beam 1.0",
+          "sourceModelName": "Beam 1.0",
+          "provider": "Reflection",
+          "score": 6.36,
+          "configuration": "mini-swe-agent · none effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/reflection/beam-1.0-501b-a23b",
+          "agentUrl": "https://mini-swe-agent.com/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 1.68
+          },
+          "trials": 330,
+          "totalCostUsd": 220.96,
+          "costUsd": 0.669576,
+          "releaseDate": "2026-10-16",
+          "timeSeconds": 178.6,
+          "passAt5": 10.61
+        },
+        {
+          "modelName": "GPT-5.4 Mini",
+          "sourceModelName": "GPT-5.4 Mini",
+          "provider": "OpenAI",
+          "score": 1.82,
+          "configuration": "Codex · xhigh effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openai.com/index/introducing-gpt-5-4-mini-and-nano/",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 1.26
+          },
+          "trials": 330,
+          "totalCostUsd": 671.57,
+          "costUsd": 2.035061,
+          "releaseDate": "2026-03-17",
+          "timeSeconds": 141.5,
+          "passAt5": 6.06
+        },
+        {
+          "modelName": "Inkling Small",
+          "sourceModelName": "Inkling Small",
+          "provider": "Thinking Machines Lab",
+          "score": 0.91,
+          "configuration": "mini-swe-agent · none effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/thinkingmachines/inkling-small",
+          "agentUrl": "https://mini-swe-agent.com/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 0.94
+          },
+          "trials": 330,
+          "totalCostUsd": 49.55,
+          "costUsd": 0.150152,
+          "releaseDate": "2026-07-30",
+          "timeSeconds": 141.3,
+          "passAt5": 3.03
+        },
+        {
+          "modelName": "Nemotron 3.5 Super VL",
+          "sourceModelName": "Nemotron 3.5 Super VL",
+          "provider": "NVIDIA",
+          "score": 0.3,
+          "configuration": "mini-swe-agent · none effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/nvidia/nemotron-3.5-super-vl",
+          "agentUrl": "https://mini-swe-agent.com/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 0.59
+          },
+          "trials": 330,
+          "totalCostUsd": 167.29,
+          "costUsd": 0.506939,
+          "releaseDate": "2026-10-15",
+          "timeSeconds": 135.8,
+          "passAt5": 1.52
+        },
+        {
+          "modelName": "Inkling",
+          "sourceModelName": "Inkling",
+          "provider": "Thinking Machines Lab",
+          "score": 0,
+          "configuration": "mini-swe-agent · none effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/thinkingmachines/inkling",
+          "agentUrl": "https://mini-swe-agent.com/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 0
+          },
+          "trials": 330,
+          "totalCostUsd": 1011.52,
+          "costUsd": 3.065212,
+          "releaseDate": "2026-07-17",
+          "timeSeconds": 174.1,
+          "passAt5": 0
+        }
+      ]
+    },
+    {
+      "id": "swe-rebench-2026-05-15-2026-07-01",
+      "name": "SWE-rebench · May–July 2026",
+      "category": "coding",
+      "unit": "Resolved problems (%)",
+      "description": "111 problems from 65 repositories in the source-selected date window. Model-only rows; standalone agent products excluded.",
+      "url": "https://swe-rebench.com/",
+      "methodology": "https://swe-rebench.com/about",
+      "dateWindow": {
+        "start": "2026-05-15",
+        "end": "2026-07-01"
+      },
+      "costMethod": "Source-reported mean cost per problem, including source cache usage.",
+      "timeMethod": "Not published in the imported table.",
+      "selectionMethod": "All 13 model rows with numeric scores in the visible time window.",
+      "results": [
+        {
+          "modelName": "Claude Fable 5",
+          "sourceModelName": "Fable 5",
+          "provider": "Anthropic",
+          "score": 64.5,
+          "configuration": "high effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 4.4,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 1.41
+          },
+          "passAt5": 78.4,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "Grok 4.5",
+          "sourceModelName": "Grok 4.5",
+          "provider": "xAI",
+          "score": 63.8,
+          "configuration": "high effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 1.47,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 0.6
+          },
+          "passAt5": 77.5,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "Claude Opus 5",
+          "sourceModelName": "Opus 5",
+          "provider": "Anthropic",
+          "score": 63.4,
+          "configuration": "high effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 3.47,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 1.35
+          },
+          "passAt5": 74.8,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "GLM-5.2",
+          "sourceModelName": "GLM-5.2",
+          "provider": "Z AI",
+          "score": 62.9,
+          "configuration": "high effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 1.4,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 1.19
+          },
+          "passAt5": 81.1,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "GPT-5.6 Sol",
+          "sourceModelName": "GPT-5.6 Sol",
+          "provider": "OpenAI",
+          "score": 62.3,
+          "configuration": "medium effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 0.85,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 1.83
+          },
+          "passAt5": 79.3,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "Claude Sonnet 5",
+          "sourceModelName": "Sonnet 5",
+          "provider": "Anthropic",
+          "score": 56.8,
+          "configuration": "high effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 1.43,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 0.94
+          },
+          "passAt5": 74.8,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "MiniMax M3",
+          "sourceModelName": "MiniMax M3",
+          "provider": "MiniMax",
+          "score": 47.2,
+          "configuration": "Not specified effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 0.95,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 1.13
+          },
+          "passAt5": 69.4,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "MiMo V2.5 Pro",
+          "sourceModelName": "MiMo V2.5 Pro",
+          "provider": "Xiaomi",
+          "score": 46.5,
+          "configuration": "Not specified effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 0.1,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 0.54
+          },
+          "passAt5": 65.8,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "GPT-5.6 Luna",
+          "sourceModelName": "GPT-5.6 Luna",
+          "provider": "OpenAI",
+          "score": 43.6,
+          "configuration": "medium effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 0.11,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 1.47
+          },
+          "passAt5": 59.5,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "DeepSeek-V4 Pro",
+          "sourceModelName": "DeepSeek-V4 Pro",
+          "provider": "DeepSeek",
+          "score": 40.2,
+          "configuration": "high effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 0.15,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 1.29
+          },
+          "passAt5": 64.0,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "Qwen3.6-27B",
+          "sourceModelName": "Qwen3.6-27B",
+          "provider": "Alibaba",
+          "score": 31.2,
+          "configuration": "Not specified effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 0.62,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 1.68
+          },
+          "passAt5": 57.7,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "Qwen3.6-35B-A3B",
+          "sourceModelName": "Qwen3.6-35B-A3B",
+          "provider": "Alibaba",
+          "score": 24.7,
+          "configuration": "Not specified effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 0.27,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 0.79
+          },
+          "passAt5": 43.2,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        },
+        {
+          "modelName": "Qwen3.5-35B-A3B",
+          "sourceModelName": "Qwen3.5-35B-A3B",
+          "provider": "Alibaba",
+          "score": 17.1,
+          "configuration": "Not specified effort; SWE-rebench model scaffold",
+          "primary": true,
+          "costUsd": 0.99,
+          "interval": {
+            "kind": "Standard error of mean",
+            "halfWidth": 1.07
+          },
+          "passAt5": 36.9,
+          "sampleSize": 111,
+          "sourceUrl": "https://swe-rebench.com/"
+        }
+      ]
+    },
+    {
+      "id": "epoch-eci",
+      "name": "Epoch Capabilities Index",
+      "category": "general",
+      "unit": "ECI points",
+      "description": "A capability estimate fitted across benchmarks; ECI is unbounded and is not a percentage.",
+      "url": "https://epoch.ai/eci",
+      "methodology": "https://epoch.ai/eci",
+      "dataUrl": "https://epoch.ai/data/eci_scores.csv",
+      "attribution": "Epoch AI, CC-BY 4.0",
+      "costMethod": "No task costs are reported in this dataset.",
+      "timeMethod": "No task durations are reported in this dataset.",
+      "selectionMethod": "25 models, prioritizing current models also listed by Artificial Analysis.",
+      "results": [
+        {
+          "modelName": "Claude Fable 5.2",
+          "provider": "Anthropic",
+          "score": 173.44,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 169.93,
+            "upper": 177.49
+          },
+          "releaseDate": "2026-11-09",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Gemini 4 Carbon",
+          "provider": "Google DeepMind",
+          "score": 169.76,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 166.48,
+            "upper": 173.5
+          },
+          "releaseDate": "2026-10-28",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-6 Astra",
+          "provider": "OpenAI",
+          "score": 169.0,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 166.08,
+            "upper": 172.26
+          },
+          "releaseDate": "2026-09-03",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Opus 5.5",
+          "provider": "Anthropic",
+          "score": 168.54,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 165.63,
+            "upper": 171.83
+          },
+          "releaseDate": "2026-09-22",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-6.1 Sol",
+          "provider": "OpenAI",
+          "score": 168.48,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 165.49,
+            "upper": 171.8
+          },
+          "releaseDate": "2026-09-29",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-6.1 Terra",
+          "provider": "OpenAI",
+          "score": 167.67,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 164.73,
+            "upper": 170.98
+          },
+          "releaseDate": "2026-10-26",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Fable 5.1",
+          "provider": "Anthropic",
+          "score": 166.99,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 164.23,
+            "upper": 170.11
+          },
+          "releaseDate": "2026-09-01",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Sonnet 5.5",
+          "provider": "Anthropic",
+          "score": 166.56,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 163.76,
+            "upper": 169.58
+          },
+          "releaseDate": "2026-09-28",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Gemini 4 Argon",
+          "provider": "Google DeepMind",
+          "score": 166.48,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 163.77,
+            "upper": 169.46
+          },
+          "releaseDate": "2026-09-30",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Opus 5",
+          "provider": "Anthropic",
+          "score": 164.68,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 162.14,
+            "upper": 167.49
+          },
+          "releaseDate": "2026-07-24",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Fable 5",
+          "provider": "Anthropic",
+          "score": 164.13,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 161.68,
+            "upper": 166.83
+          },
+          "releaseDate": "2026-06-09",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-6 Sol",
+          "provider": "OpenAI",
+          "score": 163.75,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 161.33,
+            "upper": 166.42
+          },
+          "releaseDate": "2026-09-22",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-5.6 Sol",
+          "provider": "OpenAI",
+          "score": 162.99,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 160.68,
+            "upper": 165.49
+          },
+          "releaseDate": "2026-07-09",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-5.5 Pro",
+          "provider": "OpenAI",
+          "score": 162.7,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 159.98,
+            "upper": 165.86
+          },
+          "releaseDate": "2026-04-23",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Muse Wonder",
+          "provider": "Meta AI",
+          "score": 161.68,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 159.36,
+            "upper": 164.34
+          },
+          "releaseDate": "2026-10-12",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Kimi K3.1 Pro",
+          "provider": "Moonshot",
+          "score": 161.37,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 158.99,
+            "upper": 164.0
+          },
+          "releaseDate": "2026-10-23",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-5.6 Terra",
+          "provider": "OpenAI",
+          "score": 160.73,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 158.47,
+            "upper": 163.25
+          },
+          "releaseDate": "2026-07-09",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Haiku 5.5",
+          "provider": "Anthropic",
+          "score": 160.43,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 158.27,
+            "upper": 162.87
+          },
+          "releaseDate": "2026-10-07",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-5.4 Pro",
+          "provider": "OpenAI",
+          "score": 160.24,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 157.75,
+            "upper": 163.04
+          },
+          "releaseDate": "2026-03-05",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "DeepSeek V4.1 Flash 1017",
+          "provider": "DeepSeek",
+          "score": 159.41,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 157.01,
+            "upper": 162.0
+          },
+          "releaseDate": "2026-10-17",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Gemini 3.8 Flash",
+          "provider": "Google DeepMind",
+          "score": 158.79,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 156.77,
+            "upper": 160.94
+          },
+          "releaseDate": "2026-09-02",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GLM-5.3",
+          "provider": "Z.ai (Zhipu AI)",
+          "score": 157.1,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 154.94,
+            "upper": 159.53
+          },
+          "releaseDate": "2026-08-14",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-6 Luna",
+          "provider": "OpenAI",
+          "score": 156.41,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 154.45,
+            "upper": 158.5
+          },
+          "releaseDate": "2026-09-22",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Grok 4.7",
+          "provider": "xAI",
+          "score": 156.18,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 154.23,
+            "upper": 158.27
+          },
+          "releaseDate": "2026-09-21",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Qwen3.8 Max (0902)",
+          "provider": "Alibaba",
+          "score": 155.97,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 153.85,
+            "upper": 158.27
+          },
+          "releaseDate": "2026-09-01",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        }
+      ]
+    },
+    {
+      "id": "arc-agi-3-standard",
+      "name": "ARC-AGI-3 · Standard harness",
+      "category": "reasoning",
+      "unit": "Score (%)",
+      "description": "Verified semi-private interactive-reasoning results; Provider Adapter results are deliberately separate and not imported here.",
+      "url": "https://arcprize.org/leaderboard",
+      "methodology": "https://arcprize.org/arc-agi/3/",
+      "costMethod": "Omitted: published aggregate evaluation spend is not a per-task quote.",
+      "timeMethod": "No comparable average duration imported.",
+      "selectionMethod": "Primary is highest published effort in the Standard harness, not independently maximized across harnesses.",
+      "results": []
+    }
+  ],
+  "sources": [
+    {
+      "name": "Artificial Analysis model leaderboard",
+      "url": "https://artificialanalysis.ai/leaderboards/models",
+      "kind": "Independent benchmark",
+      "coverage": "Intelligence, benchmark-workload costs, estimated latency and context.",
+      "access": "Public table; documented Data API requires a key.",
+      "limitations": "Results depend on evaluation version and exact reasoning settings."
+    },
+    {
+      "name": "Artificial Analysis methodology",
+      "url": "https://artificialanalysis.ai/methodology",
+      "kind": "Methodology",
+      "coverage": "Meaning of cost/task, estimated time/task and endpoint measurements.",
+      "access": "Public documentation.",
+      "limitations": "Benchmark task costs cannot predict arbitrary work."
+    },
+    {
+      "name": "Artificial Analysis Data API",
+      "url": "https://artificialanalysis.ai/api-reference",
+      "kind": "Data access",
+      "coverage": "Programmatic benchmark and model data.",
+      "access": "API key required; no key used for this snapshot.",
+      "limitations": "Access and redistribution terms need review before automated ingestion."
+    },
+    {
+      "name": "Terminal-Bench",
+      "url": "https://www.tbench.ai/",
+      "kind": "Agent benchmark",
+      "coverage": "Terminal-Bench 4.1 official model-agent-effort results.",
+      "access": "Public site embeds structured leaderboard data.",
+      "limitations": "Compare configurations, not model names alone; costs are full-evaluation totals before deriving per-trial means."
+    },
+    {
+      "name": "SWE-rebench",
+      "url": "https://swe-rebench.com/",
+      "kind": "Repository benchmark",
+      "coverage": "Rolling software issue resolution with cost and uncertainty.",
+      "access": "Public leaderboard; dataset linked on Hugging Face.",
+      "limitations": "Imported snapshot uses 15 May–1 July 2026; old version scores are not current-model scores."
+    },
+    {
+      "name": "SWE-rebench methodology",
+      "url": "https://swe-rebench.com/about",
+      "kind": "Methodology",
+      "coverage": "Shared scaffold, repeated trials and standard error reporting.",
+      "access": "Public documentation.",
+      "limitations": "Model-scaffold results differ from standalone coding-agent products."
+    },
+    {
+      "name": "Epoch Capabilities Index",
+      "url": "https://epoch.ai/eci",
+      "kind": "Benchmark aggregation",
+      "coverage": "ECI scores and credible intervals across overlapping benchmarks.",
+      "access": "Public CSV download, CC-BY 4.0.",
+      "limitations": "Includes independently measured and developer-reported component results; estimates change as new data arrives."
+    },
+    {
+      "name": "Epoch benchmark data",
+      "url": "https://epoch.ai/data/eci_benchmarks.csv",
+      "kind": "Dataset",
+      "coverage": "Component model-by-benchmark observations behind ECI.",
+      "access": "Public CSV.",
+      "limitations": "Component evaluations differ by source, configuration and date."
+    },
+    {
+      "name": "ARC Prize verified leaderboard",
+      "url": "https://arcprize.org/leaderboard",
+      "kind": "Reasoning benchmark",
+      "coverage": "ARC-AGI-1, 2 and 3 with verified configurations.",
+      "access": "Public tables and individual result pages.",
+      "limitations": "ARC-AGI-3 Standard and Provider Adapter harnesses produce materially different results; checkpoint and timeout caveats matter."
+    }
+  ]
+}

@@ -1,0 +1,217 @@
+/* Thread context shared by the comment section. */
+.cv-count {
+  margin: 0;
+  color: var(--rd-ink3);
+  font-size: 12px;
+}
+
+.cv-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  color: var(--rd-ink3);
+  font-size: 12px;
+}
+.cv-head time {
+  white-space: nowrap;
+}
+.cv-head-fill {
+  flex: 1;
+}
+.cv-kicker {
+  color: var(--rd-ink3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.cv-labels {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cv-labels li > * {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--rd-bg);
+  color: var(--rd-ink2);
+  font-size: 12px;
+}
+.cv-labels li button:hover {
+  background: var(--rd-accent-soft);
+  color: var(--rd-ink);
+}
+.cv-labels li.cv-label-focus > * {
+  background: var(--rd-accent-soft);
+  color: var(--rd-ink);
+  font-weight: 600;
+}
+.cv-labels li i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.rd a.cv-hn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--rd-ink3);
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.rd a.cv-hn:hover {
+  color: var(--rd-accent);
+}
+.rd a.cv-story {
+  color: var(--rd-ink);
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.rd a.cv-story:hover {
+  text-decoration: underline;
+}
+
+.cv-text-block {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  min-width: 0;
+}
+.cv-text {
+  max-width: 78ch;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.cv-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cv-toggle {
+  padding: 0;
+  color: var(--rd-accent);
+  font-size: 12px;
+  text-align: left;
+}
+.cv-toggle:hover {
+  text-decoration: underline;
+}
+
+/* Context around a labelled comment is quieter than the comment itself. */
+.cv-quote,
+.cv-chain,
+.cv-replies > ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cv-quote,
+.cv-chain-comment,
+.cv-chain-story,
+.cv-reply {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 2px 0 2px 10px;
+  border-left: 2px solid var(--rd-line);
+}
+.cv-quote .cv-text,
+.cv-chain .cv-text,
+.cv-replies .cv-text {
+  color: var(--rd-ink2);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.cv-chain {
+  display: grid;
+  gap: 8px;
+}
+.cv-chain-story {
+  border-left-color: var(--rd-ink3);
+}
+.cv-replies {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+.cv-replies > ol {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+.cv-reply .cv-replies {
+  margin-top: 4px;
+}
+
+/* A reply tree of labelled comments. The labelled comment carries the accent
+   rail; whatever surrounds it uses the grey one. */
+.cv-nodes {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cv-node {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.cv-node-above {
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+  min-width: 0;
+}
+.cv-node-above > .cv-quote,
+.cv-node-above > .cv-chain {
+  width: 100%;
+}
+.cv-node-own {
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+  min-width: 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--rd-accent);
+}
+.cv-node-own > .cv-head {
+  width: 100%;
+}
+.cv-node-reply {
+  margin-left: 14px;
+}
+.cv-node-below {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin-left: 14px;
+}
+.cv-node-reply + .cv-node-below {
+  margin-left: 28px;
+}
+@media (max-width: 760px) {
+  .cv-node-reply,
+  .cv-node-below {
+    margin-left: 8px;
+  }
+  .cv-node-reply + .cv-node-below {
+    margin-left: 16px;
+  }
+}

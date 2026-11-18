@@ -1,0 +1,203 @@
+.cv-threads {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+  container-type: inline-size;
+}
+.cv-threads-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.cv-threads-tools .cv-count {
+  flex: 1 1 200px;
+}
+.cv-threads-find {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.cv-threads-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rd-ink3);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.cv-threads-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+}
+
+/* A story row. In a narrow list the counts sit on a line under the title;
+   in a wide one they line up in columns under the labels above. */
+.cv-threads-thread {
+  min-width: 0;
+}
+.cv-threads-thread + .cv-threads-thread {
+  border-top: 1px solid var(--rd-line);
+}
+.cv-threads-cols {
+  display: none;
+}
+.cv-threads-head {
+  display: grid;
+  gap: 3px;
+  padding: 9px 12px 8px 6px;
+}
+.cv-threads-thread:has(.cv-threads-body) > .cv-threads-head {
+  background: var(--rd-hover);
+  border-bottom: 1px solid var(--rd-line2);
+}
+.cv-threads-title {
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.cv-threads-title button {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  color: var(--rd-ink);
+  font-weight: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.cv-threads-title button svg {
+  margin-top: 2px;
+  color: var(--rd-ink3);
+}
+.cv-threads-title button:hover span {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cv-threads-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 12px;
+  min-width: 0;
+  padding-left: 20px;
+  color: var(--rd-ink3);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.cv-threads-num {
+  color: var(--rd-ink2);
+}
+.cv-threads-bar {
+  display: inline-flex;
+  width: 84px;
+}
+.cv-threads-share:has(.rd-muted) {
+  display: none;
+}
+
+.cv-threads-body {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  min-width: 0;
+  padding: 10px 14px 12px;
+}
+.cv-threads-body > .cv-nodes {
+  width: 100%;
+}
+.cv-threads-body > .rd-note {
+  margin: 0;
+}
+.cv-threads-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+}
+
+@container (min-width: 600px) {
+  .cv-threads-cols,
+  .cv-threads-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 62px 84px 50px 78px 34px;
+    column-gap: 12px;
+    align-items: start;
+    padding: 8px 12px 7px 6px;
+  }
+  .cv-threads-cols {
+    padding-top: 7px;
+    padding-bottom: 6px;
+    padding-left: 26px;
+    border-bottom: 1px solid var(--rd-line);
+    color: var(--rd-ink3);
+    font-size: 11.5px;
+    font-weight: 550;
+  }
+  .cv-threads-cols span:nth-child(2),
+  .cv-threads-cols span:nth-child(4),
+  .cv-threads-cols span:nth-child(5) {
+    text-align: right;
+  }
+  .cv-threads-head {
+    row-gap: 1px;
+  }
+  .cv-threads-title {
+    grid-column: 1;
+  }
+  .cv-threads-meta {
+    display: contents;
+  }
+  .cv-threads-meta > span {
+    grid-row: 1;
+    margin-top: 2px;
+    color: var(--rd-ink2);
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+  .cv-threads-meta > .cv-threads-posted {
+    grid-column: 1;
+    grid-row: 2;
+    margin-top: 0;
+    padding-left: 20px;
+    color: var(--rd-ink3);
+    font-size: 12px;
+  }
+  .cv-threads-num {
+    grid-column: 2;
+    text-align: right;
+  }
+  .cv-threads-meta > .cv-threads-bar {
+    grid-column: 3;
+    width: 100%;
+    margin-top: 7px;
+  }
+  .cv-threads-share,
+  .cv-threads-share:has(.rd-muted) {
+    display: block;
+    grid-column: 4;
+    text-align: right;
+  }
+  .cv-threads-latest {
+    grid-column: 5;
+    text-align: right;
+  }
+  .cv-threads-link {
+    grid-column: 6;
+    text-align: right;
+  }
+  /* The column labels say what each number is; the words stay for screen
+     readers. */
+  .cv-threads-unit {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

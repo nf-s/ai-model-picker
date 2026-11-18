@@ -1,0 +1,93 @@
+{
+  "checkedAt": "2026-11-16",
+  "sources": [
+    {
+      "id": "hn-official-api",
+      "name": "Official Hacker News API",
+      "url": "https://github.com/HackerNews/API",
+      "kind": "live API",
+      "comments": "HTML comment text, parent ID, child IDs, timestamps, and deleted/dead flags. Reconstruct context by following item links.",
+      "history": "Historical items by ID and near-real-time updates; no search endpoint.",
+      "access": "Public Firebase JSON endpoints; documentation states no current rate limit.",
+      "limitations": "One request per item; deleted text may be absent. Documented score is for stories/poll options, not comment votes. Repository MIT license does not establish a blanket license for comments.",
+      "fit": "Authoritative validation of discovered comments, parent context and deletion state. Preferred alongside Algolia search."
+    },
+    {
+      "id": "hn-algolia",
+      "name": "Algolia HN Search",
+      "url": "https://hn.algolia.com/api",
+      "kind": "search API",
+      "comments": "Searchable comment_text with objectID, parent_id, story_id and timestamps; item endpoint returns nested children.",
+      "history": "Historical index; live probe returned a comment created 2026-11-16T02:42:19Z.",
+      "access": "Public JSON API. Documentation source states 10,000 requests per hour per IP.",
+      "limitations": "Global probe reported exhaustiveNbHits=false and 1,000 pages at one hit per page; not a complete export. Source repository was archived in February 2026, while the service remains reachable. No content-reuse license established by API access.",
+      "fit": "Primary targeted discovery by model/version and date; partition searches, record coverage, and validate against the official API."
+    },
+    {
+      "id": "hn-nixiesearch-archive",
+      "name": "Nixiesearch HN archive",
+      "url": "https://huggingface.co/datasets/nixiesearch/hackernews-comments",
+      "kind": "downloadable archive",
+      "comments": "Raw API items including comment text, parent and kids; despite its name, includes other item types.",
+      "history": "Card states IDs 0–41,422,887, covering 2006 through 2024-09-02.",
+      "access": "Public zstd-compressed JSONL files; card declares Apache-2.0.",
+      "limitations": "No cleaning, validation or filtering; static historical coverage does not support current model sentiment. Declared archive license should not be conflated with underlying contributor rights.",
+      "fit": "Historical baseline or reproducible offline experiments; filter item types and remove personal fields before retaining results."
+    },
+    {
+      "id": "hn-nixiesearch-scraper",
+      "name": "Nixiesearch HN scraper",
+      "url": "https://github.com/nixiesearch/hnscrape",
+      "kind": "GitHub ingestion code",
+      "comments": "Fetches official API item records; parent and child IDs remain available in raw output.",
+      "history": "Configurable item-ID range with resumable output; this repository is a scraper, not a freshness guarantee for a hosted archive.",
+      "access": "Open-source Scala scraper; Apache-2.0 code license. Local execution and storage required.",
+      "limitations": "Broad item sweeps cost requests and storage; output contains fields this app must discard. Code license does not license discussion content.",
+      "fit": "Reference implementation for resumable collection if a larger historical import is later required."
+    },
+    {
+      "id": "hn-open-index",
+      "name": "Open-index HN archive",
+      "url": "https://huggingface.co/datasets/open-index/hacker-news",
+      "kind": "Parquet mirror",
+      "comments": "Comment HTML, parent and kids alongside other item types; type is an integer enum.",
+      "history": "Card describes historical backfill from 2006 and five-minute polling, but displayed update was 2026-08-23 and coverage totals were inconsistent when checked.",
+      "access": "Public monthly Parquet, live-block files and stats.csv; card declares ODC-BY.",
+      "limitations": "Do not assume current or complete coverage from the headline. Inspect file inventory, stats and timestamps; mirror updates can lag edits/deletions. Archive terms do not settle underlying content rights.",
+      "fit": "Promising bulk-analysis option after independently checking its actual date range and update process."
+    },
+    {
+      "id": "hn-typedef",
+      "name": "Typedef HN 2025 dataset",
+      "url": "https://huggingface.co/datasets/typedef-ai/hacker-news-dataset",
+      "kind": "relational Parquet snapshot",
+      "comments": "About 2.5 million comments with text, parent, kids and fetched_at; separate parent-child relationship table.",
+      "history": "2025 point-in-time snapshot; exact end date is not specified in the card.",
+      "access": "Public Parquet downloads. License section describes research and analytical purposes without naming a standard license.",
+      "limitations": "Some referenced comments are absent; deleted/dead text may be null. Includes personal-profile tables that this app should not ingest. Not a live source.",
+      "fit": "Small-scope historical threading and sentiment experiments using only comment and story tables."
+    },
+    {
+      "id": "hn-clickhouse",
+      "name": "ClickHouse HN sample dataset",
+      "url": "https://clickhouse.com/docs/get-started/sample-datasets/hacker-news",
+      "kind": "downloadable analytical dataset",
+      "comments": "Schema contains text, type, parent, kids, deleted and dead, allowing comment filtering and thread reconstruction.",
+      "history": "Documentation describes a 28-million-row sample; no current end date or refresh promise is stated there.",
+      "access": "Public CSV and Parquet examples; compressed CSV is documented as 4.6 GB. Local query/storage costs apply.",
+      "limitations": "Sample dataset is not evidence of current coverage. No dataset-specific content license established by the inspected page.",
+      "fit": "Bulk SQL prototyping; check temporal coverage before using for model-version comparisons."
+    },
+    {
+      "id": "hn-bigquery",
+      "name": "Google BigQuery public HN dataset",
+      "url": "https://console.cloud.google.com/bigquery?p=bigquery-public-data&d=hacker_news&t=full&page=table",
+      "kind": "hosted SQL dataset",
+      "comments": "Google examples query HN text from bigquery-public-data.hacker_news.full. Inspect current schema and parent availability before integrating.",
+      "history": "Historical table; present freshness and full comment coverage were not queried in this review.",
+      "access": "Google Cloud project required. Public-dataset storage is covered; queries consume the free allowance or incur query charges.",
+      "limitations": "No public-dataset SLA. Marketplace update date is not data freshness. No dataset-specific content license verified here; no paid query was run.",
+      "fit": "Optional large historical analysis when an existing BigQuery project and explicit query budget are available."
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+# Local Hacker News analysis
+
+The local pipeline reads the last six calendar months of HN items, finds discussions about named models, apps and model families, and asks a model what each comment says about them. The model is a local one by default; a Claude model through the Anthropic API is the alternative. Open **Data** for collection status and controls.
+
+## Why the pipeline changed
+
+The previous pipeline (`v3`) queued a comment only when the comment's own text named a model, and its classifier saw only allowlisted words in a short window around the name. In the six-month window (2,365,587 items, 15 May to 16 November 2026 UTC) it queued 52,712 comments. Replies in a thread about a model usually do not repeat its name, so most of those threads were missed. Measured against the public archive, 7,867 stories name a model in the title and hold 155,124 comments. The index held about 20% of the Claude Opus 5.5 thread (227 of 1,116 comments), 8% of GPT-6 Astra (162 of 2,047), 22% of "Why does Opus 5 feel worse to work with?" (190 of 870) and 11% of Gemini 4 Argon (133 of 1,177).
+
+The current pipeline, `hn-thread-v1`, also collects every comment in a thread whose story title names a model, and gives the local model the comment, the text it replies to and the story title.
+
+## How a run works
+
+One `run` performs three resumable phases in order. Each phase saves its progress to the checkpoint, so a stopped run continues where it left off.
+
+1. **Scan** (no model). Reads the same sources as before. It queues in-window comments whose text names a model or family, and records in-window stories and polls whose title names one. A title whose only match is an ambiguous bare name, such as a word that is also an ordinary word or a person's name, is marked uncertain.
+2. **Threads**. For each recorded story, the pipeline walks the story's replies through the official HN API and queues every available in-window comment, with the story as its root. Replies under removed comments are included. An uncertain title is first checked by the local model, which answers yes or no to whether the title uses the name in its AI sense; stories answered no are not walked.
+3. **Review**. For each queued comment, newest first, the pipeline reads the comment and the comment it replies to from the official HN API, finds its story, and asks the local model what the comment says about each target. Targets are the story's subject models, models named in the comment and models named in the replied-to text, at most 8 per comment.
+
+For each target the review stores a stance (positive, negative, mixed or neutral), up to three themes and a confidence (high, medium or low). An opinion given with low confidence is stored as unclear. For each comment it stores a task, a one-sentence claim written by the model (at most 240 characters) and any explicit "A is better than B" preferences. A comment that says nothing about any target is kept as reviewed, with no assessments, and is not listed anywhere. An invalid model reply is retried once with a reminder; if the second reply is also invalid, the comment is counted as failed and retried in a later pass. Unresolved failures leave the run blocked and eligible to resume.
+
+Themes are fixed: `code-quality`, `agentic-work`, `instruction-following`, `hallucination`, `regression`, `rate-limits`, `pricing`, `speed`, `context`, `reasoning-depth`, `writing-style`, `frontend-design`, `refusals`, `benchmarks`, `availability`, `harness`, `model-choice`, `local-use`, `policy` and `release`. Tasks are `coding`, `agents`, `design`, `writing`, `research`, `reasoning`, `images`, `chat` and `other`. The nine topic values the current UI filters on (`coding`, `reliability`, `cost`, `speed`, `design`, `agents`, `writing`, `research`, `reasoning`) are derived from the task and themes. The lists and the mapping are in `scripts/hn_local/classify.py`.
+
+## Start, pause and resume
+
+On Apple Silicon, run `npm run hn:setup` once and then `npm run dev`. Open **Data** and select **Start six-month scan**. The local control service starts the model server, stays up when the browser closes and provides **Pause** and **Resume scan**. If the control service or computer stops, reopen the app and resume from the last saved checkpoint.
+
+To run from a terminal once the local model is listening on port 8788:
+
+```sh
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads
+```
+
+Use a separate state directory for a bounded validation step.
+
+```sh
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py run \
+  --state-dir .local/hn/check \
+  --max-items 1000 \
+  --max-classifications 50
+```
+
+The same command without the limits resumes that directory's entire run. `Ctrl+C`, `SIGTERM`, `--max-items` (source rows) and `--max-classifications` (comment reviews) pause at a checkpoint. `--classifier-workers` sets the number of parallel model requests (default 8). `--collect-only` runs the scan and lists the threads whose titles are unambiguous without calling the model, then pauses with the reason `collect-only`; a later `run` without it checks the uncertain titles and reviews the queue. `status` prints detailed progress. `export` regenerates the local `status.json` and `results.json` from SQLite. Both commands accept `--state-dir`. All flags are defined in `arguments()` in `scripts/hn_pipeline.py`.
+
+`context` stores the parent and story IDs, and the story title, for comments that have no story recorded, such as those in the previous analysis, which predates these columns. It reads the comments and their ancestors from the official HN API one thread level at a time, 256 comments per page, newest first, and does not call the model. It changes no review, assessment or existing story. A comment whose story cannot be found (removed item, broken chain or more than 128 levels) keeps no story. It prints a line of counts per page; `Ctrl+C` or `SIGTERM` stops after the current page, and running it again only reads comments that still have no story. It accepts `--state-dir`, `--workers` and `--max-firebase-requests`, and like `run` it holds the state directory's lock, so it cannot run while another command uses that directory.
+
+```sh
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py context --state-dir .local/hn
+```
+
+## Review through the Anthropic API
+
+`--backend anthropic` sends the title checks and the review to the Anthropic API instead of a local model. It is paid, and it sends text off this machine: the scrubbed story title, replied-to text, comment and target names described under [what the model reads](#what-the-model-reads-and-what-is-stored), to `api.anthropic.com`. The address is fixed in the code, so an environment setting cannot redirect it. The Data page controls always use the local backend; this one runs from a terminal.
+
+```sh
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py run \
+  --state-dir .local/hn/threads-haiku \
+  --backend anthropic
+```
+
+The default model is `claude-haiku-5-5` and the default classifier ID is `claude-haiku-5.5-thread-v1`; `--model` and `--classifier-id` change them. The key is read from the `ANTHROPIC_API_KEY` environment variable when the command starts and is never written anywhere by the pipeline. Without it the command stops with `anthropic-api-key-missing`. On macOS the key can stay in the login keychain and be passed for one command only:
+
+```sh
+security add-generic-password -U -a "$USER" -s ai-help-anthropic-api-key -w
+ANTHROPIC_API_KEY="$(security find-generic-password -a "$USER" -s ai-help-anthropic-api-key -w)" \
+  .local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads-haiku --backend anthropic
+```
+
+The first command asks for the key without showing it.
+
+Uncertain titles are checked with one request each. The review uses the Message Batches API, which costs half the standard rate and returns results within a day, usually within an hour. The pipeline reads comment text from the official HN API, sends batches of up to 5,000 comments, keeps at most 100,000 comments in batches at a time and checks every 30 seconds for batches that have ended. Requests use the same instructions and prompt as the local model, with thinking turned off and the shared instructions marked for prompt caching. Each reply is validated exactly as a local reply is.
+
+A reply that fails validation, or a request that ends in an error, counts as a failed attempt. Failed comments are sent once more in a later batch with the stricter instruction, and what still fails leaves the run blocked and eligible to resume. Requests that expire or are cancelled stay queued for the next `run`. `--max-classifications` caps the comments sent in one invocation.
+
+`Ctrl+C` or `SIGTERM` pauses the command but leaves the batches already sent running at Anthropic, where they are still charged. The next `run` stores their results before sending anything new. Results stay retrievable for 29 days. If the command dies between a batch's creation and the write that records it, that batch is charged but never read, and its comments are sent again.
+
+After each stored batch the command prints a line with the batch ID, the number of reviews stored and the running token counts for the invocation (`inputTokens`, `cacheReadTokens`, `cacheWriteTokens` and `outputTokens`).
+
+## Runs, models and files
+
+All local state is in ignored `.local/hn/` directories.
+
+| Path                                 | Contents                                                                                                                                     |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.local/hn/`                         | The previous analysis: `checkpoint.sqlite3`, `status.json` and `results.json`, produced by classifier `qwen3-4b-instruct-2507-4bit-v3`.      |
+| `.local/hn/threads/`                 | The `hn-thread-v1` run, with the same three files.                                                                                           |
+| `.local/hn/threads-haiku/`           | An `hn-thread-v1` run reviewed through the Anthropic API, when one is made.                                                                  |
+| `.local/hn/models/qwen3.8-27b-4bit/` | Model weights from `mlx-community/Qwen3.8-27B-4bit` at a pinned revision with checksums. The download is 16.1 GB; the licence is Apache-2.0. |
+
+The classifier ID for the local run is `qwen3.8-27b-4bit-thread-v1`, and for a run through the Anthropic API `claude-haiku-5.5-thread-v1`. The local model is served through an OpenAI-compatible loopback endpoint. The CLI also accepts an Ollama-compatible loopback endpoint with `--endpoint`, `--model` and `--classifier-id`. A checkpoint is tied to one classifier, pipeline version and target list; `run` refuses a mismatch, so use a separate state directory when any of them changes. The exception is a checkpoint that no model has touched, such as one made with `--collect-only`: its queue does not depend on the model, so `run` continues it with a different classifier.
+
+The previous analysis keeps being served by the app and the dev API, and exported, until the new run has reviewed everything. The controller and the export switch to `.local/hn/threads/` when all its partitions are complete, no stories are pending and no comments are queued. Unresolved failures do not block the switch. While the new run is in progress, the Data page status shows its progress and `runner.showingPrevious` is true.
+
+The scan uses no paid model API, and neither does the local backend. Collection transfers only the selected archive portions, recent data and scoped gap checks; the thread and review phases add official API requests for each walked story and each reviewed comment and its parent. The 6.8 GB full-archive measurement in the source audit is not the current run target.
+
+## Coverage
+
+The default plan uses six calendar months in Australia/Hobart time, from midnight on the starting date to the time the run starts. The previous analysis's saved window is **16 May–16 November 2026**; a new run pins its own window when its first `run` starts. `startAt` and `endAt` expose the inclusive UTC bounds; the app displays Hobart dates. Resume preserves the saved window.
+
+Recent records come from bounded ranges in the public ClickHouse HN mirror, with official Firebase lookups for missing or malformed items. Archive selection excludes months before the cutoff. The boundary month is trimmed using ID/time metadata before comment text is read. The scan and thread walks check each comment's timestamp, so a reply outside the window is not queued even when its story is inside it. Archive gap reconciliation starts at the first in-scope ID, not ID 1.
+
+Existing compatible checkpoints migrate automatically on `run`, keeping source cursors. To apply the date scope while paused:
+
+```sh
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py migrate
+```
+
+When the previous checkpoint was migrated to six months, it retained all 6,461 existing candidate comments and its plan dropped from 352 to 118 source sections. The May boundary begins at ID 48,148,697.
+
+Source counters include non-comment and unavailable items. Dates encountered and partial counters do not prove collection is complete. The archive/mirror may reflect earlier wording or visibility. [Archive verification](hn-archive-check.md) records source availability. Direct `--source firebase` diagnostics require both `--first-item` and `--last-item`; an unbounded official scan is rejected.
+
+## What the model reads and what is stored
+
+The model reads real public comment text, the replied-to text and the story title. Before they reach the model, HTML markup, quoted lines (lines starting with `>`), blockquotes and code are dropped, and links, email addresses, @handles, phone-like numbers and "my name is ..." clauses are replaced with `…`. Long texts are shortened, keeping their start and end: the comment to 2,400 characters, the replied-to text to 700 and the title to 200. The local model runs only on a loopback address; the endpoint check rejects any other host. With `--backend anthropic` the same scrubbed text goes to the Anthropic API instead. Author fields are never read.
+
+Raw comment text, prompts and model replies stay in memory and are never written to disk on this machine. The checkpoint stores source partitions, counters, timestamps, item IDs, each comment's parent and root story IDs, the target, stance, themes, topic values and confidence of each assessment, and each comment's task, claim and preferences. It also stores the scrubbed titles of recorded stories and of stories that hold a queued comment, and the model-written claims. Claims are scrubbed of the same personal details again before they are saved. A compact bitmap tracks historical ID coverage.
+
+The `hn-thread-v1` checkpoint adds `parent`, `root`, `mention`, `task` and `claim` to the `comment` table, `themes` to the `assessment` table, and the `story` and `preference` tables. Older checkpoints gain the new columns on open. The `batch` and `batch_request` tables hold, for each batch whose results are not stored yet, its ID and the item, parent and story IDs and target list of each comment in it.
+
+Each scan block commits its queued comments, recorded stories, ID coverage and scan cursor together; each review page commits its reviews together. Replaying a block or page after interruption replaces the same item's reviews rather than duplicating them. The results count distinct items per target and can include multiple perspectives from one discussion. `classified` counts reviewed comments, `classificationFailures` counts comments whose last reply was invalid and `commentsQueued` counts comments awaiting review. `commentsAboutTargets` counts comments with at least one valid assessment. `stories` counts recorded stories that are pending or walked, `storiesPending` those not yet walked and `threadComments` the comments queued from walked threads. `failures` includes source interruptions.
+
+Use the counts to find examples and recurring topics among the people who commented on HN. The model explorer presents benchmark results as a separate source of evidence.
+
+## Known limitations
+
+The review is slow. On an M4 Max with 64 GB the 27B model reviews about 0.5 comments a second with 8 parallel requests, and more parallel requests did not raise that, so the roughly 190,000 queued comments take four to five days. Two faster local models were tested on 18 November 2026 and rejected for label quality (see below).
+
+The new classifier differs from the reference labels in about a third of checked pairs (see below). Thread walks depend on the official HN API at the time of the run, so comments deleted since posting are missed. Outside threads whose title names a model, a comment is found only when its own text names one. The previous analysis, which the app serves until the switch, saw only allowlisted words in short windows around a model name, so it can miss implicit references, sarcasm and context.
+
+## In-app discussion reader
+
+`GET /api/hn/comments` reads the served run's comments inside its saved date range. It lists a comment only if it has at least one valid assessment, so queued, failed and no-opinion comments are not shown. It accepts model/family and sentiment filters and paginates by descending item ID.
+
+`GET /api/hn/index` returns the metadata for every listed comment in one response, with no comment text: item ID, timestamp and valid assessments. It takes no parameters. The views aggregate it in the browser for weekly trends, per-topic sentiment and co-mention counts. The published build reads the same shape from the exported comment index.
+
+Both endpoints and the export add optional fields for reviews made by `hn-thread-v1`; data from the previous analysis keeps its shape, except that `story` and `parent` appear once `context` has filled them in.
+
+- Per comment: `story` (root story ID), `parent` (ID of the item it replies to), `task`, `claim` and `prefers` (`winner` and `loser` targets).
+- Per assessment: `themes`.
+- Top level of the index: `stories`, each with `id`, `title`, `createdAt`, `about` (the story's subject targets) and `comments` (its listed comments).
+- Status totals: `commentsQueued`, `commentsAboutTargets`, `stories`, `storiesPending` and `threadComments`.
+
+The Discussion threads use `story`, `parent` and `stories`. No view shows `task`, `claim`, `prefers` or `themes` yet.
+
+The service fetches public bodies only when they are requested for display. It strips account fields, decodes markup to plain text and sends responses with `Cache-Control: no-store`. React renders escaped text. Bodies fetched for display are not written to checkpoint files or logs. A five-minute memory cache is limited to 512 items and 8 MB.
+
+The [published app](https://ai-model-picker.pages.dev/) uses the same discussion reader with an exported comment index and direct browser requests to HN. It displays the snapshot publication time, does not poll the local controller, and has no start/pause controls. Once a run made by `hn-thread-v1` is exported, the published files also include scrubbed story titles, claims, themes, task, preferences and the story ID. Rebuilding and publishing updates its results. See [deployment](deployment.md).
+
+Thread requests follow parents to the root, with a bounded ancestry walk and an explicit incomplete-context flag. Replies paginate by ascending ID so changes in HN ranking cannot skip existing replies. Each branch can be expanded inside the app. Individual fetch failures leave retryable placeholders and do not block later pages. Deleted content is unavailable. Parent and reply context can fall outside the collection window; browsing it does not classify it or alter coverage counts.
+
+## Agreement with reviewed feedback
+
+`research/hn-classifier-check.json` and the first table describe the previous classifier, `qwen3-4b-instruct-2507-4bit-v3`, which produced the analysis currently served. The export refuses a run whose classifier ID differs from that record. The record is to be replaced with the new classifier's check when the new run is complete, so the new run cannot be published until then. The new classifier's check is under [New classifier](#new-classifier).
+
+The 16 November 2026 check compared local labels with the app's prior AI assessments for explicit exact-model mentions. Comments were split by item ID. The development sample contains 20 comments stratified by reference sentiment. The remaining 24 comments contribute 37 held-out assessments, which also informed the choice between the trial configurations. The reference labels have no independent human validation.
+
+| Sample      | Assessed pairs | Agreed | Differed | Opposite sign | Unclear | Target missed |
+| ----------- | -------------: | -----: | -------: | ------------: | ------: | ------------: |
+| Development |             20 |      8 |        9 |             3 |       2 |             1 |
+| Holdout     |             37 |     21 |       11 |             3 |       3 |             2 |
+
+Four development disagreements narrowed a mixed reference to a single sentiment. Among the 11 holdout disagreements, three reversed the reference sign, five returned mixed and three returned neutral. The holdout references were positive or negative. The ambiguity filter excluded three synthetic non-AI mentions from aggregate counts.
+
+On the same holdout, the earlier grouped 4B requests agreed with 20 of 37 reference assessments and reversed six signs. A focused 30B trial agreed with seven and labeled 20 of the differing pairs mixed. The previous scan used focused 4B requests. Treat the local polarity estimates as experimental and consult original comments when drawing conclusions.
+
+Run the evaluation while the local model is listening, or with `--backend anthropic` and an API key, which makes about 60 paid requests and adds the token counts to the output. It reads original items transiently and prints aggregate counts and a confusion matrix. Subsequent edits or deletions on HN can change the comparison.
+
+```sh
+.local/hn/venv/bin/python -B scripts/evaluate_hn_classifier.py
+```
+
+### New classifier
+
+`scripts/evaluate_hn_classifier.py` targets the `hn-thread-v1` reviewer. On 18 November 2026 it was run against the same reference labels for the selected model and for two faster candidates. All three are 4-bit MLX builds. A reply that is still invalid after one retry counts as failed.
+
+| Model                  | Sample      | Assessed pairs | Agreed | Differed | Opposite sign | Unclear | Failed | Target missed |
+| ---------------------- | ----------- | -------------: | -----: | -------: | ------------: | ------: | -----: | ------------: |
+| Qwen3.8 27B (selected) | Development |             20 |     12 |        7 |             0 |       0 |      0 |             1 |
+| Qwen3.8 27B (selected) | Holdout     |             37 |     24 |       11 |             0 |       0 |      0 |             2 |
+| Qwen3.6 35B-A3B        | Development |             20 |     12 |        7 |             1 |       0 |      0 |             1 |
+| Qwen3.6 35B-A3B        | Holdout     |             37 |     25 |       10 |             5 |       0 |      0 |             2 |
+| GLM-4.7-Flash          | Development |             20 |      7 |        8 |             4 |       1 |      3 |             1 |
+| GLM-4.7-Flash          | Holdout     |             37 |     32 |        1 |             1 |       0 |      2 |             2 |
+
+Of the 27B model's 11 holdout disagreements, eight returned neutral for a positive reference and three returned mixed. The holdout references are 26 positive and 11 negative, so a model that leans positive scores well on it; GLM-4.7-Flash did, while reversing four of 20 development labels.
+
+The three models were also timed on the same 248 queued comments with the run's prompt, on an M4 Max with 64 GB. The figures are comments reviewed per second.
+
+| Model           | 1 request | 8 parallel | 16 parallel | 32 parallel | Invalid first replies |
+| --------------- | --------: | ---------: | ----------: | ----------: | --------------------: |
+| Qwen3.8 27B     |      0.40 |       0.54 |        0.38 |        0.46 |                     0 |
+| Qwen3.6 35B-A3B |      1.04 |       2.37 |        2.14 |        2.51 |                     0 |
+| GLM-4.7-Flash   |      0.98 |       1.57 |        1.33 |        1.60 |                    19 |
+
+On those comments the 35B-A3B model gave the same stance as the 27B model for 236 of 380 comment and model pairs, and GLM-4.7-Flash for 151. A reading of 22 and 16 of the disagreements found the same faults in both faster models: they attribute the opinion in the parent comment to the writer, and they give a stance to comments that say nothing about the model. The 35B-A3B model gave a stance for 79 pairs where the 27B model gave none; the reverse happened for 14. Both were rejected for those faults. A larger prompt cache did not change the 27B model's speed, because the shared instructions were already cached.
+
+The check and timing outputs are kept in the ignored `.local/hn/thread-model-check/`.

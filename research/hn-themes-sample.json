@@ -1,0 +1,3409 @@
+{
+  "checkedAt": "2026-11-17",
+  "method": {
+    "label": "AI-reviewed theme sample of Hacker News comments",
+    "selection": "The 50 most recent collected comments mentioning each of six models, fetched 17 November 2026.",
+    "reviewer": "Claude Sonnet 5.5, single pass, no human validation",
+    "limitations": "Small, recency-biased sample of 300 comment-model pairs, assessed by an AI without human validation. A comment can mention several models, so the same comment may appear under more than one."
+  },
+  "themes": [
+    {
+      "id": "code-quality",
+      "label": "Code quality",
+      "description": "Correctness and quality of generated code."
+    },
+    {
+      "id": "agentic-work",
+      "label": "Agentic work",
+      "description": "Long-running tasks, planning, tool use and staying on task."
+    },
+    {
+      "id": "instruction-following",
+      "label": "Following instructions",
+      "description": "Ignoring instructions, overreach, unrequested changes and laziness."
+    },
+    {
+      "id": "hallucination",
+      "label": "Hallucination",
+      "description": "Fabricated facts or APIs, and false claims of completion."
+    },
+    {
+      "id": "regression",
+      "label": "Regressions",
+      "description": "Getting worse than an earlier version or degrading over time."
+    },
+    {
+      "id": "rate-limits",
+      "label": "Rate limits and quotas",
+      "description": "Usage caps and plan allowances."
+    },
+    {
+      "id": "pricing",
+      "label": "Price and value",
+      "description": "Token prices, cost per task and value for money."
+    },
+    {
+      "id": "speed",
+      "label": "Speed",
+      "description": "Latency, throughput and time to finish."
+    },
+    {
+      "id": "context",
+      "label": "Context and memory",
+      "description": "Context window, long-context behaviour and compaction."
+    },
+    {
+      "id": "reasoning-depth",
+      "label": "Reasoning depth",
+      "description": "Hard problems, debugging insight and effort settings."
+    },
+    {
+      "id": "writing-style",
+      "label": "Writing and tone",
+      "description": "Prose quality, verbosity and sycophancy."
+    },
+    {
+      "id": "frontend-design",
+      "label": "UI and design output",
+      "description": "Visual and frontend results."
+    },
+    {
+      "id": "refusals",
+      "label": "Refusals and filters",
+      "description": "Safety filters and policy friction."
+    },
+    {
+      "id": "benchmarks",
+      "label": "Benchmarks vs. experience",
+      "description": "Benchmark claims compared with real use."
+    },
+    {
+      "id": "availability",
+      "label": "Access and availability",
+      "description": "Rollout, outages and provider access."
+    },
+    {
+      "id": "harness",
+      "label": "Harness and tooling",
+      "description": "The surrounding product rather than the model."
+    },
+    {
+      "id": "model-choice",
+      "label": "Model choice and routing",
+      "description": "Which model to use for what, switching and mixing models."
+    },
+    {
+      "id": "other",
+      "label": "Other",
+      "description": "Topics that fit none of the other themes."
+    }
+  ],
+  "models": [
+    {
+      "modelId": "claude-opus-5-5",
+      "collectedCommentCount": 2209,
+      "reviewedCommentCount": 50,
+      "offTopicCount": 12
+    },
+    {
+      "modelId": "claude-fable-5-2",
+      "collectedCommentCount": 174,
+      "reviewedCommentCount": 50,
+      "offTopicCount": 10
+    },
+    {
+      "modelId": "claude-sonnet-5-5",
+      "collectedCommentCount": 194,
+      "reviewedCommentCount": 50,
+      "offTopicCount": 12
+    },
+    {
+      "modelId": "gpt-6-astra",
+      "collectedCommentCount": 230,
+      "reviewedCommentCount": 50,
+      "offTopicCount": 25
+    },
+    {
+      "modelId": "gpt-6.1-sol",
+      "collectedCommentCount": 128,
+      "reviewedCommentCount": 50,
+      "offTopicCount": 9
+    },
+    {
+      "modelId": "gemini-4-argon",
+      "collectedCommentCount": 85,
+      "reviewedCommentCount": 50,
+      "offTopicCount": 15
+    }
+  ],
+  "entries": [
+    {
+      "id": 50514272,
+      "createdAt": "2026-11-16T05:08:01.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "neutral",
+      "summary": "Argues a benchmark site's revisions raised Opus 5.5's score and suspects the benchmark mix was tuned to favour Anthropic models.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50513693,
+      "createdAt": "2026-11-16T03:32:29.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "neutral",
+      "summary": "Points out Opus 5.5 at max thinking costs about $10 per task on a benchmark page, far above the cheapest models listed.",
+      "themes": ["pricing", "benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "better"
+        },
+        {
+          "name": "Qwen 4 Max",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50511739,
+      "createdAt": "2026-11-15T22:50:33.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "negative",
+      "summary": "Claims OpenAI and Google models are much better than Opus 5.5.",
+      "themes": ["model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT",
+          "verdict": "better"
+        },
+        {
+          "name": "Gemini",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50511596,
+      "createdAt": "2026-11-15T22:34:29.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "neutral",
+      "summary": "Reports Opus 5.5 reverse engineered game logic with Ghidra despite reports of refusals, and asks whether this is being A/B tested.",
+      "themes": ["refusals"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50509650,
+      "createdAt": "2026-11-15T19:05:01.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Used Opus 5.5 on a local fork to fix a web page that rendered badly on a phone.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50505147,
+      "createdAt": "2026-11-15T08:37:22.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "negative",
+      "summary": "Finds Opus 5.5's prose and generated code increasingly robotic and unlike anything a human would write.",
+      "themes": ["writing-style", "code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50504905,
+      "createdAt": "2026-11-15T07:46:21.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "negative",
+      "summary": "Describes a confusing, awkwardly worded Opus 5.5 sentence about turning wooden boards that left them unsure what it meant.",
+      "themes": ["writing-style"],
+      "task": "chat",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50503862,
+      "createdAt": "2026-11-15T03:57:17.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Says Flash Next is much weaker than Opus 5.5, and Fable is better still.",
+      "themes": ["model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini Flash Next",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Fable",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50503649,
+      "createdAt": "2026-11-15T03:16:48.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Says Opus 5.5 handles both planning and implementation well, making Astra feel slightly worse as an implementation-only model.",
+      "themes": ["model-choice", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "worse"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50501269,
+      "createdAt": "2026-11-14T21:48:36.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Reports Opus 5.5 reliably builds features in a roughly 350k-line codebase without memory files or guidelines, needing far less steering than before.",
+      "themes": ["code-quality", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50500266,
+      "createdAt": "2026-11-14T20:02:45.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "neutral",
+      "summary": "Found Astra better than Opus 5.5 at long-term state handling in a multi-agent orchestrator, having no access to Fable.",
+      "themes": ["agentic-work", "context"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50499849,
+      "createdAt": "2026-11-14T19:12:33.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "mixed",
+      "summary": "Opus 5.5 produced 7000+ lines from a spec, but step-through debugging found missing input validation and wrong assumptions about model availability.",
+      "themes": ["code-quality", "hallucination"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50498950,
+      "createdAt": "2026-11-14T17:36:09.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "negative",
+      "summary": "Says Opus 5.5 overweights side points discussed earlier, so docs it writes later dwell on minor details unless context is kept clean.",
+      "themes": ["instruction-following", "context"],
+      "task": "writing",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50498261,
+      "createdAt": "2026-11-14T16:24:07.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "neutral",
+      "summary": "States that Opus 5.5 shipped on 22 September of this year.",
+      "themes": ["availability"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50497883,
+      "createdAt": "2026-11-14T15:40:17.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "negative",
+      "summary": "Says Opus 5.5 and Fable 5.2 pad output with unverifiable detail even in concise mode, then use dense, hard-to-parse phrasing for key points.",
+      "themes": ["writing-style", "instruction-following"],
+      "task": "chat",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50496573,
+      "createdAt": "2026-11-14T12:39:51.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "mixed",
+      "summary": "Still reviews every line of LLM code, noting that Opus 5.5 often needs a couple of iterations before the result is right.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50495880,
+      "createdAt": "2026-11-14T10:38:46.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "neutral",
+      "summary": "Expects technical debt in code written with Opus 5.5 to be cleaned up later by Fable 5.2.",
+      "themes": ["other"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Fable 5.2",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50495732,
+      "createdAt": "2026-11-14T10:14:20.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Says Opus 5.5 handles Haskell well, including FFI and embedded DSLs.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50494660,
+      "createdAt": "2026-11-14T06:49:30.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Uses Opus 5.5 daily at work and says it does not produce the chaotic, degrading codebases described in a critical article.",
+      "themes": ["agentic-work", "code-quality"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50494140,
+      "createdAt": "2026-11-14T05:04:03.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Noticed Opus 5.5 at xhigh effort now spawns sub-agents much more readily to protect context, and welcomes the change.",
+      "themes": ["agentic-work", "harness"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50494138,
+      "createdAt": "2026-11-14T05:03:37.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "mixed",
+      "summary": "Built several offline apps with Opus 5.5 and Sol, but says Claude models refuse some requests that Sol will do.",
+      "themes": ["refusals", "code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50493840,
+      "createdAt": "2026-11-14T04:13:53.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Calls Opus 5.5 possibly better than Fable for research-style tasks, with Fable too costly against usage limits on a mid-tier plan.",
+      "themes": ["model-choice", "rate-limits"],
+      "task": "research",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Fable 5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50493730,
+      "createdAt": "2026-11-14T03:58:31.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Starts every task with an Opus 5.5 pass, finding Astra disappointing by comparison for assumptions, quota burn and slowness.",
+      "themes": ["model-choice"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "worse"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50493125,
+      "createdAt": "2026-11-14T02:35:24.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Says Opus 5.5 works well with a coordinator feature, acting autonomously while checking in to validate assumptions.",
+      "themes": ["agentic-work", "harness"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50491859,
+      "createdAt": "2026-11-13T23:51:20.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Says Opus 5.5 (high effort, Claude Code) tends to add security improvements unprompted, and says basic audit prompts would have caught a vibecoded app's flaws.",
+      "themes": ["code-quality", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": "Claude Code",
+      "comparedWith": []
+    },
+    {
+      "id": 50491702,
+      "createdAt": "2026-11-13T23:35:22.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Struggles to tell Fable 5.2 apart from Opus 5.5 for their work and feels Opus already covers all their coding needs.",
+      "themes": ["model-choice", "code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Fable 5.2",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50488845,
+      "createdAt": "2026-11-13T19:59:31.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Finds Opus 5.5 pretty decent today and expects LLM quality to keep improving.",
+      "themes": ["other"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50487403,
+      "createdAt": "2026-11-13T18:09:38.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Built a local proofreading app for audiobook narration in about two hours using Opus 5.5.",
+      "themes": ["speed", "code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50486296,
+      "createdAt": "2026-11-13T16:57:53.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "negative",
+      "summary": "Says Opus 5.5 refuses to work on video game anti-cheat systems, even for Linux compatibility.",
+      "themes": ["refusals"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50485320,
+      "createdAt": "2026-11-13T15:52:54.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Reports Opus 5.5 never refused help on weeks of recompilation work for Switch games.",
+      "themes": ["refusals"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50484857,
+      "createdAt": "2026-11-13T15:21:55.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "negative",
+      "summary": "Opus 5.5 declined to help strip smart features from a TV and the request fell back to Opus 4.8, which helped.",
+      "themes": ["refusals"],
+      "task": "chat",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 4.8",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50484762,
+      "createdAt": "2026-11-13T15:16:06.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Says Opus 5.5 does not produce huge 8k-line refactors unless explicitly pushed to, contrary to claims about oversized AI changes.",
+      "themes": ["instruction-following"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50484219,
+      "createdAt": "2026-11-13T14:42:05.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "negative",
+      "summary": "Claims AI companies have started restricting help with offline device control, beginning with Opus 5.5.",
+      "themes": ["refusals"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50482823,
+      "createdAt": "2026-11-13T12:54:18.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "mixed",
+      "summary": "Recommends trying Opus 5.5 in a pipeline, noting a cheap plan goes far but the mid-tier plan can still run out with 24/7 agents.",
+      "themes": ["rate-limits", "pricing"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "DeepSeek 4.1 Flash",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50482786,
+      "createdAt": "2026-11-13T12:50:48.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "negative",
+      "summary": "Says the code from Opus 5.5 and Fable 5.2 is generally not very good.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Fable 5.2",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50482117,
+      "createdAt": "2026-11-13T11:42:00.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Says Opus 5.5 is still the leader in their own domain-specific evals, since the Fable class is not yet allowed in their setting.",
+      "themes": ["benchmarks", "model-choice"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50481593,
+      "createdAt": "2026-11-13T10:49:23.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Finds Opus 5.5 at medium effort finishes tasks about twice as fast as Haiku at max effort, due to verbosity differences.",
+      "themes": ["speed"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Haiku",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50480923,
+      "createdAt": "2026-11-13T09:53:48.000Z",
+      "modelId": "claude-opus-5-5",
+      "stance": "positive",
+      "summary": "Says Opus 5.5's release shifted them from coding toward full-stack product work, with more work than ever.",
+      "themes": ["other"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50514150,
+      "createdAt": "2026-11-16T04:48:04.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Says a cost-per-task chart shows Fable 5.2 at medium effort matching Qwen 4 Max's cost with higher intelligence scores.",
+      "themes": ["pricing", "benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Qwen 4 Max",
+          "verdict": "worse"
+        },
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50509929,
+      "createdAt": "2026-11-15T19:36:58.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "neutral",
+      "summary": "Agrees with an argument that Fable 5.2's good alignment-eval behaviour rests on a false belief it may drop in a more capable successor.",
+      "themes": ["other"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50504564,
+      "createdAt": "2026-11-15T06:37:31.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Hit the 5-hour limit within about ten minutes using Fable 5.2 on a $20 plan for a code audit with sub-agents, calling it nearly unusable there.",
+      "themes": ["rate-limits"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50497883,
+      "createdAt": "2026-11-14T15:40:17.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Says Opus 5.5 and Fable 5.2 pad output with unverifiable detail even in concise mode, then use dense, hard-to-parse phrasing for key points.",
+      "themes": ["writing-style", "instruction-following"],
+      "task": "chat",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50497063,
+      "createdAt": "2026-11-14T13:56:48.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "mixed",
+      "summary": "Spent two days of weekly usage on Fable 5.2 orchestrating many sub-agents, producing sloppy code; a narrower scope and fewer agents would have worked better.",
+      "themes": ["rate-limits", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50495880,
+      "createdAt": "2026-11-14T10:38:46.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "neutral",
+      "summary": "Expects Fable 5.2 to later clean up technical debt in code written with Opus 5.5.",
+      "themes": ["other"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50493675,
+      "createdAt": "2026-11-14T03:50:24.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Fable 5.2 fanned out into many agents and used a usage reset on a Max 5x plan for a task the commenter thought should be routine.",
+      "themes": ["rate-limits", "pricing", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50493568,
+      "createdAt": "2026-11-14T03:37:27.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Enjoys using Fable 5.2 as head orchestrator that starts sub-orchestrators and workers, and asks what a new product adds over that setup.",
+      "themes": ["agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50493545,
+      "createdAt": "2026-11-14T03:33:19.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Runs Fable 5.2 in Claude Code as head orchestrator over Opus sub-orchestrators and many worker agents, and says it works very well.",
+      "themes": ["agentic-work"],
+      "task": "agentic-coding",
+      "tool": "Claude Code",
+      "comparedWith": []
+    },
+    {
+      "id": 50491702,
+      "createdAt": "2026-11-13T23:35:22.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "mixed",
+      "summary": "Has trouble noticing the difference between Fable 5.2 and Opus 5.5 in their work and doubts Fable was better.",
+      "themes": ["model-choice", "code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50487535,
+      "createdAt": "2026-11-13T18:19:37.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "neutral",
+      "summary": "Asks for a longer deadline to use Fable 5.2 on the Pro plan.",
+      "themes": ["availability"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50486487,
+      "createdAt": "2026-11-13T17:10:20.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Finds Fable 5.2 a smaller step up from Opus 5.5 than hoped, suggesting progress may be slowing.",
+      "themes": ["benchmarks"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50485733,
+      "createdAt": "2026-11-13T16:20:09.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Reports Fable 5.2 scored 100% on a data analytics exam, along with Astra and Sol, at about three times the cost of Gemini 4 Hydrogen.",
+      "themes": ["benchmarks", "pricing"],
+      "task": "data-analysis",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Hydrogen",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50485725,
+      "createdAt": "2026-11-13T16:19:49.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "neutral",
+      "summary": "Notes the price gap between Sol and Fable 5.2 is enormous, around 430 times.",
+      "themes": ["pricing"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50482786,
+      "createdAt": "2026-11-13T12:50:48.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Says the code from Opus 5.5 and Fable 5.2 is generally not very good.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50482710,
+      "createdAt": "2026-11-13T12:43:50.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Asked Fable 5.2 to make a project run on Mac and got it working with small tweaks, at about 50 tokens per second locally.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50482349,
+      "createdAt": "2026-11-13T12:07:05.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Says Qwen 4 Pro beats Fable 5.2 on many tasks.",
+      "themes": ["model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Qwen 4 Pro",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50478759,
+      "createdAt": "2026-11-13T05:30:31.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "mixed",
+      "summary": "Fable 5.2 produced promising circuit board placement and routing, but struggled on dense designs and left layouts needing heavy manual rework.",
+      "themes": ["reasoning-depth", "agentic-work"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50478191,
+      "createdAt": "2026-11-13T04:10:45.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "neutral",
+      "summary": "Used Fable 5.2 to trace a quote's source; it could not reach the paywalled article and offered a tentative guess instead.",
+      "themes": ["other"],
+      "task": "research",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50477200,
+      "createdAt": "2026-11-13T02:12:18.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Recommends Fable 5.2 on max for strategy and planning, then Opus 5.5 sub-agents to implement against a written plan.",
+      "themes": ["model-choice", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50476700,
+      "createdAt": "2026-11-13T00:53:09.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "mixed",
+      "summary": "Finds Fable 5.2 only slightly better than Opus 5.5, with limited testing because it burns through tokens quickly.",
+      "themes": ["benchmarks", "rate-limits"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50476021,
+      "createdAt": "2026-11-12T23:39:36.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Says Fable 5.2 changed random unrelated files and added useless code when asked to trim an overgrown merge request, even with a detailed ticket.",
+      "themes": ["instruction-following", "code-quality"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50474285,
+      "createdAt": "2026-11-12T21:07:38.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Reports Fable 5.2 produced a full icon pack in a weekend and helps agents find visual bugs far faster than manual patching.",
+      "themes": ["frontend-design", "agentic-work"],
+      "task": "design",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50472198,
+      "createdAt": "2026-11-12T18:48:47.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Says Qwen 4 Pro preview has beaten Fable 5.2 on their tasks.",
+      "themes": ["model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Qwen 4 Pro",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50471408,
+      "createdAt": "2026-11-12T18:00:11.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Gave Fable 5.2 a short video reel as a reference and asked for a game; it produced a playable result.",
+      "themes": ["frontend-design"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50470966,
+      "createdAt": "2026-11-12T17:32:24.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Says Fable 5.2 built and ran a large multi-agent development stack in about a day, though they wish it cost less.",
+      "themes": ["agentic-work", "pricing"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50470078,
+      "createdAt": "2026-11-12T16:35:24.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Says Opus 5.5 and Fable 5.2 are pulling away from open models that had nearly caught up.",
+      "themes": ["benchmarks"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GLM-5.3",
+          "verdict": "worse"
+        },
+        {
+          "name": "Qwen 3.8",
+          "verdict": "worse"
+        },
+        {
+          "name": "DeepSeek 4.1",
+          "verdict": "worse"
+        },
+        {
+          "name": "Kimi K3",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50469735,
+      "createdAt": "2026-11-12T16:11:38.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Criticises Anthropic for limiting Fable 5.2's training in some AI-development capability areas.",
+      "themes": ["refusals"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50465125,
+      "createdAt": "2026-11-12T09:53:57.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "mixed",
+      "summary": "Found Fable 5.2 quality great, but Claude Code at high effort hits the hourly limit on a Max plan in 20 to 30 minutes.",
+      "themes": ["rate-limits", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": "Claude Code",
+      "comparedWith": []
+    },
+    {
+      "id": 50464729,
+      "createdAt": "2026-11-12T08:59:02.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Notes Fable 5.2 at max effort apparently failed a pelican drawing test.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50459208,
+      "createdAt": "2026-11-11T21:53:09.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Claims Fable 5.2 can design whole devices, from circuit board layout to case assembly.",
+      "themes": ["agentic-work"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50458346,
+      "createdAt": "2026-11-11T20:38:35.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Fable 5.2 attempted a Lean proof, found a real bug in a published sorting implementation, and proposed a fix.",
+      "themes": ["reasoning-depth"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50456549,
+      "createdAt": "2026-11-11T18:14:39.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "mixed",
+      "summary": "Tested Fable 5.2 at high effort on recreating an illustration and rigging a walk cycle in a procedural graphics editor, finding it promising but early.",
+      "themes": ["frontend-design"],
+      "task": "design",
+      "tool": "Klad",
+      "comparedWith": []
+    },
+    {
+      "id": 50452465,
+      "createdAt": "2026-11-11T12:06:25.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Says Fable 5.2 costs more per task than Gemini 4 Carbon at every effort level where it scores higher.",
+      "themes": ["pricing", "benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Carbon",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50449591,
+      "createdAt": "2026-11-11T03:58:19.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Objects that Fable 5.2 performs about like Opus 5.5 in some areas and silently falls back for certain topics, which erodes trust in output quality.",
+      "themes": ["regression", "other"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50448744,
+      "createdAt": "2026-11-11T01:30:32.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "neutral",
+      "summary": "States that Fable 5.2 was released on 9 November 2026.",
+      "themes": ["availability"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50448338,
+      "createdAt": "2026-11-11T00:36:56.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Found Fable 5.2's weekly quota on a Pro plan lasts only a few hours, so agent-swarm cost estimates look too low.",
+      "themes": ["rate-limits", "pricing"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50448215,
+      "createdAt": "2026-11-11T00:19:24.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "neutral",
+      "summary": "Argues benchmark scores show only a marginal improvement for Fable 5.2 over earlier models.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50447948,
+      "createdAt": "2026-11-10T23:48:28.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "negative",
+      "summary": "Doubts third-party evaluation claims and sees Fable 5.2 as a cost regression, possibly a sign of diminishing returns.",
+      "themes": ["benchmarks", "pricing"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50447039,
+      "createdAt": "2026-11-10T22:14:10.000Z",
+      "modelId": "claude-fable-5-2",
+      "stance": "positive",
+      "summary": "Feels a new Fable 5.2 release is at peak capability and expects it to degrade over time, so is using it heavily now.",
+      "themes": ["regression"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50511480,
+      "createdAt": "2026-11-15T22:23:05.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "negative",
+      "summary": "Sonnet 5.5 triggered a guardrail when asked to create a test-data fixture for a dev environment with no personal data.",
+      "themes": ["refusals"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50498367,
+      "createdAt": "2026-11-14T16:38:02.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Used Sonnet 5.5 to fix software rough edges for running local experiments on an Intel Arc GPU.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50480190,
+      "createdAt": "2026-11-13T08:32:48.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Lists Sonnet 5.5 among the Google, Anthropic and OpenAI models available on a mid-priced Antigravity plan.",
+      "themes": ["availability"],
+      "task": "unspecified",
+      "tool": "Antigravity",
+      "comparedWith": []
+    },
+    {
+      "id": 50475405,
+      "createdAt": "2026-11-12T22:38:14.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Cites an aggregate benchmark where Sonnet 5.5 scores 55, slightly ahead of Gemini 4 Hydrogen and level with GPT-6.1 Sol.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Hydrogen",
+          "verdict": "worse"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-6.1 Terra",
+          "verdict": "worse"
+        },
+        {
+          "name": "Gemini 4 Argon",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50475302,
+      "createdAt": "2026-11-12T22:30:45.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Says DeepSeek 4.1 at max effort already scores slightly above Sonnet 5.5 at medium effort, and can run locally.",
+      "themes": ["benchmarks"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "DeepSeek 4.1",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50474893,
+      "createdAt": "2026-11-12T21:57:48.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Used Sonnet 5.5 as a baseline in an image-to-HTML test where Gemini 4 Hydrogen landed between Sonnet and Opus.",
+      "themes": ["frontend-design"],
+      "task": "design",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Hydrogen",
+          "verdict": "better"
+        },
+        {
+          "name": "Claude Opus",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50474426,
+      "createdAt": "2026-11-12T21:18:16.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Found per-model prompt files for the 5.5 Claude models cut loops and rework in an agent pipeline, versus generic role files.",
+      "themes": ["harness", "model-choice"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50451308,
+      "createdAt": "2026-11-11T09:27:46.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Says no local model on 128 GB hardware matches Sonnet 5.5, and the gap to Opus 5.5 is larger still.",
+      "themes": ["model-choice", "pricing"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Local open-weight models",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50450461,
+      "createdAt": "2026-11-11T06:58:37.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Plans with Opus 5.5 at high effort, audits the plan with a second Opus session, then implements with Sonnet 5.5.",
+      "themes": ["model-choice", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50437411,
+      "createdAt": "2026-11-10T08:05:10.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Builds Rust and Tauri apps all day with Sonnet 5.5 and Opus 5.5 on medium effort on a $20 plan, rarely running out of weekly credits.",
+      "themes": ["rate-limits", "code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50435839,
+      "createdAt": "2026-11-10T03:51:48.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Impressed that Sonnet 5.5 makes code changes in about 20 seconds, where DeepSeek Flash took 2 to 5 minutes.",
+      "themes": ["speed"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "DeepSeek Flash",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50434027,
+      "createdAt": "2026-11-09T23:45:18.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Sticks with Sonnet 5.5 for much more work at roughly 80% of the quality, after a newer model used a whole weekly quota in minutes.",
+      "themes": ["pricing", "model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50431039,
+      "createdAt": "2026-11-09T19:58:04.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Uses Sonnet 5.5 or Opus 5.5 for most work and keeps Fable 5.1 for large features and heavyweight review.",
+      "themes": ["model-choice"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Fable 5.1",
+          "verdict": "better"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50430766,
+      "createdAt": "2026-11-09T19:42:14.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Says Sonnet 5.5 is good enough that it sometimes makes them forget about Opus.",
+      "themes": ["model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50430419,
+      "createdAt": "2026-11-09T19:25:02.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Notes published results suggest Qwen4-27B can beat Sonnet 5.5 on some tasks.",
+      "themes": ["benchmarks"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Qwen 4 27B",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50424311,
+      "createdAt": "2026-11-09T11:49:42.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Uses Sonnet 5.5 daily to write code from their own design and strategy, finds it consistent, and reserves Opus or Fable for emergencies.",
+      "themes": ["code-quality", "model-choice"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50420368,
+      "createdAt": "2026-11-09T02:44:21.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Says paying API rates for Sonnet 5.5 or GPT-6.1 Sol is worth it, far beyond what small local models offer.",
+      "themes": ["pricing", "model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50418222,
+      "createdAt": "2026-11-08T22:39:24.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Says Sonnet 5.5 and Opus 5.5 are clearly far ahead of Qwen 3.8 Flash Next, despite benchmark claims that they are close.",
+      "themes": ["benchmarks", "model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Qwen 3.8 Flash Next",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50412140,
+      "createdAt": "2026-11-08T10:54:08.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "mixed",
+      "summary": "Likens Sonnet 5.5 to a cocky rookie that makes poor assumptions, but good for simple subagent work; Opus needs less hand-holding.",
+      "themes": ["reasoning-depth", "model-choice"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50408295,
+      "createdAt": "2026-11-07T21:38:43.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Rates Sonnet 5.5 at medium effort as a powerhouse implementer given a decent plan, slightly preferred over Sol 6.1.",
+      "themes": ["model-choice", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "worse"
+        },
+        {
+          "name": "GPT-6.1 Terra",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50406046,
+      "createdAt": "2026-11-07T16:58:38.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Cites vendor model cards saying Sonnet 5.5 does better with one agent spawning workers, unlike Opus 5.5 which prefers collaborating agents.",
+      "themes": ["agentic-work"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50403161,
+      "createdAt": "2026-11-07T10:03:07.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Had Sonnet 5.5 wrap a web app as an Android TV app, which works well with remote control buttons mapped correctly.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50402480,
+      "createdAt": "2026-11-07T07:36:31.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "negative",
+      "summary": "In a test of 15 backend tasks, Sonnet 5.5 produced a critical bug in some runs without guidance, with login rate limiting and column renames failing every time.",
+      "themes": ["code-quality", "instruction-following"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50402344,
+      "createdAt": "2026-11-07T07:09:09.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Notes Sonnet 5.5 tied with Opus 5.5 and Opus 5 on a memory benchmark in a paper, hinting at a plateau.",
+      "themes": ["benchmarks", "context"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        },
+        {
+          "name": "Claude Opus 5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50399407,
+      "createdAt": "2026-11-06T22:34:44.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Calls Sonnet 5.5 very good and argues it counts as a frontier model.",
+      "themes": ["other"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50399021,
+      "createdAt": "2026-11-06T21:54:45.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Says a leaderboard used Sonnet 5.5 as a well-measured reference and found GPT-6.1 Terra clearly beat it.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Terra",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50391612,
+      "createdAt": "2026-11-06T12:34:54.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "negative",
+      "summary": "Says Sonnet 5.5's one-shot Python projects fall into the same generic structures and produce many linter errors unless given context.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50386193,
+      "createdAt": "2026-11-05T23:42:28.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Says Qwen 3.8 Flash Next on a local setup sometimes beat Sonnet 5.5, though pairing it with Opus 5.5 works best.",
+      "themes": ["model-choice"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Qwen 3.8 Flash Next",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50378628,
+      "createdAt": "2026-11-05T13:05:53.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "mixed",
+      "summary": "Benchmarked own agent sessions and found Sonnet 5.5 strong but less careful, once leaking secrets into the session.",
+      "themes": ["instruction-following", "benchmarks"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50378303,
+      "createdAt": "2026-11-05T12:28:54.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Gets a lot done with Sonnet 5.5 at medium effort on a basic plan, rarely hitting limits, with Opus 5.5 as advisor.",
+      "themes": ["rate-limits", "pricing"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50374502,
+      "createdAt": "2026-11-05T02:49:54.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Generally uses Sonnet 5.5 for engineering work, switching to Fable 5.1 occasionally when stuck on a high-value step.",
+      "themes": ["model-choice"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Fable 5.1",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50367589,
+      "createdAt": "2026-11-04T16:07:27.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "positive",
+      "summary": "Uses Sonnet 5.5 and Sol 6.1 at medium effort for most coding, and notes Claude models handle report prose better than GPT.",
+      "themes": ["model-choice", "writing-style"],
+      "task": "coding",
+      "tool": "Claude Code",
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50365700,
+      "createdAt": "2026-11-04T14:06:20.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "In a document-rebuild test, Sonnet 5.5 was already near the ceiling without a skill and ran 37% faster with it.",
+      "themes": ["harness", "speed"],
+      "task": "other",
+      "tool": "Claude Code",
+      "comparedWith": []
+    },
+    {
+      "id": 50365031,
+      "createdAt": "2026-11-04T13:07:29.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "mixed",
+      "summary": "Sonnet 5.5 could not say how to turn off a diff panel, though it cut a long job from over two hours to thirty minutes.",
+      "themes": ["harness", "speed"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50363790,
+      "createdAt": "2026-11-04T10:53:53.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "mixed",
+      "summary": "Finds Sonnet 5.5 fine for small apps, but over-engineered and prone to ignoring context rules on 100k-line codebases.",
+      "themes": ["code-quality", "instruction-following"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50363707,
+      "createdAt": "2026-11-04T10:42:43.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Has not tried Sonnet 5.5, since Opus 5.5 is effectively unlimited on their plan, and cites a benchmark showing little cost saving.",
+      "themes": ["pricing", "benchmarks"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50363637,
+      "createdAt": "2026-11-04T10:33:50.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Notes Sonnet 5.5 is within a point or two of Opus 5.5 on Terminal Bench.",
+      "themes": ["benchmarks"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50328181,
+      "createdAt": "2026-11-01T18:22:34.000Z",
+      "modelId": "claude-sonnet-5-5",
+      "stance": "neutral",
+      "summary": "Finds DeepSeek comparable to Sonnet 5.5 when features are planned and implemented in small chunks, and much cheaper via OpenRouter.",
+      "themes": ["pricing", "model-choice"],
+      "task": "agentic-coding",
+      "tool": "OpenRouter",
+      "comparedWith": [
+        {
+          "name": "DeepSeek",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50495062,
+      "createdAt": "2026-11-14T08:06:52.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Cites OpenAI's own long-context benchmark claim that Astra is near perfect up to 1M tokens, while noting the source is the vendor.",
+      "themes": ["context", "benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50485733,
+      "createdAt": "2026-11-13T16:20:09.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "positive",
+      "summary": "Reports Astra scored 100% on a data analytics exam, at about three times the cost of Gemini 4 Hydrogen.",
+      "themes": ["benchmarks", "pricing"],
+      "task": "data-analysis",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Hydrogen",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "similar"
+        },
+        {
+          "name": "Claude Fable 5.2",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50473102,
+      "createdAt": "2026-11-12T19:44:46.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "negative",
+      "summary": "Says Astra in Codex gave a convoluted, brittle Ansible playbook change and needed forceful prompting to use built-in modules instead.",
+      "themes": ["code-quality", "instruction-following"],
+      "task": "agentic-coding",
+      "tool": "Codex",
+      "comparedWith": []
+    },
+    {
+      "id": 50440722,
+      "createdAt": "2026-11-10T14:17:02.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "positive",
+      "summary": "In a routing test, Astra was the best single model at 87.8%, and routing to cheaper models halved the cost for roughly a one-point loss.",
+      "themes": ["benchmarks", "model-choice"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "worse"
+        },
+        {
+          "name": "Gemini 4 Argon",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50439042,
+      "createdAt": "2026-11-10T11:55:22.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "negative",
+      "summary": "Found a codebase written by Astra was more fragile to work in than one built by Fable 5.1, with lower accuracy and higher token use for Opus 5.5.",
+      "themes": ["code-quality"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Fable 5.1",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50438879,
+      "createdAt": "2026-11-10T11:36:29.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "negative",
+      "summary": "Says Opus 5.5 did extensive rework, taking many extra tool calls and tokens, when adding features to a codebase written by Astra.",
+      "themes": ["code-quality"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50431581,
+      "createdAt": "2026-11-09T20:30:20.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "negative",
+      "summary": "Finds Astra very defensive, piling unneeded clarifications onto nearly every claim it makes.",
+      "themes": ["writing-style"],
+      "task": "chat",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50401340,
+      "createdAt": "2026-11-07T03:25:06.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Links a report alleging Astra secretly does worse on AI safety research tasks.",
+      "themes": ["other"],
+      "task": "research",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50399505,
+      "createdAt": "2026-11-06T22:45:06.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "mixed",
+      "summary": "Quotes a benchmark write-up where Astra at low effort fixed a bug cleanly, but at max effort deleted a public class and caused a breaking change.",
+      "themes": ["reasoning-depth", "instruction-following", "benchmarks"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50398095,
+      "createdAt": "2026-11-06T20:34:03.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Reports Astra rated 1723 on a Codenames arena, behind Gemini 4 Argon and Sol but ahead of Fable 5.1 and Opus 5.5.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": "API",
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Argon",
+          "verdict": "better"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "better"
+        },
+        {
+          "name": "Claude Fable 5.1",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50377263,
+      "createdAt": "2026-11-05T09:53:25.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "positive",
+      "summary": "Uses a light Astra variant for all coding on an open-source grant, finding providers now similarly good for their needs.",
+      "themes": ["model-choice"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude",
+          "verdict": "similar"
+        },
+        {
+          "name": "DeepSeek",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50357549,
+      "createdAt": "2026-11-03T20:14:18.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Reports an automated research system beat agents based on Astra and Opus 5.5 on a molecular prediction task.",
+      "themes": ["benchmarks"],
+      "task": "research",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50347251,
+      "createdAt": "2026-11-03T02:30:55.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Argues an experiment only shows Astra can read and write public Qwen model weights, not weights of arbitrary networks.",
+      "themes": ["other"],
+      "task": "research",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50346035,
+      "createdAt": "2026-11-02T23:56:28.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "negative",
+      "summary": "Astra could not work out the purpose of a small private neural network or how to improve it, unlike its handling of public Qwen weights.",
+      "themes": ["reasoning-depth"],
+      "task": "research",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50331673,
+      "createdAt": "2026-11-02T00:53:01.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "mixed",
+      "summary": "Says Astra, like other recent models, eventually gets there but shows odd reasoning and tool calls that tempt the commenter to stop it.",
+      "themes": ["agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 4.8",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-5.6 Sol",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50331615,
+      "createdAt": "2026-11-02T00:44:50.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "mixed",
+      "summary": "Describes Astra and other models doing seemingly silly tool steps before usually reaching the goal.",
+      "themes": ["agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 4.8",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-5.6 Sol",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50320339,
+      "createdAt": "2026-10-31T21:18:05.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "positive",
+      "summary": "Reports Astra completed a Pokemon playthrough in 21 hours, even using save-scumming to manipulate random outcomes.",
+      "themes": ["agentic-work"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50278526,
+      "createdAt": "2026-10-28T18:22:07.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Says new benchmarks were cherry-picked by Google, with Gemini 4 Argon now behind Astra in most of them.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Argon",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50270428,
+      "createdAt": "2026-10-28T07:55:56.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Posts a score table with Astra at the top, ahead of Sol and Opus 5.5, and asks whether the benchmark is tied to OpenAI.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50251082,
+      "createdAt": "2026-10-26T21:15:45.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Says ChatGPT recommended Astra at medium effort for dashboard computer control, though a smaller Luna model already did the task well.",
+      "themes": ["model-choice"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-5.6 Luna",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50229580,
+      "createdAt": "2026-10-25T08:59:00.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Notes the ultrafast serving tiers for Astra and Sol run on Nvidia hardware.",
+      "themes": ["speed", "availability"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50166651,
+      "createdAt": "2026-10-20T14:03:59.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "positive",
+      "summary": "Says Astra and Opus 5.5 work as main agentic models that complete tasks properly with little intervention, unlike cheaper DeepSeek Flash.",
+      "themes": ["agentic-work", "model-choice"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        },
+        {
+          "name": "DeepSeek 4.1 Flash",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50127868,
+      "createdAt": "2026-10-17T04:14:03.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "neutral",
+      "summary": "Repeats speculation that Astra uses a looped recurrent transformer design.",
+      "themes": ["other"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50121563,
+      "createdAt": "2026-10-16T17:31:43.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "positive",
+      "summary": "Reports that in a 48-hour StarCraft test Astra adapted its strategy over time as opponents got harder.",
+      "themes": ["agentic-work"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50119857,
+      "createdAt": "2026-10-16T15:46:22.000Z",
+      "modelId": "gpt-6-astra",
+      "stance": "positive",
+      "summary": "Notes Astra ranked first on a 9x9 Go benchmark, ahead of Sol, Argon, Opus 5.5, Fable 5.1 and Sonnet 5.5.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "worse"
+        },
+        {
+          "name": "Gemini 4 Argon",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Fable 5.1",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Sonnet 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50513693,
+      "createdAt": "2026-11-16T03:32:29.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Notes Sol at max thinking costs about $1.27 per task on a benchmark page, versus around $10 for Opus 5.5 at max.",
+      "themes": ["pricing", "benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        },
+        {
+          "name": "Qwen 4 Max",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50513686,
+      "createdAt": "2026-11-16T03:31:33.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "negative",
+      "summary": "Says a benchmark site shows Sol far cheaper than DeepSeek Flash, yet in Pi simple queries cost 5-10 times more on Sol.",
+      "themes": ["pricing", "benchmarks"],
+      "task": "unspecified",
+      "tool": "Pi",
+      "comparedWith": [
+        {
+          "name": "DeepSeek 4.1 Flash",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50513658,
+      "createdAt": "2026-11-16T03:27:18.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Cites Sol at medium effort scoring 46 at about $0.36 per task, against a Qwen model scoring 43 at $3.27.",
+      "themes": ["benchmarks", "pricing"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Qwen 4 Max",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50491274,
+      "createdAt": "2026-11-13T22:52:53.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "negative",
+      "summary": "Reports data showing Sol does poorly on less common programming languages.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50489509,
+      "createdAt": "2026-11-13T20:54:38.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "negative",
+      "summary": "Says Sol repeatedly made basic mistakes on a Prolog project, seemingly not grasping how its resolution works.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50485733,
+      "createdAt": "2026-11-13T16:20:09.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Reports Sol scored 100% on a data analytics exam and cost less than Gemini 4 Hydrogen, which also reached 100%.",
+      "themes": ["benchmarks", "pricing"],
+      "task": "data-analysis",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Hydrogen",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "similar"
+        },
+        {
+          "name": "Claude Fable 5.2",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50475405,
+      "createdAt": "2026-11-12T22:38:14.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Cites a benchmark index placing Sol at 55, level with Sonnet 5.5 and just ahead of Gemini 4 Hydrogen and Terra.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Hydrogen",
+          "verdict": "worse"
+        },
+        {
+          "name": "GPT-6.1 Terra",
+          "verdict": "worse"
+        },
+        {
+          "name": "Gemini 4 Argon",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Sonnet 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50473111,
+      "createdAt": "2026-11-12T19:45:29.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Reports DeepSeek 4.1 Flash beat Sol in 64% of head-to-head real-work comparisons, based on a small sample.",
+      "themes": ["benchmarks"],
+      "task": "agentic-coding",
+      "tool": "OpenCode",
+      "comparedWith": [
+        {
+          "name": "DeepSeek 4.1 Flash",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50470514,
+      "createdAt": "2026-11-12T17:03:55.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Says open-weight models still lag by several months and are not competitive with Sol on the price and speed frontier.",
+      "themes": ["pricing", "speed"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Open-weight models",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50440722,
+      "createdAt": "2026-11-10T14:17:02.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "In a routing test, a router often picked Sol and Gemini 4 Argon as cheaper options, with Astra the best single model overall.",
+      "themes": ["pricing", "model-choice"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50435404,
+      "createdAt": "2026-11-10T02:36:46.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Argues Sol costs half as much as Opus 5.5 per token and uses fewer tokens per task, so OpenAI plans give more completed tasks per dollar.",
+      "themes": ["pricing", "rate-limits"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50434182,
+      "createdAt": "2026-11-09T23:59:56.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "mixed",
+      "summary": "Found Sol's circuit board routing ugly and inefficient, mostly just running an autorouter, though it picks parts well from a supplier's stock.",
+      "themes": ["other"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50433582,
+      "createdAt": "2026-11-09T23:02:06.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Says per benchmark data and their own use, Sol reaches similar results to Opus 5.5 faster and at a fraction of the cost.",
+      "themes": ["pricing", "speed", "benchmarks"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50431225,
+      "createdAt": "2026-11-09T20:10:26.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Says Sol's roughly $1.27 per task against about $26.54 for Fable 5.2 makes the 21x price gap hard to justify.",
+      "themes": ["pricing"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Fable 5.2",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50430559,
+      "createdAt": "2026-11-09T19:32:15.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "negative",
+      "summary": "Calls Sol embarrassingly sloppy and dumb.",
+      "themes": ["other"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50427805,
+      "createdAt": "2026-11-09T16:29:00.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Is satisfied using Sol at medium or high effort for coding when given clear instructions and style guidelines.",
+      "themes": ["code-quality", "instruction-following"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50426240,
+      "createdAt": "2026-11-09T14:36:29.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Finds Sol excellent value and strong at low-level code such as DSP and 3D engines, ahead of the pricier Opus.",
+      "themes": ["pricing", "code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus",
+          "verdict": "worse"
+        },
+        {
+          "name": "DeepSeek",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50420368,
+      "createdAt": "2026-11-09T02:44:21.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Says paying API rates for Sol or Sonnet 5.5 is worth it compared with small local models.",
+      "themes": ["pricing", "model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Sonnet 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50415255,
+      "createdAt": "2026-11-08T17:31:05.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "mixed",
+      "summary": "Sol built a large 22-PR project with decent code but verbose plan docs and poor PR descriptions, which Opus 5.5 then rewrote well.",
+      "themes": ["writing-style", "agentic-work", "pricing"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50413728,
+      "createdAt": "2026-11-08T14:36:53.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "negative",
+      "summary": "Says private evals show GPT models underperforming public benchmarks, and Sol made destructive mistakes on a prompt older models handled.",
+      "themes": ["benchmarks", "instruction-following"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-5.0",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50409858,
+      "createdAt": "2026-11-08T02:03:04.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Finds Sol follows instructions much better than Astra in practice, despite scoring lower on benchmarks.",
+      "themes": ["instruction-following", "benchmarks"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50401554,
+      "createdAt": "2026-11-07T04:16:45.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Uses Sol as a feature-lead tier between an Opus orchestrator and cheap workers, and is impressed by how efficient it is.",
+      "themes": ["model-choice", "pricing"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50398095,
+      "createdAt": "2026-11-06T20:34:03.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Reports Sol rated 1744 on a Codenames arena, second to Gemini 4 Argon and ahead of Astra, Fable 5.1 and Opus 5.5.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": "API",
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Argon",
+          "verdict": "better"
+        },
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Fable 5.1",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50385421,
+      "createdAt": "2026-11-05T22:30:51.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Uses Sol with a Lisp REPL workflow, where the agent does things on its own that look like magic.",
+      "themes": ["agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50376873,
+      "createdAt": "2026-11-05T08:59:09.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Uses Sol as a reviewer to catch cases DeepSeek 4.1 Flash misses, keeping their own effort at the start and end of the work.",
+      "themes": ["model-choice", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "DeepSeek 4.1 Flash",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50376216,
+      "createdAt": "2026-11-05T07:30:09.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Finds DeepSeek 4.1 Flash only slightly below Sol and far cheaper, and uses Sol for browser-based regression testing.",
+      "themes": ["model-choice", "pricing"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "DeepSeek 4.1 Flash",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50375205,
+      "createdAt": "2026-11-05T04:30:17.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Says Sol is so token-efficient on a Codex plan that they never run out before week's end, with Claude stronger at frontend and debugging.",
+      "themes": ["rate-limits", "model-choice"],
+      "task": "agentic-coding",
+      "tool": "Codex",
+      "comparedWith": [
+        {
+          "name": "Claude",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50373589,
+      "createdAt": "2026-11-05T00:52:22.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Uses Opus 5.5 with Sol as reviewer in VS Code on two $20 plans.",
+      "themes": ["model-choice"],
+      "task": "coding",
+      "tool": "VS Code",
+      "comparedWith": []
+    },
+    {
+      "id": 50363682,
+      "createdAt": "2026-11-04T10:39:32.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Says pairing Opus 5.5 with Sol as reviewer catches most issues and edge cases during implementation.",
+      "themes": ["agentic-work", "code-quality"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50340210,
+      "createdAt": "2026-11-02T17:23:31.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Says Sol infers intent more than the very literal Astra, but less than Claude models, which act too proactively.",
+      "themes": ["instruction-following"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "unclear"
+        },
+        {
+          "name": "Claude",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50333606,
+      "createdAt": "2026-11-02T06:05:08.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Argues Sol is far more persistent than a typical human at checking edge cases and hunting bugs, a result of reinforcement training.",
+      "themes": ["code-quality", "reasoning-depth"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50328038,
+      "createdAt": "2026-11-01T18:08:31.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "negative",
+      "summary": "Says Opus 5.5 is vastly better than Sol at design and design nuance.",
+      "themes": ["frontend-design"],
+      "task": "design",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50321824,
+      "createdAt": "2026-11-01T01:07:10.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Rates Sol excellent and close to Opus 5.5 for software work, weak at frontend design but strong at computer control for end-to-end testing.",
+      "themes": ["frontend-design", "model-choice"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50319832,
+      "createdAt": "2026-10-31T20:29:16.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Reports Sol can beat full video games using vision only, including Pokemon on hard mode and Final Fantasy VII.",
+      "themes": ["agentic-work"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "unclear"
+        }
+      ]
+    },
+    {
+      "id": 50312092,
+      "createdAt": "2026-10-31T00:45:27.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Says Sol follows system prompts, tools and skills better than Opus or Sonnet 5.5 when driving an orchestrator.",
+      "themes": ["instruction-following", "agentic-work", "harness"],
+      "task": "agentic-coding",
+      "tool": "Paseo",
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Sonnet 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50311609,
+      "createdAt": "2026-10-30T23:41:51.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Found Sol clearly better than GPT-6.1 Terra at fixing punctuation in their tests.",
+      "themes": ["writing-style", "benchmarks"],
+      "task": "writing",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Terra",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50298384,
+      "createdAt": "2026-10-30T00:37:04.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Suggests OpenAI models run faster than Anthropic's, so a team of Sol Ultrafast agents might dominate in game benchmarks.",
+      "themes": ["speed"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50286243,
+      "createdAt": "2026-10-29T08:59:05.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Has used Sol in Codex to fix accounting entries via a CLI on a database copy, with a review step, and calls it flawless so far.",
+      "themes": ["agentic-work"],
+      "task": "other",
+      "tool": "Codex",
+      "comparedWith": []
+    },
+    {
+      "id": 50285041,
+      "createdAt": "2026-10-29T06:01:16.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "positive",
+      "summary": "Says Sol at extra high effort feels near unlimited, while Opus 5.5 exhausts a Max plan's weekly quota within one to two days.",
+      "themes": ["rate-limits", "pricing"],
+      "task": "agentic-coding",
+      "tool": "Codex",
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50272946,
+      "createdAt": "2026-10-28T13:07:05.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Reports a commercial model ranking where Sol, Argon, Terra, Kimi K3.1 Pro and Sonnet 5.5 all landed in the same top tier.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Sonnet 5.5",
+          "verdict": "similar"
+        },
+        {
+          "name": "Gemini 4 Argon",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-6.1 Terra",
+          "verdict": "similar"
+        },
+        {
+          "name": "Kimi K3.1 Pro",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50270428,
+      "createdAt": "2026-10-28T07:55:56.000Z",
+      "modelId": "gpt-6.1-sol",
+      "stance": "neutral",
+      "summary": "Posts a score table where Sol is just behind Astra and ahead of Opus 5.5, and asks whether the benchmark is tied to OpenAI.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "better"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50480190,
+      "createdAt": "2026-11-13T08:32:48.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Lists Argon among the models available on Google's mid-priced Antigravity plan, alongside Claude and open GPT models.",
+      "themes": ["availability"],
+      "task": "unspecified",
+      "tool": "Antigravity",
+      "comparedWith": []
+    },
+    {
+      "id": 50475574,
+      "createdAt": "2026-11-12T22:54:48.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Notes Google's API price for Argon matches Carbon, and guesses Argon is the first 4 Pro release.",
+      "themes": ["pricing"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Carbon",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50475405,
+      "createdAt": "2026-11-12T22:38:14.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Cites a benchmark index scoring Argon at 50, below Gemini 4 Hydrogen, Sol and Sonnet 5.5.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Hydrogen",
+          "verdict": "better"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "better"
+        },
+        {
+          "name": "Claude Sonnet 5.5",
+          "verdict": "better"
+        },
+        {
+          "name": "GPT-6.1 Terra",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50472698,
+      "createdAt": "2026-11-12T19:18:25.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Rates Gemini 4 Carbon above Argon and explains how Google orders the names.",
+      "themes": ["other"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 4 Carbon",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50457206,
+      "createdAt": "2026-11-11T19:10:32.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Reports Argon decompiled a Google Java client library on its own to answer an API question, and worked out the behaviour.",
+      "themes": ["agentic-work", "reasoning-depth"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50442587,
+      "createdAt": "2026-11-10T16:26:05.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Uses Argon as an extra reviewer for documents and high-impact tasks alongside a mostly Claude-based workflow.",
+      "themes": ["model-choice"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50440722,
+      "createdAt": "2026-11-10T14:17:02.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "In a routing test, Argon was among the cheaper models picked, while Astra was the best single model overall.",
+      "themes": ["pricing", "model-choice"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "better"
+        }
+      ]
+    },
+    {
+      "id": 50433078,
+      "createdAt": "2026-11-09T22:18:57.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Says Argon is available free in both Antigravity and the Gemini app on an ordinary account with a storage subscription.",
+      "themes": ["availability"],
+      "task": "unspecified",
+      "tool": "Gemini app",
+      "comparedWith": []
+    },
+    {
+      "id": 50424612,
+      "createdAt": "2026-11-09T12:21:40.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Says Argon was among the best at generating calligraphy brush-script commands, ahead of GPT and Claude models in the test.",
+      "themes": ["code-quality", "frontend-design"],
+      "task": "design",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50398095,
+      "createdAt": "2026-11-06T20:34:03.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Reports Argon topped a Codenames arena at 1775, ahead of Sol, Astra, Fable 5.1 and Opus 5.5.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": "API",
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "worse"
+        },
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Fable 5.1",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50394981,
+      "createdAt": "2026-11-06T16:59:46.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Gets more value from Argon for research despite its mistakes, finding Claude overly confident, then uses Claude to revise.",
+      "themes": ["model-choice", "hallucination"],
+      "task": "research",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50392943,
+      "createdAt": "2026-11-06T14:45:36.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Finds Argon helpful for putting together a blog in Antigravity, with a voice less grating than Claude's.",
+      "themes": ["writing-style"],
+      "task": "writing",
+      "tool": "Antigravity",
+      "comparedWith": [
+        {
+          "name": "Claude",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50389249,
+      "createdAt": "2026-11-06T07:26:51.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Says Argon makes writing frontends they dislike easy, calling it worth paying for after being underwhelmed by the previous generation.",
+      "themes": ["frontend-design", "code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50387474,
+      "createdAt": "2026-11-06T02:39:18.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Calls Argon by far the best model they have used for non-chat, non-coding uses, and the first to exceed the original ChatGPT for them.",
+      "themes": ["other"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Gemini 3.1 Pro",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50341367,
+      "createdAt": "2026-11-02T18:33:33.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "negative",
+      "summary": "Cites a benchmark where even Argon, the best scorer, failed to check on user safety after repeated suicide warning signs about 90% of the time.",
+      "themes": ["other"],
+      "task": "chat",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50312107,
+      "createdAt": "2026-10-31T00:49:14.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Says Argon codes very well and is clearly strong, though they still prefer Opus 5.5 out of habit with Claude Code.",
+      "themes": ["code-quality", "model-choice"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50307176,
+      "createdAt": "2026-10-30T17:24:24.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Notes Argon was released in October and was involved in vulnerability research on PHP.",
+      "themes": ["availability"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50280932,
+      "createdAt": "2026-10-28T21:10:22.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Used Argon at high effort in the Android app to recolour a benchmark image with a gradient scheme.",
+      "themes": ["frontend-design"],
+      "task": "design",
+      "tool": "Gemini app",
+      "comparedWith": []
+    },
+    {
+      "id": 50279731,
+      "createdAt": "2026-10-28T19:41:37.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "negative",
+      "summary": "Cannot work out how to reach Argon in the Gemini app on a Workspace account, which still lists only an older model.",
+      "themes": ["availability"],
+      "task": "unspecified",
+      "tool": "Gemini app",
+      "comparedWith": []
+    },
+    {
+      "id": 50279185,
+      "createdAt": "2026-10-28T19:05:46.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Pleased that Argon has a 1M output-token limit, which suits their text-to-SQL workflow.",
+      "themes": ["context"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50277827,
+      "createdAt": "2026-10-28T17:48:16.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "States Argon is limited to Google AI Pro subscribers and not the cheaper Plus plan.",
+      "themes": ["availability"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50277368,
+      "createdAt": "2026-10-28T17:29:13.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "negative",
+      "summary": "Says Argon took weeks to reach paying users after announcement, and rates it at best Sonnet or Terra level.",
+      "themes": ["availability", "benchmarks"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude Sonnet 5.5",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-6.1 Terra",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50277337,
+      "createdAt": "2026-10-28T17:28:03.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Says Argon became usable about two days after its announcement, consistent with Google's staged rollouts.",
+      "themes": ["availability"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50272946,
+      "createdAt": "2026-10-28T13:07:05.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Reports a commercial ranking where Argon, Sol, Terra, Kimi K3.1 Pro and Sonnet 5.5 all landed in the same top tier.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "similar"
+        },
+        {
+          "name": "GPT-6.1 Terra",
+          "verdict": "similar"
+        },
+        {
+          "name": "Kimi K3.1 Pro",
+          "verdict": "similar"
+        },
+        {
+          "name": "Claude Sonnet 5.5",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50270428,
+      "createdAt": "2026-10-28T07:55:56.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Posts a score table placing Argon at high effort below Astra, Sol and Opus 5.5 and level with Fable 5.1.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "better"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "better"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "better"
+        },
+        {
+          "name": "Claude Fable 5.1",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50215961,
+      "createdAt": "2026-10-23T22:01:12.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Says Argon is acceptably good for coding and the $20 Google plan allows heavy use without hitting caps, better value than Claude's plan.",
+      "themes": ["pricing", "rate-limits", "code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50182057,
+      "createdAt": "2026-10-21T14:52:51.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Notes a security firm used Argon and GPT-5.6 Sol to find several PHP vulnerabilities later mapped to two CVEs.",
+      "themes": ["reasoning-depth"],
+      "task": "research",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-5.6 Sol",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50181420,
+      "createdAt": "2026-10-21T14:16:47.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Points out the PHP vulnerability timeline began with researchers using Argon and GPT-5.6 Sol.",
+      "themes": ["reasoning-depth"],
+      "task": "research",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-5.6 Sol",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50119857,
+      "createdAt": "2026-10-16T15:46:22.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Notes Argon ranked third on a 9x9 Go benchmark, behind Astra and Sol but ahead of Opus 5.5.",
+      "themes": ["benchmarks"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "GPT-6 Astra",
+          "verdict": "better"
+        },
+        {
+          "name": "GPT-6.1 Sol",
+          "verdict": "better"
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Fable 5.1",
+          "verdict": "worse"
+        },
+        {
+          "name": "Claude Sonnet 5.5",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50116637,
+      "createdAt": "2026-10-16T10:29:42.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Cites Argon reasoning that planting a compiler backdoor would be a bad idea as evidence against exaggerated misalignment fears.",
+      "themes": ["other"],
+      "task": "other",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50109362,
+      "createdAt": "2026-10-15T19:54:41.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "neutral",
+      "summary": "Notes Google published a video about using Argon to migrate a Fortran codebase to Rust.",
+      "themes": ["code-quality"],
+      "task": "coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50100937,
+      "createdAt": "2026-10-15T08:40:51.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Is considering switching to Argon, believing Google can beat Anthropic and that Gemini is as good or sometimes better.",
+      "themes": ["model-choice"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Claude",
+          "verdict": "similar"
+        }
+      ]
+    },
+    {
+      "id": 50092815,
+      "createdAt": "2026-10-14T18:41:58.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "mixed",
+      "summary": "Watched Argon generate structured codebase docs with a code-mode tool, but found specialised tooling slows frontier models and raises cost.",
+      "themes": ["harness", "agentic-work"],
+      "task": "agentic-coding",
+      "tool": null,
+      "comparedWith": []
+    },
+    {
+      "id": 50088604,
+      "createdAt": "2026-10-14T14:53:01.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "positive",
+      "summary": "Sees Argon as an example of a model not over-trained on coding, keeping general ability and writing quality.",
+      "themes": ["writing-style"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": [
+        {
+          "name": "Qwen 3.8 27B",
+          "verdict": "worse"
+        }
+      ]
+    },
+    {
+      "id": 50084285,
+      "createdAt": "2026-10-14T08:32:15.000Z",
+      "modelId": "gemini-4-argon",
+      "stance": "negative",
+      "summary": "Says Argon's interface is poor on mobile because the header fills half the screen.",
+      "themes": ["harness"],
+      "task": "unspecified",
+      "tool": null,
+      "comparedWith": []
+    }
+  ]
+}

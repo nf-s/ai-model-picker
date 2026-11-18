@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-11-16",
+  "classifierId": "qwen3-4b-instruct-2507-4bit-v3",
+  "modelName": "Qwen3 4B",
+  "modelUrl": "https://huggingface.co/mlx-community/Qwen3-4B-Instruct-2507-4bit",
+  "downloadGigabytes": 2.3,
+  "referenceAssessments": 37,
+  "agrees": 21,
+  "disagrees": 11,
+  "oppositePolarity": 3,
+  "unclear": 3,
+  "targetMissed": 2,
+  "failed": 0
+}

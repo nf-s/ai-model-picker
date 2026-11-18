@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+artifacts/
+.playwright-mcp/
+.local/
+__pycache__/
+*.pyc
+/wrangler.jsonc
+.dev.vars*
+client_secret*.json

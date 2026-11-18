@@ -1,0 +1,574 @@
+{
+  "checkedAt": "2026-11-16",
+  "reports": [
+    {
+      "id": "contra-astra-landing-pages",
+      "title": "Astra: strong mockups and working user flows",
+      "sourceName": "Contra Labs",
+      "url": "https://contralabs.com/research",
+      "category": "design",
+      "evidenceType": "human-preference",
+      "modelNames": ["GPT-6 Astra", "GPT-5.6 Sol", "Claude Fable 5.1"],
+      "configuration": "GPT-6 Astra at medium thinking effort",
+      "summary": "Astra placed second overall and led mockups. Reviewers found complete shopping interactions, but flagged small text and unintended changes during refinement.",
+      "limitation": "A staged landing-page study; visual preference and functional completeness are separate outcomes.",
+      "publishedAt": "2026-09-14",
+      "metrics": [
+        {
+          "label": "Astra mockup rating",
+          "value": 1662,
+          "unit": "Bradley–Terry Elo"
+        },
+        {
+          "label": "Mockup comparisons retained",
+          "value": 208,
+          "unit": "comparisons"
+        }
+      ]
+    },
+    {
+      "id": "contra-landing-page-stages",
+      "title": "Different models led different design stages",
+      "sourceName": "Contra Labs",
+      "url": "https://contralabs.com/research/hcb-landing-pages-no-model-wins-every-stage",
+      "category": "design",
+      "evidenceType": "human-preference",
+      "modelNames": [
+        "Claude Opus 5",
+        "Claude Fable 5",
+        "GPT-5.6 Sol",
+        "Kimi K3",
+        "Gemini 3.6 Flash",
+        "Muse Spark 1.1"
+      ],
+      "summary": "Sol led ideation, Opus mockups, and Fable refinement. Six designers assessed three product briefs through three stages.",
+      "limitation": "Only nine prompts; stage-specific preferences should not become a universal model ranking. Sol used Codex CLI.",
+      "publishedAt": "2026-08-14",
+      "metrics": [
+        {
+          "label": "Pairwise decisions",
+          "value": 3240,
+          "unit": "decisions"
+        },
+        {
+          "label": "Opus overall win rate",
+          "value": 59.4,
+          "unit": "%"
+        },
+        {
+          "label": "Fable overall win rate",
+          "value": 57.1,
+          "unit": "%"
+        }
+      ]
+    },
+    {
+      "id": "contra-opus-layout-review",
+      "title": "Opus 5: layout and readability needed rework",
+      "sourceName": "Contra Labs",
+      "url": "https://contralabs.com/research/opus-5-landing-page-annotations",
+      "category": "design",
+      "evidenceType": "experiment",
+      "modelNames": [
+        "Claude Opus 5",
+        "GPT-5.6 Sol",
+        "Kimi K3",
+        "Claude Fable 5"
+      ],
+      "summary": "Nine designers reviewed 20 landing pages. Opus drew substantial layout and readability criticism, while brand fit and originality attracted fewer flags.",
+      "limitation": "Five briefs, older model versions; annotation counts are not independent failure rates.",
+      "publishedAt": "2026-08-07",
+      "metrics": [
+        {
+          "label": "Pages reviewed",
+          "value": 20,
+          "unit": "pages"
+        },
+        {
+          "label": "Opus annotations",
+          "value": 208,
+          "unit": "annotations"
+        },
+        {
+          "label": "Opus major or blocker issues",
+          "value": 115,
+          "unit": "of 183 severity-rated annotations"
+        }
+      ]
+    },
+    {
+      "id": "contra-prompt-workflow",
+      "title": "Prompt and workflow changes reversed design rankings",
+      "sourceName": "Contra Labs",
+      "url": "https://contralabs.com/research/model-performance-across-four-web-design-evals",
+      "category": "design",
+      "evidenceType": "workflow-study",
+      "modelNames": [
+        "GPT-5.6 Sol",
+        "Claude Fable 5",
+        "Claude Opus 5",
+        "Kimi K3"
+      ],
+      "summary": "Sol led three brief-based evaluations; Claude models moved ahead when work became staged visual design. This supports comparing whole workflows, including prompts and harnesses.",
+      "limitation": "Model lineup, evaluators, assets and harness changed between evaluations; this does not isolate a causal prompt effect.",
+      "publishedAt": "2026-08-26"
+    },
+    {
+      "id": "contra-ad-image-stages",
+      "title": "Ad-image strengths differed by production stage",
+      "sourceName": "Contra Labs",
+      "url": "https://contralabs.com/research/hcb-six-models-made-ads-each-broke-differently",
+      "category": "design",
+      "evidenceType": "human-preference",
+      "modelNames": [
+        "Muse Image",
+        "ChatGPT Images 2.0",
+        "Nano Banana Pro",
+        "FLUX.2 [max]",
+        "Grok Imagine 1.0",
+        "Krea 2 Medium"
+      ],
+      "summary": "Muse Image led overall, while ChatGPT Images 2.0 led ideation. Designers compared nine prompts across three ad campaigns and three production stages.",
+      "limitation": "Professional creative preference on a small campaign set; these are image models, not chat-model scores.",
+      "publishedAt": "2026-08-06",
+      "metrics": [
+        {
+          "label": "Muse Image overall win rate",
+          "value": 68.9,
+          "unit": "%"
+        },
+        {
+          "label": "ChatGPT Images 2.0 ideation win rate",
+          "value": 70.1,
+          "unit": "%"
+        }
+      ]
+    },
+    {
+      "id": "contra-genpeach",
+      "title": "Image preference did not guarantee client readiness",
+      "sourceName": "Contra Labs",
+      "url": "https://contralabs.com/research/genpeach-v1-preview-head-to-head",
+      "category": "design",
+      "evidenceType": "human-preference",
+      "modelNames": [
+        "GenPeach v1 Preview",
+        "GPT-Image-2.5 Sunburst",
+        "Nano Banana 2",
+        "Muse Image"
+      ],
+      "summary": "GenPeach won 71% of blind votes against eight rivals, but just 49% of its images were rated client-ready.",
+      "limitation": "Commissioned by GenPeach; anchor-only matchups, 100 photography briefs, no retries. Refusals were excluded rather than counted as losses.",
+      "publishedAt": "2026-11-05",
+      "metrics": [
+        {
+          "label": "Expert votes",
+          "value": 3930,
+          "unit": "votes"
+        },
+        {
+          "label": "GenPeach preference",
+          "value": 71,
+          "unit": "%"
+        },
+        {
+          "label": "GenPeach client-ready",
+          "value": 49,
+          "unit": "%"
+        }
+      ]
+    },
+    {
+      "id": "plato-sol-cloning",
+      "title": "Sol and Astra: published web-app cloning costs",
+      "sourceName": "Plato",
+      "url": "https://plato.so/research/web-clone-bench/",
+      "category": "coding",
+      "evidenceType": "benchmark",
+      "modelNames": ["GPT-6.1 Sol", "GPT-6 Astra"],
+      "configuration": "max effort; vendor harnesses",
+      "summary": "Sol scored 12.6% at $25.35/run; Astra scored 17.5% at $207.27/run.",
+      "limitation": "Nine apps; partial replication, unequal spend.",
+      "costUsd": 25.35,
+      "costType": "reported-run-cost",
+      "costContext": "Sol mean/run reported by Plato.",
+      "metrics": [
+        {
+          "label": "Sol full score",
+          "value": 12.6,
+          "unit": "%"
+        },
+        {
+          "label": "Astra full score",
+          "value": 17.5,
+          "unit": "%"
+        },
+        {
+          "label": "Astra average run cost",
+          "value": 207.27,
+          "unit": "USD"
+        }
+      ]
+    },
+    {
+      "id": "tokensave-effort",
+      "title": "Higher effort sharply increased small-game cost",
+      "sourceName": "TokenSave",
+      "url": "https://tokensave.app/data/claude-effort-cost",
+      "category": "coding",
+      "evidenceType": "experiment",
+      "modelNames": [
+        "Claude Opus 5.5",
+        "Claude Sonnet 5.5",
+        "Claude Haiku 5.5"
+      ],
+      "configuration": "Claude Code 2.1.295; three runs per effort setting",
+      "summary": "Opus averaged $0.26 at medium versus $5.33 at max for the same brick-breaker brief. Every tested Opus and Sonnet game passed the stated play checks.",
+      "limitation": "One task, three repeats per setting. API-equivalent costs on a subscription, not incremental cash charges.",
+      "publishedAt": "2026-10-23",
+      "costUsd": 0.26,
+      "costType": "api-equivalent",
+      "costContext": "Opus medium; average list-price usage estimate reported by Claude Code.",
+      "metrics": [
+        {
+          "label": "Opus max average",
+          "value": 5.33,
+          "unit": "USD API-equivalent/run"
+        },
+        {
+          "label": "Opus medium average duration",
+          "value": 51,
+          "unit": "seconds"
+        },
+        {
+          "label": "Opus max average duration",
+          "value": 1483,
+          "unit": "seconds"
+        }
+      ]
+    },
+    {
+      "id": "tokensave-browser-games",
+      "title": "Three small games passed on all three Claude models",
+      "sourceName": "TokenSave",
+      "url": "https://tokensave.app/data/vibe-coding-by-claude-model",
+      "category": "coding",
+      "evidenceType": "experiment",
+      "modelNames": [
+        "Claude Haiku 5.5",
+        "Claude Sonnet 5.5",
+        "Claude Opus 5.5"
+      ],
+      "configuration": "Claude Code; three games × three models × five runs",
+      "summary": "All 45 games passed automated play tests. Median API-equivalent cost was $0.015 for Haiku, $0.13 for Sonnet and $0.28 for Opus; Sonnet was fastest.",
+      "limitation": "Small single-file games. Correctness checks do not establish visual quality or larger-project reliability.",
+      "publishedAt": "2026-10-23",
+      "costUsd": 0.015,
+      "costType": "api-equivalent",
+      "costContext": "Haiku median/game; subscription-run usage valued at API list prices.",
+      "metrics": [
+        {
+          "label": "Games passing",
+          "value": 45,
+          "unit": "of 45"
+        },
+        {
+          "label": "Sonnet median duration",
+          "value": 30,
+          "unit": "seconds"
+        }
+      ]
+    },
+    {
+      "id": "tokensave-real-bugs",
+      "title": "Cheaper models were competitive on bounded bug fixes",
+      "sourceName": "TokenSave",
+      "url": "https://tokensave.app/data/claude-haiku-vs-opus-real-bugs",
+      "category": "coding",
+      "evidenceType": "experiment",
+      "modelNames": [
+        "Claude Haiku 5.5",
+        "Claude Sonnet 5.5",
+        "Claude Opus 5.5"
+      ],
+      "configuration": "Claude Code 2.1.295; medium effort; 25 bugs, three runs/model/bug",
+      "summary": "Clean fixes were 52/75 for Haiku, 49/75 for Sonnet and 54/75 for Opus. Haiku's average usage estimate was $0.019 versus Opus's $0.38.",
+      "limitation": "Haiku–Opus differences were not statistically significant. Public parser/data-library bugs; results exclude many larger-system failure modes.",
+      "publishedAt": "2026-10-26",
+      "costUsd": 0.019,
+      "costType": "api-equivalent",
+      "costContext": "Haiku mean/run; subscription usage at API list prices.",
+      "metrics": [
+        {
+          "label": "Haiku clean fixes",
+          "value": 52,
+          "unit": "of 75 runs"
+        },
+        {
+          "label": "Opus clean fixes",
+          "value": 54,
+          "unit": "of 75 runs"
+        }
+      ]
+    },
+    {
+      "id": "tokensave-fable-bugs",
+      "title": "Fable 5.2 and Opus 5.5 tied on clean fixes",
+      "sourceName": "TokenSave",
+      "url": "https://tokensave.app/data/claude-fable-5-2-real-bugs",
+      "category": "coding",
+      "evidenceType": "experiment",
+      "modelNames": ["Claude Fable 5.2", "Claude Fable 5.1", "Claude Opus 5.5"],
+      "configuration": "Claude Code 2.1.322; medium effort; 125 planned runs",
+      "summary": "Fable 5.2 and Opus each made 37 clean fixes in 50 attempts. Average API-equivalent cost was $0.73 for Fable 5.2 and $0.40 for Opus.",
+      "limitation": "Twenty-five bounded bugs; one or two repeats per model. Interrupted attempts were rerun; larger tasks may differ.",
+      "publishedAt": "2026-11-13",
+      "costUsd": 0.73,
+      "costType": "api-equivalent",
+      "costContext": "Fable 5.2 mean/run; subscription usage at API list prices.",
+      "metrics": [
+        {
+          "label": "Fable 5.2 clean fixes",
+          "value": 74,
+          "unit": "%"
+        },
+        {
+          "label": "Opus clean fixes",
+          "value": 74,
+          "unit": "%"
+        }
+      ]
+    },
+    {
+      "id": "tokensave-explore-subagents",
+      "title": "Worker model choice changed delegated-search cost",
+      "sourceName": "TokenSave",
+      "url": "https://tokensave.app/data/claude-subagent-model-by-version",
+      "category": "agents",
+      "evidenceType": "workflow-study",
+      "modelNames": ["Claude Opus 5.5", "Claude Haiku 5.5"],
+      "configuration": "Claude Code 2.1.318; 12 code-search questions × three runs/setting",
+      "summary": "Using Haiku for Explore workers reduced average API-equivalent cost from $0.38 to $0.15. Both settings found the complete answer key on these questions.",
+      "limitation": "One code-search dataset and software version; not evidence for delegating complex implementation to cheaper models.",
+      "publishedAt": "2026-11-08",
+      "costUsd": 0.15,
+      "costType": "api-equivalent",
+      "costContext": "Opus lead with Haiku Explore workers; API-equivalent mean/run.",
+      "metrics": [
+        {
+          "label": "Default worker mean/run",
+          "value": 0.38,
+          "unit": "USD API-equivalent"
+        },
+        {
+          "label": "Answer-key coverage in both conditions",
+          "value": 100,
+          "unit": "%"
+        }
+      ]
+    },
+    {
+      "id": "anthropic-research-agents",
+      "title": "Parallel research improved results with higher token usage",
+      "sourceName": "Anthropic",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "category": "agents",
+      "evidenceType": "workflow-study",
+      "modelNames": ["Claude Opus 4", "Claude Sonnet 4"],
+      "configuration": "Opus 4 lead with Sonnet 4 subagents",
+      "summary": "Anthropic reported a 90.2% improvement over single-agent Opus 4 on its internal research evaluation. It recommends independent research branches and notes substantial token overhead.",
+      "limitation": "Vendor internal evaluation on older models, not a general coding benchmark. The reported 15× token figure compares multi-agent work with chat, not single-agent research.",
+      "publishedAt": "2025-06-13",
+      "metrics": [
+        {
+          "label": "Internal evaluation improvement",
+          "value": 90.2,
+          "unit": "%"
+        },
+        {
+          "label": "Typical tokens versus chat",
+          "value": 15,
+          "unit": "×"
+        }
+      ]
+    },
+    {
+      "id": "google-agent-scaling",
+      "title": "Agent teams helped parallel tasks and hurt sequential tasks",
+      "sourceName": "Google Research",
+      "url": "https://www.research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/",
+      "category": "agents",
+      "evidenceType": "workflow-study",
+      "modelNames": [],
+      "summary": "Across 180 configurations, centralized teams improved a parallel financial-reasoning task by 80.9%; multi-agent variants reduced sequential planning performance by 39–70%.",
+      "limitation": "Architecture-level study across model families. It does not identify a universal best worker model or predict a particular project's savings.",
+      "publishedAt": "2026-01-28",
+      "metrics": [
+        {
+          "label": "Agent configurations",
+          "value": 180,
+          "unit": "configurations"
+        },
+        {
+          "label": "Centralized financial-reasoning improvement",
+          "value": 80.9,
+          "unit": "%"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "name": "Contra Labs research",
+      "url": "https://contralabs.com/research",
+      "kind": "professional critique",
+      "coverage": "Current creative studies and landing-page model updates",
+      "access": "Public research pages",
+      "limitations": "Task-specific panels; preserve stage and commissioning context."
+    },
+    {
+      "name": "Contra Labs landing-page stages",
+      "url": "https://contralabs.com/research/hcb-landing-pages-no-model-wins-every-stage",
+      "kind": "human preference",
+      "coverage": "Design stages and written professional feedback",
+      "access": "Public methods and results",
+      "limitations": "Small prompt set; older model versions."
+    },
+    {
+      "name": "Contra Labs annotation study",
+      "url": "https://contralabs.com/research/opus-5-landing-page-annotations",
+      "kind": "professional critique",
+      "coverage": "Layout, readability and severity annotations",
+      "access": "Public report",
+      "limitations": "Annotations are not independent failure-rate measurements."
+    },
+    {
+      "name": "Contra Labs workflow comparison",
+      "url": "https://contralabs.com/research/model-performance-across-four-web-design-evals",
+      "kind": "workflow study",
+      "coverage": "How design rankings change with task setup",
+      "access": "Public report",
+      "limitations": "Multiple experimental factors changed."
+    },
+    {
+      "name": "Contra Labs ad images",
+      "url": "https://contralabs.com/research/hcb-six-models-made-ads-each-broke-differently",
+      "kind": "human preference",
+      "coverage": "Ad imagery across ideation, mockup and refinement",
+      "access": "Public report",
+      "limitations": "Image models; nine prompts."
+    },
+    {
+      "name": "Contra Labs GenPeach evaluation",
+      "url": "https://contralabs.com/research/genpeach-v1-preview-head-to-head",
+      "kind": "human preference",
+      "coverage": "Editorial photography and client readiness",
+      "access": "Public methods and results",
+      "limitations": "Commissioned anchor comparison; not a complete field ranking."
+    },
+    {
+      "name": "Contra Labs methodology",
+      "url": "https://contralabs.com/research/methodology",
+      "kind": "methodology",
+      "coverage": "Expert evaluation criteria and study standards",
+      "access": "Public documentation",
+      "limitations": "Read alongside each study's particular design."
+    },
+    {
+      "name": "Plato Web Clone Bench",
+      "url": "https://plato.so/research/web-clone-bench/",
+      "kind": "agent benchmark",
+      "coverage": "Functional and visual replication, run cost and duration",
+      "access": "Public results table",
+      "limitations": "Nine apps, vendor-specific harnesses, unequal effort and spend."
+    },
+    {
+      "name": "TokenSave effort dataset",
+      "url": "https://tokensave.app/data/claude-effort-cost",
+      "kind": "cost experiment",
+      "coverage": "Reasoning effort, tokens, time and task checks",
+      "access": "Public CSV/JSON and report; CC BY 4.0",
+      "limitations": "Small repeated experiment; API-equivalent cost."
+    },
+    {
+      "name": "TokenSave browser games",
+      "url": "https://tokensave.app/data/vibe-coding-by-claude-model",
+      "kind": "cost experiment",
+      "coverage": "Small-game correctness and per-run usage",
+      "access": "Public CSV/JSON and report; CC BY 4.0",
+      "limitations": "Single-file game tasks; subscription runs."
+    },
+    {
+      "name": "TokenSave real bugs",
+      "url": "https://tokensave.app/data/claude-haiku-vs-opus-real-bugs",
+      "kind": "coding experiment",
+      "coverage": "Maintainer-test scoring for 25 public bugs",
+      "access": "Public CSV/JSON and report; CC BY 4.0",
+      "limitations": "Small, task-specific sample; uncertain model differences."
+    },
+    {
+      "name": "TokenSave Fable comparison",
+      "url": "https://tokensave.app/data/claude-fable-5-2-real-bugs",
+      "kind": "coding experiment",
+      "coverage": "Fable versus Opus task cost and fixes",
+      "access": "Public CSV/JSON and preregistration; CC BY 4.0",
+      "limitations": "One or two repeats per bug; medium effort only."
+    },
+    {
+      "name": "TokenSave Explore workers",
+      "url": "https://tokensave.app/data/claude-subagent-model-by-version",
+      "kind": "workflow experiment",
+      "coverage": "Worker models, software versions and delegated search",
+      "access": "Public CSV/JSON and preregistration; CC BY 4.0",
+      "limitations": "Software defaults can change; narrow search task."
+    },
+    {
+      "name": "Anthropic research agents",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "kind": "vendor workflow study",
+      "coverage": "Lead/worker architecture and research economics",
+      "access": "Public engineering report",
+      "limitations": "Internal evaluation, older models."
+    },
+    {
+      "name": "Google agent scaling",
+      "url": "https://www.research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/",
+      "kind": "workflow study",
+      "coverage": "Parallelism, coordination and sequential dependencies",
+      "access": "Public research summary with paper",
+      "limitations": "Aggregate architecture findings, not model recommendations."
+    },
+    {
+      "name": "DesignArena",
+      "url": "https://www.designarena.ai/leaderboard",
+      "kind": "human preference",
+      "coverage": "Agentic app, website, image and other creative leaderboards",
+      "access": "Public leaderboard",
+      "limitations": "Dynamic vote pools; ratings differ by arena."
+    },
+    {
+      "name": "DesignArena methodology",
+      "url": "https://notes.designarena.ai/methodology/",
+      "kind": "methodology",
+      "coverage": "Bradley–Terry ratings and voting protocol",
+      "access": "Public documentation",
+      "limitations": "Read board-specific caveats for uncertainty."
+    },
+    {
+      "name": "DesignArena API",
+      "url": "https://docs.designarena.ai/api-reference/overview",
+      "kind": "data access",
+      "coverage": "Leaderboard endpoints and model mapping",
+      "access": "API key application and attribution required",
+      "limitations": "No API key was used or added."
+    },
+    {
+      "name": "Arena creative writing",
+      "url": "https://arena.ai/leaderboard/chat/text/creative-writing",
+      "kind": "human preference",
+      "coverage": "Creative-writing preference ratings and uncertainty",
+      "access": "Public leaderboard",
+      "limitations": "Category and adjustment selection affect scores; no factuality guarantee."
+    }
+  ]
+}

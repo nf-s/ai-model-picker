@@ -1,0 +1,1235 @@
+{
+  "checkedAt": "2026-11-16",
+  "windowStart": "2026-05-20",
+  "windowEnd": "2026-11-16",
+  "method": {
+    "label": "AI-assessed Hacker News comment sample",
+    "collector": "Algolia HN Search API for discovery and the official Hacker News API for thread context and verification",
+    "selection": "One relevance-ranked page of up to 20 comments requested for each of 20 pricing-catalog search terms. Searches used comment text and the stated UTC window. An AI reviewer selected substantive comments without targeting a sentiment balance. Each discussion could contribute up to five comments.",
+    "classification": "An AI reviewer assessed sentiment and aspects separately for each model target. Confidence describes model attribution. One comment can include different judgments of different models. The assessments received no independent human validation.",
+    "scope": "Task experiences and opinions about coding, reliability, cost, speed, design and agents. Exact-model summaries require exact attribution. Neutral labels indicate an informative observation without a clear judgment.",
+    "queryCount": 20,
+    "retrievedCandidateCount": 348,
+    "selectedCommentCount": 49,
+    "threadCount": 42,
+    "perThreadCap": 5,
+    "limitations": [
+      "The search terms select a convenience sample from one self-selected community.",
+      "Algolia ranking, model-name spelling, indexing and recent release activity affect which comments are found. Index match counts can include other versions, quoted mentions and irrelevant text.",
+      "Outcomes and costs are self-reported. Alleged quality regressions describe commenter perceptions.",
+      "Sentiment counts describe the selected evidence and depend on the comments included.",
+      "Sparse or absent feedback leaves an evidence gap. Exact attribution requires a supported version match.",
+      "The snapshot stores original paraphrases and public item links. Account details, comment bodies and quotations are excluded."
+    ],
+    "sources": [
+      {
+        "name": "Algolia HN Search API",
+        "url": "https://hn.algolia.com/api",
+        "role": "Comment discovery by query and date window"
+      },
+      {
+        "name": "Official Hacker News API",
+        "url": "https://github.com/HackerNews/API",
+        "role": "Public item type, timestamp, deletion and parent-chain verification"
+      },
+      {
+        "name": "Hacker News",
+        "url": "https://news.ycombinator.com/",
+        "role": "Original comment and discussion permalinks"
+      }
+    ]
+  },
+  "coverage": [
+    {
+      "modelId": "gpt-6-astra",
+      "queries": ["GPT-6 Astra"],
+      "matchedCommentCount": 441,
+      "reviewedCommentCount": 4,
+      "status": "sampled"
+    },
+    {
+      "modelId": "gpt-6.1-sol",
+      "queries": ["GPT-6.1 Sol"],
+      "matchedCommentCount": 156,
+      "reviewedCommentCount": 7,
+      "status": "sampled"
+    },
+    {
+      "modelId": "gpt-6.1-terra",
+      "queries": ["GPT-6.1 Terra"],
+      "matchedCommentCount": 35,
+      "reviewedCommentCount": 5,
+      "status": "sampled"
+    },
+    {
+      "modelId": "gpt-6-luna",
+      "queries": ["GPT-6 Luna"],
+      "matchedCommentCount": 206,
+      "reviewedCommentCount": 5,
+      "status": "sampled"
+    },
+    {
+      "modelId": "gpt-6-sol",
+      "queries": ["GPT-6 Sol"],
+      "matchedCommentCount": 408,
+      "reviewedCommentCount": 3,
+      "status": "sampled"
+    },
+    {
+      "modelId": "claude-fable-5-2",
+      "queries": ["Fable 5.2"],
+      "matchedCommentCount": 441,
+      "reviewedCommentCount": 4,
+      "status": "sampled"
+    },
+    {
+      "modelId": "claude-opus-5-5",
+      "queries": ["Opus 5.5"],
+      "matchedCommentCount": 3059,
+      "reviewedCommentCount": 10,
+      "status": "sampled"
+    },
+    {
+      "modelId": "claude-sonnet-5-5",
+      "queries": ["Sonnet 5.5"],
+      "matchedCommentCount": 374,
+      "reviewedCommentCount": 3,
+      "status": "sampled"
+    },
+    {
+      "modelId": "claude-haiku-5-5",
+      "queries": ["Haiku 5.5"],
+      "matchedCommentCount": 174,
+      "reviewedCommentCount": 4,
+      "status": "sampled"
+    },
+    {
+      "modelId": "claude-fable-5-1",
+      "queries": ["Fable 5.1"],
+      "matchedCommentCount": 587,
+      "reviewedCommentCount": 4,
+      "status": "sampled"
+    },
+    {
+      "modelId": "gemini-4-carbon",
+      "queries": ["Gemini 4 Carbon"],
+      "matchedCommentCount": 44,
+      "reviewedCommentCount": 0,
+      "status": "insufficient-evidence"
+    },
+    {
+      "modelId": "gemini-4-argon",
+      "queries": ["Gemini 4 Argon"],
+      "matchedCommentCount": 155,
+      "reviewedCommentCount": 3,
+      "status": "sampled"
+    },
+    {
+      "modelId": "gemini-4-hydrogen",
+      "queries": ["Gemini 4 Hydrogen"],
+      "matchedCommentCount": 20,
+      "reviewedCommentCount": 2,
+      "status": "sampled"
+    },
+    {
+      "modelId": "gemini-3.1-flash-lite",
+      "queries": ["Gemini 3.1 Flash-Lite"],
+      "matchedCommentCount": 35,
+      "reviewedCommentCount": 2,
+      "status": "sampled"
+    },
+    {
+      "modelId": "gemini-3.1-pro-preview",
+      "queries": ["Gemini 3.1 Pro Preview"],
+      "matchedCommentCount": 24,
+      "reviewedCommentCount": 2,
+      "status": "sampled"
+    },
+    {
+      "modelId": "deepseek-flash",
+      "queries": ["DeepSeek V4.1 Flash"],
+      "matchedCommentCount": 354,
+      "reviewedCommentCount": 0,
+      "status": "insufficient-evidence"
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "queries": ["DeepSeek V4 Pro"],
+      "matchedCommentCount": 1174,
+      "reviewedCommentCount": 0,
+      "status": "insufficient-evidence"
+    },
+    {
+      "modelId": "grok-4.7",
+      "queries": ["Grok 4.7"],
+      "matchedCommentCount": 83,
+      "reviewedCommentCount": 5,
+      "status": "sampled"
+    },
+    {
+      "modelId": "grok-4.3",
+      "queries": ["Grok 4.3"],
+      "matchedCommentCount": 21,
+      "reviewedCommentCount": 1,
+      "status": "sampled"
+    },
+    {
+      "modelId": "grok-build-0.1",
+      "queries": ["Grok Build 0.1"],
+      "matchedCommentCount": 5,
+      "reviewedCommentCount": 2,
+      "status": "sampled"
+    }
+  ],
+  "comments": [
+    {
+      "id": 50511480,
+      "storyId": 50463399,
+      "url": "https://news.ycombinator.com/item?id=50511480",
+      "storyUrl": "https://news.ycombinator.com/item?id=50463399",
+      "createdAt": "2026-11-15T22:23:05Z",
+      "assessments": [
+        {
+          "modelId": "claude-sonnet-5-5",
+          "sentiment": "negative",
+          "aspects": ["coding", "reliability"],
+          "summary": "Reports a refusal while trying to generate a test fixture for a development environment.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50510360,
+      "storyId": 50501631,
+      "url": "https://news.ycombinator.com/item?id=50510360",
+      "storyUrl": "https://news.ycombinator.com/item?id=50501631",
+      "createdAt": "2026-11-15T20:27:33Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-luna",
+          "sentiment": "positive",
+          "aspects": ["cost"],
+          "summary": "Views inference costs as low enough for ordinary search-like and conversational use.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50509650,
+      "storyId": 50481321,
+      "url": "https://news.ycombinator.com/item?id=50509650",
+      "storyUrl": "https://news.ycombinator.com/item?id=50481321",
+      "createdAt": "2026-11-15T19:05:01Z",
+      "assessments": [
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "positive",
+          "aspects": ["coding"],
+          "summary": "Reports easily fixing poor mobile webpage behavior using the model in a local fork.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50505147,
+      "storyId": 50503241,
+      "url": "https://news.ycombinator.com/item?id=50505147",
+      "storyUrl": "https://news.ycombinator.com/item?id=50503241",
+      "createdAt": "2026-11-15T08:37:22Z",
+      "assessments": [
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "negative",
+          "aspects": ["coding"],
+          "summary": "Dislikes the readability and unnatural style of the model’s generated code.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50504564,
+      "storyId": 50504061,
+      "url": "https://news.ycombinator.com/item?id=50504564",
+      "storyUrl": "https://news.ycombinator.com/item?id=50504061",
+      "createdAt": "2026-11-15T06:37:31Z",
+      "assessments": [
+        {
+          "modelId": "claude-fable-5-2",
+          "sentiment": "negative",
+          "aspects": ["cost", "agents"],
+          "summary": "A code audit using subagents exhausted the subscription usage allowance quickly, limiting practical use.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50503185,
+      "storyId": 50501631,
+      "url": "https://news.ycombinator.com/item?id=50503185",
+      "storyUrl": "https://news.ycombinator.com/item?id=50501631",
+      "createdAt": "2026-11-15T01:48:06Z",
+      "assessments": [
+        {
+          "modelId": "claude-fable-5-2",
+          "sentiment": "positive",
+          "aspects": ["coding", "agents", "cost"],
+          "summary": "Describes using the model to write an inexpensive implementation specification that a smaller local model can follow.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50499634,
+      "storyId": 50497155,
+      "url": "https://news.ycombinator.com/item?id=50499634",
+      "storyUrl": "https://news.ycombinator.com/item?id=50497155",
+      "createdAt": "2026-11-14T18:48:09Z",
+      "assessments": [
+        {
+          "familyName": "DeepSeek V4.1 Flash",
+          "sentiment": "negative",
+          "aspects": ["speed", "cost"],
+          "summary": "Limited testing found long reasoning delays on basic prompts, making a faster alternative better value for the commenter.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50498367,
+      "storyId": 50493251,
+      "url": "https://news.ycombinator.com/item?id=50498367",
+      "storyUrl": "https://news.ycombinator.com/item?id=50493251",
+      "createdAt": "2026-11-14T16:38:02Z",
+      "assessments": [
+        {
+          "modelId": "claude-sonnet-5-5",
+          "sentiment": "positive",
+          "aspects": ["coding"],
+          "summary": "Reports successfully fixing software performance issues for a local GPU setup.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50497063,
+      "storyId": 50484658,
+      "url": "https://news.ycombinator.com/item?id=50497063",
+      "storyUrl": "https://news.ycombinator.com/item?id=50484658",
+      "createdAt": "2026-11-14T13:56:48Z",
+      "assessments": [
+        {
+          "modelId": "claude-fable-5-2",
+          "sentiment": "negative",
+          "aspects": ["coding", "cost", "agents"],
+          "summary": "An elaborate hierarchy of subagents consumed substantial allowance and produced less progress than a narrower task with fewer agents.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50491274,
+      "storyId": 50484235,
+      "url": "https://news.ycombinator.com/item?id=50491274",
+      "storyUrl": "https://news.ycombinator.com/item?id=50484235",
+      "createdAt": "2026-11-13T22:52:53Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6.1-sol",
+          "sentiment": "negative",
+          "aspects": ["coding"],
+          "summary": "Reports comparative evaluation data suggesting weaker performance on less common programming languages.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50489509,
+      "storyId": 50484235,
+      "url": "https://news.ycombinator.com/item?id=50489509",
+      "storyUrl": "https://news.ycombinator.com/item?id=50484235",
+      "createdAt": "2026-11-13T20:54:38Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6.1-sol",
+          "sentiment": "negative",
+          "aspects": ["coding", "reliability"],
+          "summary": "Repeated mistakes in a Prolog project suggested weak understanding of that language’s execution model.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50485733,
+      "storyId": 50472260,
+      "url": "https://news.ycombinator.com/item?id=50485733",
+      "storyUrl": "https://news.ycombinator.com/item?id=50472260",
+      "createdAt": "2026-11-13T16:20:09Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-astra",
+          "sentiment": "positive",
+          "aspects": ["reliability"],
+          "summary": "Reports a perfect result on a personal data-analysis exam.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "gpt-6.1-sol",
+          "sentiment": "positive",
+          "aspects": ["reliability", "cost"],
+          "summary": "Reports a perfect result on a personal data-analysis exam at lower cost than the alternatives compared.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-fable-5-2",
+          "sentiment": "positive",
+          "aspects": ["reliability"],
+          "summary": "Reports a perfect result on a personal data-analysis exam.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "gemini-4-hydrogen",
+          "sentiment": "positive",
+          "aspects": ["reliability", "cost"],
+          "summary": "Reports a perfect data-analysis exam result and lower cost than the larger models compared.",
+          "matchBasis": "thread-context",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50476424,
+      "storyId": 50470767,
+      "url": "https://news.ycombinator.com/item?id=50476424",
+      "storyUrl": "https://news.ycombinator.com/item?id=50470767",
+      "createdAt": "2026-11-13T00:21:34Z",
+      "assessments": [
+        {
+          "familyName": "DeepSeek V4.1 Flash",
+          "sentiment": "positive",
+          "aspects": ["reliability", "cost", "agents"],
+          "summary": "Reports using two open models for cross-checking to keep accuracy high and costs low.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50475302,
+      "storyId": 50465829,
+      "url": "https://news.ycombinator.com/item?id=50475302",
+      "storyUrl": "https://news.ycombinator.com/item?id=50465829",
+      "createdAt": "2026-11-12T22:30:45Z",
+      "assessments": [
+        {
+          "modelId": "claude-haiku-5-5",
+          "sentiment": "positive",
+          "aspects": ["speed"],
+          "summary": "Reports completing tasks faster than a local model used for comparison.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50474893,
+      "storyId": 50471431,
+      "url": "https://news.ycombinator.com/item?id=50474893",
+      "storyUrl": "https://news.ycombinator.com/item?id=50471431",
+      "createdAt": "2026-11-12T21:57:48Z",
+      "assessments": [
+        {
+          "modelId": "gemini-4-hydrogen",
+          "sentiment": "positive",
+          "aspects": ["coding", "design"],
+          "summary": "Reports strong image-to-HTML results that captured complex interface flows, comparable with larger models in a personal test.",
+          "matchBasis": "thread-context",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50474426,
+      "storyId": 50474425,
+      "url": "https://news.ycombinator.com/item?id=50474426",
+      "storyUrl": "https://news.ycombinator.com/item?id=50474425",
+      "createdAt": "2026-11-12T21:18:16Z",
+      "assessments": [
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "positive",
+          "aspects": ["agents", "reliability"],
+          "summary": "Reports fewer loops and retries after tailoring role instructions to each model in a software-agent workflow.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-sonnet-5-5",
+          "sentiment": "positive",
+          "aspects": ["agents", "reliability"],
+          "summary": "Reports fewer loops and retries after tailoring role instructions to each model in a software-agent workflow.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-haiku-5-5",
+          "sentiment": "positive",
+          "aspects": ["agents", "coding"],
+          "summary": "Reports useful security-review performance after tailoring role instructions, while remaining cautious about its limits.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "gpt-6.1-sol",
+          "sentiment": "positive",
+          "aspects": ["agents", "reliability"],
+          "summary": "Reports fewer loops and retries after tailoring role instructions to each model in a software-agent workflow.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "gpt-6.1-terra",
+          "sentiment": "positive",
+          "aspects": ["agents", "reliability"],
+          "summary": "Reports fewer loops and retries after tailoring role instructions to each model in a software-agent workflow.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50473102,
+      "storyId": 50471731,
+      "url": "https://news.ycombinator.com/item?id=50473102",
+      "storyUrl": "https://news.ycombinator.com/item?id=50471731",
+      "createdAt": "2026-11-12T19:44:46Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-astra",
+          "sentiment": "mixed",
+          "aspects": ["coding", "reliability"],
+          "summary": "Found an infrastructure edit unnecessarily complex and brittle; repeated direction produced a simpler implementation, so supervision remained necessary.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50461867,
+      "storyId": 50456791,
+      "url": "https://news.ycombinator.com/item?id=50461867",
+      "storyUrl": "https://news.ycombinator.com/item?id=50456791",
+      "createdAt": "2026-11-12T01:35:54Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-luna",
+          "sentiment": "negative",
+          "aspects": ["reliability"],
+          "summary": "Reports uncompetitive results in personal text-classification evaluations.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50457206,
+      "storyId": 50438318,
+      "url": "https://news.ycombinator.com/item?id=50457206",
+      "storyUrl": "https://news.ycombinator.com/item?id=50438318",
+      "createdAt": "2026-11-11T19:10:32Z",
+      "assessments": [
+        {
+          "modelId": "gemini-4-argon",
+          "sentiment": "positive",
+          "aspects": ["coding", "agents"],
+          "summary": "Reports that the model independently inspected a client library to answer an API question successfully.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50446216,
+      "storyId": 50438318,
+      "url": "https://news.ycombinator.com/item?id=50446216",
+      "storyUrl": "https://news.ycombinator.com/item?id=50438318",
+      "createdAt": "2026-11-10T20:55:55Z",
+      "assessments": [
+        {
+          "modelId": "claude-fable-5-1",
+          "sentiment": "positive",
+          "aspects": ["coding"],
+          "summary": "Says recent models can write substantive tests and that direct instructions help control unnecessary complexity.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "positive",
+          "aspects": ["coding"],
+          "summary": "Says recent models can write substantive tests and that direct instructions help control unnecessary complexity.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "familyName": "OpenAI Astra",
+          "sentiment": "positive",
+          "aspects": ["coding"],
+          "summary": "Says recent models can write substantive tests and that direct instructions help control unnecessary complexity.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50443031,
+      "storyId": 50436640,
+      "url": "https://news.ycombinator.com/item?id=50443031",
+      "storyUrl": "https://news.ycombinator.com/item?id=50436640",
+      "createdAt": "2026-11-10T16:57:38Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-luna",
+          "sentiment": "positive",
+          "aspects": ["cost"],
+          "summary": "Suggests its low inference price could make maintaining a custom trained model unnecessary; this is a proposed comparison, not a measured saving.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50440738,
+      "storyId": 50429068,
+      "url": "https://news.ycombinator.com/item?id=50440738",
+      "storyUrl": "https://news.ycombinator.com/item?id=50429068",
+      "createdAt": "2026-11-10T14:18:12Z",
+      "assessments": [
+        {
+          "modelId": "claude-fable-5-1",
+          "sentiment": "negative",
+          "aspects": ["reliability"],
+          "summary": "Expresses a perceived quality decline after the initial release period without supplying an evaluation.",
+          "matchBasis": "explicit-model",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50440722,
+      "storyId": 50439591,
+      "url": "https://news.ycombinator.com/item?id=50440722",
+      "storyUrl": "https://news.ycombinator.com/item?id=50439591",
+      "createdAt": "2026-11-10T14:17:02Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-astra",
+          "sentiment": "positive",
+          "aspects": ["reliability"],
+          "summary": "A small personal evaluation favored using this single model over routing by task, while noting uncertain differences between leading models.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "gpt-6.1-sol",
+          "sentiment": "positive",
+          "aspects": ["cost"],
+          "summary": "Was among cheaper models selected by task routing, which reduced overall cost in the reported evaluation.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "gemini-4-argon",
+          "sentiment": "positive",
+          "aspects": ["cost"],
+          "summary": "Was among cheaper models selected by task routing, which reduced overall cost in the reported evaluation.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50439042,
+      "storyId": 50438318,
+      "url": "https://news.ycombinator.com/item?id=50439042",
+      "storyUrl": "https://news.ycombinator.com/item?id=50438318",
+      "createdAt": "2026-11-10T11:55:22Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-astra",
+          "sentiment": "negative",
+          "aspects": ["coding", "cost"],
+          "summary": "Describes generated code as difficult to maintain and more expensive for another model to work on than a comparable implementation.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-fable-5-1",
+          "sentiment": "positive",
+          "aspects": ["coding", "cost"],
+          "summary": "Reports a more maintainable generated codebase that reduced downstream editing effort in a personal comparison.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50438420,
+      "storyId": 50429068,
+      "url": "https://news.ycombinator.com/item?id=50438420",
+      "storyUrl": "https://news.ycombinator.com/item?id=50429068",
+      "createdAt": "2026-11-10T10:39:06Z",
+      "assessments": [
+        {
+          "modelId": "claude-fable-5-1",
+          "sentiment": "positive",
+          "aspects": ["reliability"],
+          "summary": "Reports a meaningful daily quality and correctness advantage over the smaller model compared.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "negative",
+          "aspects": ["reliability"],
+          "summary": "Reports lower quality and correctness than the larger model compared in daily work.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50433582,
+      "storyId": 50431144,
+      "url": "https://news.ycombinator.com/item?id=50433582",
+      "storyUrl": "https://news.ycombinator.com/item?id=50431144",
+      "createdAt": "2026-11-09T23:02:06Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6.1-sol",
+          "sentiment": "positive",
+          "aspects": ["cost", "speed", "coding"],
+          "summary": "Personal experience agrees with cited evaluations that it reaches comparable results more efficiently than the larger alternative.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "negative",
+          "aspects": ["cost", "speed"],
+          "summary": "Questions its value because a competing model achieved comparable work with less time and spending.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50432854,
+      "storyId": 50396834,
+      "url": "https://news.ycombinator.com/item?id=50432854",
+      "storyUrl": "https://news.ycombinator.com/item?id=50396834",
+      "createdAt": "2026-11-09T21:59:03Z",
+      "assessments": [
+        {
+          "modelId": "grok-4.7",
+          "sentiment": "positive",
+          "aspects": ["coding", "agents"],
+          "summary": "Reports turning a spoken outline into a working application with deployment and infrastructure setup handled by the agent.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50427521,
+      "storyId": 50418975,
+      "url": "https://news.ycombinator.com/item?id=50427521",
+      "storyUrl": "https://news.ycombinator.com/item?id=50418975",
+      "createdAt": "2026-11-09T16:12:08Z",
+      "assessments": [
+        {
+          "modelId": "claude-haiku-5-5",
+          "sentiment": "positive",
+          "aspects": ["cost"],
+          "summary": "Argues that hosted pricing is competitive with more expensive open-weight alternatives.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "gpt-6-luna",
+          "sentiment": "positive",
+          "aspects": ["cost"],
+          "summary": "Argues that hosted pricing is competitive with more expensive open-weight alternatives.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50402850,
+      "storyId": 50394906,
+      "url": "https://news.ycombinator.com/item?id=50402850",
+      "storyUrl": "https://news.ycombinator.com/item?id=50394906",
+      "createdAt": "2026-11-07T08:56:12Z",
+      "assessments": [
+        {
+          "modelId": "grok-4.7",
+          "sentiment": "negative",
+          "aspects": ["cost", "reliability"],
+          "summary": "Found similar effective API cost to a competing model but considered the competitor more capable.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "positive",
+          "aspects": ["cost", "reliability"],
+          "summary": "Considered it more capable than a competing model at a similar effective API cost after caching.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50398095,
+      "storyId": 50397874,
+      "url": "https://news.ycombinator.com/item?id=50398095",
+      "storyUrl": "https://news.ycombinator.com/item?id=50397874",
+      "createdAt": "2026-11-06T20:34:03Z",
+      "assessments": [
+        {
+          "modelId": "gemini-4-argon",
+          "sentiment": "positive",
+          "aspects": ["reliability"],
+          "summary": "A personal word-game evaluation placed it above several other named frontier models; the result is specific to that game.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50390199,
+      "storyId": 50387546,
+      "url": "https://news.ycombinator.com/item?id=50390199",
+      "storyUrl": "https://news.ycombinator.com/item?id=50387546",
+      "createdAt": "2026-11-06T09:35:49Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6.1-terra",
+          "sentiment": "positive",
+          "aspects": ["cost"],
+          "summary": "Finds hosted pricing attractive enough that competing with a personal local-model machine seems impractical.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50383771,
+      "storyId": 50349667,
+      "url": "https://news.ycombinator.com/item?id=50383771",
+      "storyUrl": "https://news.ycombinator.com/item?id=50349667",
+      "createdAt": "2026-11-05T20:05:56Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-sol",
+          "sentiment": "negative",
+          "aspects": ["coding", "agents", "cost"],
+          "summary": "Observes large code edits and limited interactive tool use, which seemed wasteful of tokens.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "negative",
+          "aspects": ["coding", "agents", "cost"],
+          "summary": "Observes large code edits and limited interactive tool use, which seemed wasteful of tokens.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "familyName": "OpenAI Astra",
+          "sentiment": "negative",
+          "aspects": ["coding", "agents", "cost"],
+          "summary": "Observes large code edits and limited interactive tool use, which seemed wasteful of tokens.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50378013,
+      "storyId": 50366117,
+      "url": "https://news.ycombinator.com/item?id=50378013",
+      "storyUrl": "https://news.ycombinator.com/item?id=50366117",
+      "createdAt": "2026-11-05T11:45:25Z",
+      "assessments": [
+        {
+          "modelId": "grok-4.7",
+          "sentiment": "mixed",
+          "aspects": ["coding", "cost"],
+          "summary": "Found it capable but switched after exhausting usage allowance and preferred the replacement.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "positive",
+          "aspects": ["coding"],
+          "summary": "Reported a substantial improvement after switching from another coding model.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50376908,
+      "storyId": 50366117,
+      "url": "https://news.ycombinator.com/item?id=50376908",
+      "storyUrl": "https://news.ycombinator.com/item?id=50366117",
+      "createdAt": "2026-11-05T09:04:38Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-sol",
+          "sentiment": "positive",
+          "aspects": ["coding", "agents"],
+          "summary": "Finds frontier coding agents effective and sees little difference between several models for the tasks attempted.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "claude-opus-5-5",
+          "sentiment": "positive",
+          "aspects": ["coding", "agents"],
+          "summary": "Finds frontier coding agents effective and sees little difference between several models for the tasks attempted.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "familyName": "Claude Fable",
+          "sentiment": "positive",
+          "aspects": ["coding", "agents"],
+          "summary": "Finds frontier coding agents effective and sees little difference between several models for the tasks attempted.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50340082,
+      "storyId": 50340081,
+      "url": "https://news.ycombinator.com/item?id=50340082",
+      "storyUrl": "https://news.ycombinator.com/item?id=50340081",
+      "createdAt": "2026-11-02T17:16:00Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-luna",
+          "sentiment": "positive",
+          "aspects": ["coding", "speed"],
+          "summary": "Reports completing coding tasks considerably faster than another model marketed as a fast option.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50335987,
+      "storyId": 50320995,
+      "url": "https://news.ycombinator.com/item?id=50335987",
+      "storyUrl": "https://news.ycombinator.com/item?id=50320995",
+      "createdAt": "2026-11-02T12:34:20Z",
+      "assessments": [
+        {
+          "familyName": "DeepSeek V4 Flash",
+          "sentiment": "mixed",
+          "aspects": ["coding", "reliability", "cost"],
+          "summary": "Found coding assistance useful and inexpensive with careful supervision, but would not trust it to work independently.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        },
+        {
+          "familyName": "DeepSeek V4 Pro",
+          "sentiment": "negative",
+          "aspects": ["coding", "agents"],
+          "summary": "Would not trust the model to work independently, despite its large size.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50323619,
+      "storyId": 50320588,
+      "url": "https://news.ycombinator.com/item?id=50323619",
+      "storyUrl": "https://news.ycombinator.com/item?id=50320588",
+      "createdAt": "2026-11-01T08:20:24Z",
+      "assessments": [
+        {
+          "modelId": "grok-4.7",
+          "sentiment": "mixed",
+          "aspects": ["coding", "agents", "speed", "cost"],
+          "summary": "Completed substantial planning and implementation within a base subscription, although responses were verbose and somewhat slow.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50311609,
+      "storyId": 50293115,
+      "url": "https://news.ycombinator.com/item?id=50311609",
+      "storyUrl": "https://news.ycombinator.com/item?id=50293115",
+      "createdAt": "2026-10-30T23:41:51Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6.1-terra",
+          "sentiment": "negative",
+          "aspects": ["reliability"],
+          "summary": "Performed substantially worse than the larger related model on punctuation correction in the commenter’s tests.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "gpt-6.1-sol",
+          "sentiment": "positive",
+          "aspects": ["reliability"],
+          "summary": "Performed substantially better than the smaller related model on punctuation correction in the commenter’s tests.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50289257,
+      "storyId": 50288019,
+      "url": "https://news.ycombinator.com/item?id=50289257",
+      "storyUrl": "https://news.ycombinator.com/item?id=50288019",
+      "createdAt": "2026-10-29T14:04:38Z",
+      "assessments": [
+        {
+          "modelId": "gemini-3.1-pro-preview",
+          "sentiment": "mixed",
+          "aspects": ["reliability"],
+          "summary": "Initially preferred the model but later perceived a substantial capability decline; the cause is unverified.",
+          "matchBasis": "explicit-model",
+          "confidence": "medium"
+        },
+        {
+          "familyName": "Claude Fable",
+          "sentiment": "mixed",
+          "aspects": ["reliability"],
+          "summary": "Initially praised its capabilities but later perceived a decline; no exact Fable version is identified.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 50278997,
+      "storyId": 50276792,
+      "url": "https://news.ycombinator.com/item?id=50278997",
+      "storyUrl": "https://news.ycombinator.com/item?id=50276792",
+      "createdAt": "2026-10-28T18:51:21Z",
+      "assessments": [
+        {
+          "familyName": "Gemini Argon",
+          "sentiment": "mixed",
+          "aspects": ["reliability", "agents"],
+          "summary": "Lower reasoning effort produced better visual-analysis results; higher effort added unwanted work that broke downstream processing.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        },
+        {
+          "modelId": "claude-haiku-5-5",
+          "sentiment": "positive",
+          "aspects": ["reliability"],
+          "summary": "Served as a successful comparison model for a visual-analysis task.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "gpt-6.1-terra",
+          "sentiment": "positive",
+          "aspects": ["reliability"],
+          "summary": "Served as a successful comparison model for a visual-analysis task.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50271700,
+      "storyId": 50264739,
+      "url": "https://news.ycombinator.com/item?id=50271700",
+      "storyUrl": "https://news.ycombinator.com/item?id=50264739",
+      "createdAt": "2026-10-28T11:10:51Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6-sol",
+          "sentiment": "negative",
+          "aspects": ["reliability"],
+          "summary": "Questions benchmark gains because the model feels worse to work with than its predecessor.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50254188,
+      "storyId": 50248124,
+      "url": "https://news.ycombinator.com/item?id=50254188",
+      "storyUrl": "https://news.ycombinator.com/item?id=50248124",
+      "createdAt": "2026-10-27T02:50:52Z",
+      "assessments": [
+        {
+          "modelId": "gpt-6.1-terra",
+          "sentiment": "positive",
+          "aspects": ["speed", "cost", "reliability"],
+          "summary": "Highlights a reported evaluation with similar task score at substantially lower time and cost than a larger competitor.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        },
+        {
+          "modelId": "grok-4.7",
+          "sentiment": "negative",
+          "aspects": ["speed", "cost"],
+          "summary": "Highlights a reported evaluation where a smaller competitor achieved a similar score much faster and more cheaply.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 50196279,
+      "storyId": 50186037,
+      "url": "https://news.ycombinator.com/item?id=50196279",
+      "storyUrl": "https://news.ycombinator.com/item?id=50186037",
+      "createdAt": "2026-10-22T14:55:09Z",
+      "assessments": [
+        {
+          "familyName": "DeepSeek V4 Pro",
+          "sentiment": "mixed",
+          "aspects": ["reliability"],
+          "summary": "Found a local deployment close to useful but insufficient for the professional workflow being tested.",
+          "matchBasis": "family-only",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "id": 49542531,
+      "storyId": 49537553,
+      "url": "https://news.ycombinator.com/item?id=49542531",
+      "storyUrl": "https://news.ycombinator.com/item?id=49537553",
+      "createdAt": "2026-09-02T21:03:20Z",
+      "assessments": [
+        {
+          "modelId": "gemini-3.1-pro-preview",
+          "sentiment": "neutral",
+          "aspects": ["speed"],
+          "summary": "Reports output speed comparable with a smaller related model and cautions that speed alone does not establish model size or task quality.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 49541854,
+      "storyId": 49537553,
+      "url": "https://news.ycombinator.com/item?id=49541854",
+      "storyUrl": "https://news.ycombinator.com/item?id=49537553",
+      "createdAt": "2026-09-02T20:16:22Z",
+      "assessments": [
+        {
+          "modelId": "gemini-3.1-flash-lite",
+          "sentiment": "positive",
+          "aspects": ["coding", "agents", "cost", "speed"],
+          "summary": "Reports strong results for domain-specific tool calls and JavaScript generation, with a useful balance of cost, quality and speed.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 49107207,
+      "storyId": 49099293,
+      "url": "https://news.ycombinator.com/item?id=49107207",
+      "storyUrl": "https://news.ycombinator.com/item?id=49099293",
+      "createdAt": "2026-07-30T08:05:04Z",
+      "assessments": [
+        {
+          "modelId": "gemini-3.1-flash-lite",
+          "sentiment": "negative",
+          "aspects": ["cost"],
+          "summary": "Finds migration from an older low-cost model more expensive for simple summarization tasks.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 49097330,
+      "storyId": 49096969,
+      "url": "https://news.ycombinator.com/item?id=49097330",
+      "storyUrl": "https://news.ycombinator.com/item?id=49096969",
+      "createdAt": "2026-07-29T13:34:44Z",
+      "assessments": [
+        {
+          "modelId": "grok-4.3",
+          "sentiment": "negative",
+          "aspects": ["coding", "reliability"],
+          "summary": "Reports trouble with document tasks, tool use and coding in a personal comparison.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 48946979,
+      "storyId": 48926590,
+      "url": "https://news.ycombinator.com/item?id=48946979",
+      "storyUrl": "https://news.ycombinator.com/item?id=48926590",
+      "createdAt": "2026-07-17T13:08:31Z",
+      "assessments": [
+        {
+          "modelId": "grok-build-0.1",
+          "sentiment": "negative",
+          "aspects": ["agents", "reliability"],
+          "summary": "Reports weak tool use and recurring confusion and repetition when the model coordinated other agents.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": 48835486,
+      "storyId": 48835111,
+      "url": "https://news.ycombinator.com/item?id=48835486",
+      "storyUrl": "https://news.ycombinator.com/item?id=48835111",
+      "createdAt": "2026-07-08T18:24:34Z",
+      "assessments": [
+        {
+          "modelId": "grok-build-0.1",
+          "sentiment": "negative",
+          "aspects": ["coding"],
+          "summary": "Found the bundled model disappointing in the command-line coding tool.",
+          "matchBasis": "explicit-model",
+          "confidence": "high"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+// Template only. Copy to wrangler.jsonc (ignored) and replace the placeholders.
+// GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and the optional ADMIN_SUBJECT are
+// Pages secrets (`wrangler pages secret put`). Never put them in this file.
+{
+  "name": "ai-model-picker",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-11-03",
+  "vars": {
+    "PUBLIC_URL": "https://ai-model-picker.pages.dev",
+    "ADMIN_EMAIL": "admin@example.com",
+  },
+  "d1_databases": [
+    {
+      "binding": "AUTH_DB",
+      "database_name": "ai-model-picker-access",
+      "database_id": "<YOUR_D1_DATABASE_ID>",
+      "migrations_dir": "server/auth/migrations",
+    },
+  ],
+}
