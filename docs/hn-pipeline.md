@@ -153,7 +153,7 @@ Both endpoints and the export add optional fields for reviews made by `hn-thread
 - Top level of the index: `stories`, each with `id`, `title`, `createdAt`, `about` (the story's subject targets) and `comments` (its listed comments).
 - Status totals: `commentsQueued`, `commentsAboutTargets`, `stories`, `storiesPending` and `threadComments`.
 
-The Discussion threads use `story`, `parent` and `stories`. No view shows `task`, `claim`, `prefers` or `themes` yet.
+The Discussion threads use `story`, `parent` and `stories`. Discussion filters by `themes` and `task` and can list each comment as its `claim`. A model page tallies `themes`, `task` and `prefers` and lists claims by theme. See [design notes](design.md#themes-claims-and-preferences).
 
 The service fetches public bodies only when they are requested for display. It strips account fields, decodes markup to plain text and sends responses with `Cache-Control: no-store`. React renders escaped text. Bodies fetched for display are not written to checkpoint files or logs. A five-minute memory cache is limited to 512 items and 8 MB.
 

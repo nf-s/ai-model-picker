@@ -236,11 +236,22 @@ export function scopeIndex(
   return {
     weekStarts: index.weekStarts,
     stories: index.stories,
+    detailed: index.detailed,
     rows: index.rows.flatMap((row) => {
       const assessments = row.assessments.filter((assessment) =>
         inScope(assessment.key),
       );
-      return assessments.length > 0 ? [{ ...row, assessments }] : [];
+      if (assessments.length === 0) return [];
+      const preferences = row.preferences?.filter(
+        (pair) => inScope(pair.winner) && inScope(pair.loser),
+      );
+      return [
+        {
+          ...row,
+          assessments,
+          ...(preferences === undefined ? {} : { preferences }),
+        },
+      ];
     }),
   };
 }

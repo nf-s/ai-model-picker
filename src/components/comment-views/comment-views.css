@@ -102,6 +102,18 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* The classifier's one-sentence account of a comment, with its themes. */
+.cv-claim {
+  max-width: 78ch;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.cv-themes {
+  color: var(--rd-ink3);
+  font-size: 12px;
+}
 .cv-toggle {
   padding: 0;
   color: var(--rd-accent);

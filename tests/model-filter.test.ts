@@ -276,6 +276,44 @@ test('the comment index keeps only labels in scope', () => {
   assert.equal(scopeIndex(index, never).rows.length, 0);
 });
 
+test('the comment index keeps only stated preferences with both sides in scope', () => {
+  const [first, ...rest] = comments;
+  assert.ok(first);
+  const index = indexComments([
+    {
+      ...first,
+      task: 'coding',
+      claim: 'Synthetic claim about three models.',
+      prefers: [
+        {
+          winner: { kind: 'model', target: 'gpt-6-astra' },
+          loser: { kind: 'model', target: 'claude-fable-5-2' },
+        },
+        {
+          winner: { kind: 'model', target: 'gpt-6-astra' },
+          loser: { kind: 'model', target: 'gemini-4-carbon' },
+        },
+      ],
+    },
+    ...rest,
+  ]);
+  const scoped = scopeIndex(index, createScope(mixed, catalogue).key);
+  assert.equal(scoped.detailed, true);
+  const [row, other] = scoped.rows;
+  assert.ok(row && other);
+  assert.equal(row.task, 'coding');
+  assert.equal(row.claim, 'Synthetic claim about three models.');
+  assert.deepEqual(row.preferences, [
+    { winner: 'model:gpt-6-astra', loser: 'model:claude-fable-5-2' },
+  ]);
+  assert.equal('preferences' in other, false);
+  const insights = buildInsights(scoped, never);
+  assert.deepEqual(
+    [...(insights.targets.get('model:gpt-6-astra')?.preferences ?? [])],
+    [['model:claude-fable-5-2', { over: 1, under: 0 }]],
+  );
+});
+
 const counts = {
   usage: 0,
   evaluation: 0,

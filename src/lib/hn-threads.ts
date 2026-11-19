@@ -144,3 +144,12 @@ export function trimNodes(
 export function nodeIds(nodes: readonly CommentNode[]): number[] {
   return nodes.flatMap((node) => [node.row.id, ...nodeIds(node.replies)]);
 }
+
+// The comments in a reply tree that have no claim, so their text is needed
+// to show them.
+export function unclaimedIds(nodes: readonly CommentNode[]): number[] {
+  return nodes.flatMap((node) => [
+    ...(node.row.claim === undefined ? [node.row.id] : []),
+    ...unclaimedIds(node.replies),
+  ]);
+}

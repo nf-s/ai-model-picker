@@ -7,6 +7,7 @@ import {
   nodeIds,
   sortThreads,
   trimNodes,
+  unclaimedIds,
 } from '../../lib/hn-threads';
 import type { Thread, ThreadOrder } from '../../lib/hn-threads';
 import { SentimentBar, ShareText } from '../parts';
@@ -24,13 +25,19 @@ import {
 import type { CommentViewProps, ContextProps } from './shared';
 import './threads.css';
 
-type Density = 'comments' | 'titles';
+type Density = 'claims' | 'comments' | 'titles';
 
 const shareMinimum = 10;
-// Comments shown when a thread opens, and how many "Show more" adds.
+// Comments shown when a thread opens, and how many "Show more" adds. A claim
+// is one sentence, so more of them fit.
 const firstComments = 6;
+const firstClaims = 12;
 const moreComments = 20;
-const pageSizes: Record<Density, number> = { comments: 5, titles: 25 };
+const pageSizes: Record<Density, number> = {
+  claims: 5,
+  comments: 5,
+  titles: 25,
+};
 const orders: { id: ThreadOrder; label: string }[] = [
   { id: 'comments', label: 'Most comments' },
   { id: 'latest', label: 'Latest comment' },
@@ -38,32 +45,40 @@ const orders: { id: ThreadOrder; label: string }[] = [
   { id: 'critical', label: 'Most critical' },
 ];
 const densities: { id: Density; label: string }[] = [
+  { id: 'claims', label: 'Claims' },
   { id: 'comments', label: 'With comments' },
   { id: 'titles', label: 'Titles only' },
 ];
 const storageKey = 'model-picker:thread-density';
-const firstDensity: Density = 'comments';
 
-function storedDensity(): Density {
+function storedDensity(): Density | null {
   try {
     const stored = window.localStorage.getItem(storageKey);
-    return densities.find((entry) => entry.id === stored)?.id ?? firstDensity;
+    return densities.find((entry) => entry.id === stored)?.id ?? null;
   } catch {
-    return firstDensity;
+    return null;
   }
 }
 
-// Whether threads start open, remembered in this browser when storage works.
-function useDensity() {
-  const [density, setDensity] = useState(storedDensity);
+// How threads start, remembered in this browser when storage works. Claims
+// are the start when the analysis has them and are not offered otherwise. A
+// thread opened from its title shows claims too when there are any.
+function useDensity(detailed: boolean) {
+  const [chosen, setChosen] = useState(storedDensity);
   const change = useCallback((next: Density) => {
-    setDensity(next);
+    setChosen(next);
     try {
       window.localStorage.setItem(storageKey, next);
     } catch {
       // The choice then lasts for this page only.
     }
   }, []);
+  const density: Density =
+    chosen === null || (chosen === 'claims' && !detailed)
+      ? detailed
+        ? 'claims'
+        : 'comments'
+      : chosen;
   return [density, change] as const;
 }
 
@@ -86,17 +101,28 @@ function StoryName({
 function ThreadPanel({
   thread,
   open,
+  claims,
   onToggle,
   index,
   focusKey,
   onPickTarget,
-}: ContextProps & { thread: Thread; open: boolean; onToggle: () => void }) {
+}: ContextProps & {
+  thread: Thread;
+  open: boolean;
+  claims: boolean;
+  onToggle: () => void;
+}) {
   const { storyId, story, rows, tally, latest } = thread;
-  const [budget, setBudget] = useState(firstComments);
+  const first = claims ? firstClaims : firstComments;
+  const [budget, setBudget] = useState(first);
   const nodes = useMemo(() => nestComments(rows, storyId), [rows, storyId]);
   const shown = useMemo(() => trimNodes(nodes, budget), [nodes, budget]);
   const ids = useMemo(() => nodeIds(shown), [shown]);
-  const { failed, retry } = useHnItems(open ? ids : []);
+  const toRead = useMemo(
+    () => (claims ? unclaimedIds(shown) : ids),
+    [claims, shown, ids],
+  );
+  const { failed, retry } = useHnItems(open ? toRead : []);
   const remaining = rows.length - ids.length;
   const bodyId = useId();
   return (
@@ -162,12 +188,13 @@ function ThreadPanel({
           )}
           <ThreadNodes
             nodes={shown}
+            claims={claims}
             index={index}
             focusKey={focusKey}
             onPickTarget={onPickTarget}
           />
           <ItemsNote failed={failed} retry={retry} />
-          {(remaining > 0 || budget > firstComments) && (
+          {(remaining > 0 || budget > first) && (
             <p className="cv-threads-more">
               {remaining > 0 && (
                 <button
@@ -178,11 +205,11 @@ function ThreadPanel({
                   Show more of {countLabel(rows.length, 'comment', 'comments')}
                 </button>
               )}
-              {budget > firstComments && (
+              {budget > first && (
                 <button
                   type="button"
                   className="cv-toggle"
-                  onClick={() => setBudget(firstComments)}
+                  onClick={() => setBudget(first)}
                 >
                   Show fewer
                 </button>
@@ -204,7 +231,7 @@ export default function Threads({
   focusKey,
   onPickTarget,
 }: CommentViewProps) {
-  const [density, setDensity] = useDensity();
+  const [density, setDensity] = useDensity(index.detailed);
   const [order, setOrder] = useState<ThreadOrder>('comments');
   const [query, setQuery] = useState('');
   // Threads switched away from what the density gives them.
@@ -255,16 +282,18 @@ export default function Threads({
             : `${countLabel(matches.length, 'comment', 'comments')} in ${countLabel(threads.length, 'thread', 'threads')}`}
         </p>
         <div className="rd-seg" role="group" aria-label="Threads start">
-          {densities.map((entry) => (
-            <button
-              key={entry.id}
-              type="button"
-              aria-pressed={entry.id === density}
-              onClick={() => setDensity(entry.id)}
-            >
-              {entry.label}
-            </button>
-          ))}
+          {densities
+            .filter((entry) => index.detailed || entry.id !== 'claims')
+            .map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                aria-pressed={entry.id === density}
+                onClick={() => setDensity(entry.id)}
+              >
+                {entry.label}
+              </button>
+            ))}
         </div>
         <div className="cv-threads-find">
           <label className="rd-visually-hidden" htmlFor={searchId}>
@@ -300,6 +329,12 @@ export default function Threads({
           </select>
         </div>
       </div>
+      {density !== 'comments' && index.detailed && (
+        <p className="rd-note">
+          A claim is one sentence written by the classifier about what the
+          comment says. Open a comment for its own words.
+        </p>
+      )}
       {found.length === 0 ? (
         <p className="rd-note">No story title contains “{query.trim()}”.</p>
       ) : (
@@ -315,9 +350,10 @@ export default function Threads({
             const key = threadKey(thread);
             return (
               <ThreadPanel
-                key={key}
+                key={`${key}|${density}`}
                 thread={thread}
-                open={(density === 'comments') !== keys.has(key)}
+                open={(density !== 'titles') !== keys.has(key)}
+                claims={density !== 'comments' && index.detailed}
                 onToggle={() => toggle(key)}
                 index={index}
                 focusKey={focusKey}

@@ -26,6 +26,8 @@ export type HnTask = z.infer<typeof hnTaskSchema>;
 export type HnTheme = z.infer<typeof hnThemeSchema>;
 export type HnIndex = z.infer<typeof localIndexSchema>;
 export const hnAspects = hnAspectSchema.options;
+export const hnTasks = hnTaskSchema.options;
+export const hnThemes = hnThemeSchema.options;
 
 let request: Promise<HnIndex> | null = null;
 

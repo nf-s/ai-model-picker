@@ -53,6 +53,62 @@ const comments: HnIndexComment[] = [
     assessments: [label('model', 'alpha-2', 'positive', ['coding'])],
   },
 ];
+// The first three comments as the thread pipeline writes them. Comment 1 has
+// no review of that kind.
+const reviewed: HnIndexComment[] = [
+  {
+    id: 4,
+    createdAt: '2026-06-16T10:00:00Z',
+    assessments: [
+      { ...label('model', 'alpha-2', 'negative'), themes: ['pricing'] },
+      {
+        ...label('model', 'beta-1', 'positive'),
+        themes: ['pricing', 'speed'],
+      },
+    ],
+    task: 'coding',
+    claim: 'Beta 1 costs less than Alpha 2 for the same work.',
+    prefers: [
+      {
+        winner: { kind: 'model', target: 'beta-1' },
+        loser: { kind: 'model', target: 'alpha-2' },
+      },
+    ],
+  },
+  {
+    id: 3,
+    createdAt: '2026-06-09T10:00:00Z',
+    assessments: [
+      label('family', 'Alpha', 'positive'),
+      { ...label('model', 'alpha-2', 'positive'), themes: ['code-quality'] },
+      { ...label('model', 'beta-1', 'negative'), themes: ['code-quality'] },
+    ],
+    task: 'coding',
+    claim: 'Alpha 2 writes better code than Beta 1.',
+    prefers: [
+      {
+        winner: { kind: 'model', target: 'alpha-2' },
+        loser: { kind: 'model', target: 'beta-1' },
+      },
+      {
+        winner: { kind: 'model', target: 'alpha-2' },
+        loser: { kind: 'family', target: 'Alpha' },
+      },
+    ],
+  },
+  {
+    id: 2,
+    createdAt: '2026-06-08T00:00:00Z',
+    assessments: [{ ...label('model', 'alpha-2', 'mixed'), themes: ['speed'] }],
+    task: 'other',
+    prefers: [],
+  },
+  {
+    id: 1,
+    createdAt: '2026-06-03T10:00:00Z',
+    assessments: [label('model', 'alpha-2', 'positive')],
+  },
+];
 const names = new Map([
   ['family:Alpha', 'Alpha'],
   ['model:alpha-2', 'Alpha 2'],
@@ -88,6 +144,7 @@ test('comments are bucketed into weeks that start on Monday', () => {
     rows: [],
     weekStarts: [],
     stories: new Map(),
+    detailed: false,
   });
 });
 
@@ -114,6 +171,119 @@ test('thread identifiers and stories are kept when the index has them', () => {
   );
   assert.equal('story' in (index.rows[1] ?? {}), false);
   assert.deepEqual(index.stories.get(90), story);
+});
+
+test('task, claim and stated preferences are kept when the index has them', () => {
+  const index = indexComments(reviewed);
+  assert.equal(index.detailed, true);
+  assert.equal(indexComments(comments).detailed, false);
+  const [first, second, third, last] = index.rows;
+  assert.ok(first && second && third && last);
+  assert.equal(first.task, 'coding');
+  assert.equal(
+    first.claim,
+    'Beta 1 costs less than Alpha 2 for the same work.',
+  );
+  assert.deepEqual(first.preferences, [
+    { winner: 'model:beta-1', loser: 'model:alpha-2' },
+  ]);
+  assert.deepEqual(second.preferences, [
+    { winner: 'model:alpha-2', loser: 'model:beta-1' },
+    { winner: 'model:alpha-2', loser: 'family:Alpha' },
+  ]);
+  assert.equal(third.task, 'other');
+  assert.equal('claim' in third, false);
+  assert.equal('preferences' in third, false);
+  assert.equal('task' in last, false);
+  assert.equal('claim' in last, false);
+  assert.equal('preferences' in last, false);
+});
+
+test('insights tally themes, tasks and stated preferences', () => {
+  const insights = buildInsights(indexComments(reviewed), related);
+  const alpha = insights.targets.get('model:alpha-2');
+  const beta = insights.targets.get('model:beta-1');
+  assert(alpha && beta);
+  assert.deepEqual(alpha.themes.get('pricing'), {
+    positive: 0,
+    negative: 1,
+    mixed: 0,
+    neutral: 0,
+    unclear: 0,
+  });
+  assert.equal(alpha.themes.get('code-quality')?.positive, 1);
+  assert.equal(alpha.themes.get('speed')?.mixed, 1);
+  assert.equal(beta.themes.get('speed')?.positive, 1);
+  assert.equal(beta.themes.get('pricing')?.positive, 1);
+  assert.equal(alpha.themes.has('context'), false);
+  // Comment 1 has no task, so three of the four labels are counted.
+  assert.deepEqual([...alpha.tasks.keys()], ['coding', 'other']);
+  assert.deepEqual(alpha.tasks.get('coding'), {
+    positive: 1,
+    negative: 1,
+    mixed: 0,
+    neutral: 0,
+    unclear: 0,
+  });
+  assert.equal(alpha.tasks.get('other')?.mixed, 1);
+  // One comment prefers each side. The preference for Alpha 2 over its own
+  // family is left out.
+  assert.deepEqual(alpha.preferences.get('model:beta-1'), {
+    over: 1,
+    under: 1,
+  });
+  assert.deepEqual(beta.preferences.get('model:alpha-2'), {
+    over: 1,
+    under: 1,
+  });
+  assert.equal(alpha.preferences.has('family:Alpha'), false);
+  assert.equal(insights.targets.get('family:Alpha')?.preferences.size, 0);
+  // An analysis without these fields has empty tallies.
+  const plain = buildInsights(indexComments(comments), related);
+  const before = plain.targets.get('model:alpha-2');
+  assert(before);
+  assert.equal(before.themes.size, 0);
+  assert.equal(before.tasks.size, 0);
+  assert.equal(before.preferences.size, 0);
+});
+
+test('theme and task filters narrow the comments and are counted in a slice', () => {
+  const index = indexComments(reviewed);
+  const alpha = targetKey({ kind: 'model', target: 'alpha-2' });
+  const beta = targetKey({ kind: 'model', target: 'beta-1' });
+  const ids = (filter: Partial<typeof emptyFilter>) =>
+    filterComments(index, { ...emptyFilter, ...filter }).map((row) => row.id);
+  assert.deepEqual(ids({ theme: 'speed' }), [4, 2]);
+  // With a target, the theme has to be on that target's label.
+  assert.deepEqual(ids({ target: alpha, theme: 'speed' }), [2]);
+  assert.deepEqual(ids({ target: beta, theme: 'speed' }), [4]);
+  assert.deepEqual(ids({ theme: 'context' }), []);
+  // The task belongs to the comment, whichever label is selected.
+  assert.deepEqual(ids({ task: 'coding' }), [4, 3]);
+  assert.deepEqual(ids({ target: beta, task: 'coding' }), [4, 3]);
+  assert.deepEqual(ids({ task: 'other' }), [2]);
+  assert.deepEqual(ids({ task: 'coding', theme: 'pricing' }), [4]);
+  const slice = summariseSlice(index, { ...emptyFilter, target: alpha });
+  assert.deepEqual(
+    [...slice.themes],
+    [
+      ['pricing', 1],
+      ['code-quality', 1],
+      ['speed', 1],
+    ],
+  );
+  assert.deepEqual(
+    [...slice.tasks],
+    [
+      ['coding', 2],
+      ['other', 1],
+    ],
+  );
+  // A comment counts once for a theme carried by two of its labels.
+  assert.equal(summariseSlice(index, emptyFilter).themes.get('pricing'), 1);
+  const ranked = rankTargets(index, { ...emptyFilter, theme: 'speed' });
+  assert.equal(ranked.get(alpha)?.mixed, 1);
+  assert.equal(ranked.get(beta)?.positive, 1);
 });
 
 test('insights tally sentiment by target, week, aspect and unrelated pair', () => {

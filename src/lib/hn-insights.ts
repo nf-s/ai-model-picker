@@ -3,6 +3,8 @@ import type {
   HnAssessment,
   HnIndexComment,
   HnStory,
+  HnTask,
+  HnTheme,
 } from './hn-index.ts';
 
 export type HnSentiment = HnAssessment['sentiment'];
@@ -10,8 +12,12 @@ export type HnConfidence = HnAssessment['confidence'];
 export type Tally = Record<HnSentiment, number>;
 export type TargetRef = Pick<HnAssessment, 'kind' | 'target'>;
 export type IndexedAssessment = HnAssessment & { key: string };
+// A comment saying that one target is better than another, as target keys.
+export type StatedPreference = { winner: string; loser: string };
 // story is the thread a comment belongs to and parent the item it replies
-// to. Both are absent until the collection has resolved them.
+// to. Both are absent until the collection has resolved them. task, claim and
+// preferences are written by the classifier of the thread pipeline and absent
+// in an analysis made before it.
 export type IndexedComment = {
   id: number;
   createdAt: string;
@@ -19,11 +25,16 @@ export type IndexedComment = {
   assessments: IndexedAssessment[];
   story?: number;
   parent?: number;
+  task?: HnTask;
+  claim?: string;
+  preferences?: StatedPreference[];
 };
+// detailed says whether the comments carry tasks, themes and claims.
 export type CommentIndex = {
   rows: IndexedComment[];
   weekStarts: string[];
   stories: ReadonlyMap<number, HnStory>;
+  detailed: boolean;
 };
 // Comments that assess two unrelated targets. "ahead" means this target was
 // labelled positive and the other negative in the same comment.
@@ -34,13 +45,19 @@ export type PairTally = {
   bothPositive: number;
   bothNegative: number;
 };
+// Comments that state a preference between this target and another: `over`
+// counts those preferring this target, `under` those preferring the other.
+export type PreferenceTally = { over: number; under: number };
 export type TargetInsight = TargetRef & {
   key: string;
   total: number;
   tally: Tally;
   weeks: Tally[];
   aspects: Record<HnAspect, Tally>;
+  themes: Map<HnTheme, Tally>;
+  tasks: Map<HnTask, Tally>;
   pairs: Map<string, PairTally>;
+  preferences: Map<string, PreferenceTally>;
   firstAt: string;
   lastAt: string;
 };
@@ -55,6 +72,8 @@ export type HnFilter = {
   alongside: string | null;
   sentiment: HnSentiment | null;
   aspect: HnAspect | null;
+  theme: HnTheme | null;
+  task: HnTask | null;
   confidence: HnConfidence | null;
   fromWeek: number | null;
   toWeek: number | null;
@@ -64,6 +83,8 @@ export type SliceSummary = {
   tally: Tally;
   weeks: number[];
   aspects: Record<HnAspect, number>;
+  themes: Map<HnTheme, number>;
+  tasks: Map<HnTask, number>;
   targets: Map<string, number>;
 };
 
@@ -74,6 +95,8 @@ export const emptyFilter: HnFilter = {
   alongside: null,
   sentiment: null,
   aspect: null,
+  theme: null,
+  task: null,
   confidence: null,
   fromWeek: null,
   toWeek: null,
@@ -90,6 +113,11 @@ export function parseTargetKey(key: string): TargetRef | null {
   return (kind === 'model' || kind === 'family') && target
     ? { kind, target }
     : null;
+}
+
+// Theme identifiers are hyphenated words.
+export function themeLabel(theme: HnTheme) {
+  return theme.replaceAll('-', ' ');
 }
 
 export function emptyTally(): Tally {
@@ -175,7 +203,8 @@ export function indexComments(
     if (time > last) last = time;
     return time;
   });
-  if (comments.length === 0) return { rows: [], weekStarts: [], stories };
+  if (comments.length === 0)
+    return { rows: [], weekStarts: [], stories, detailed: false };
   const origin = mondayBefore(first);
   const weekCount = Math.floor((last - origin) / weekMs) + 1;
   return {
@@ -192,9 +221,38 @@ export function indexComments(
       })),
       ...(comment.story === undefined ? {} : { story: comment.story }),
       ...(comment.parent === undefined ? {} : { parent: comment.parent }),
+      ...(comment.task === undefined ? {} : { task: comment.task }),
+      ...(comment.claim === undefined ? {} : { claim: comment.claim }),
+      ...(comment.prefers === undefined || comment.prefers.length === 0
+        ? {}
+        : {
+            preferences: comment.prefers.map((pair) => ({
+              winner: targetKey(pair.winner),
+              loser: targetKey(pair.loser),
+            })),
+          }),
     })),
     stories,
+    detailed: comments.some((comment) => comment.task !== undefined),
   };
+}
+
+function tallyIn<Key>(tallies: Map<Key, Tally>, key: Key) {
+  let tally = tallies.get(key);
+  if (!tally) {
+    tally = emptyTally();
+    tallies.set(key, tally);
+  }
+  return tally;
+}
+
+function preferenceIn(insight: TargetInsight, other: string) {
+  let tally = insight.preferences.get(other);
+  if (!tally) {
+    tally = { over: 0, under: 0 };
+    insight.preferences.set(other, tally);
+  }
+  return tally;
 }
 
 function emptyAspects(): Record<HnAspect, Tally> {
@@ -241,7 +299,10 @@ export function buildInsights(
           tally: emptyTally(),
           weeks: Array.from({ length: weekCount }, emptyTally),
           aspects: emptyAspects(),
+          themes: new Map(),
+          tasks: new Map(),
           pairs: new Map(),
+          preferences: new Map(),
           firstAt: row.createdAt,
           lastAt: row.createdAt,
         };
@@ -253,6 +314,9 @@ export function buildInsights(
       if (week) week[assessment.sentiment] += 1;
       for (const aspect of assessment.aspects)
         insight.aspects[aspect][assessment.sentiment] += 1;
+      for (const theme of assessment.themes ?? [])
+        tallyIn(insight.themes, theme)[assessment.sentiment] += 1;
+      if (row.task) tallyIn(insight.tasks, row.task)[assessment.sentiment] += 1;
       if (row.createdAt < insight.firstAt) insight.firstAt = row.createdAt;
       if (row.createdAt > insight.lastAt) insight.lastAt = row.createdAt;
       for (const other of row.assessments) {
@@ -284,6 +348,16 @@ export function buildInsights(
       }
     }
   }
+  // Counted once every target has its insight. A preference between a name
+  // and its own family or version line says nothing and is left out.
+  for (const row of index.rows)
+    for (const { winner, loser } of row.preferences ?? []) {
+      if (winner === loser || !unrelated(winner, loser)) continue;
+      const ahead = targets.get(winner);
+      const behind = targets.get(loser);
+      if (ahead) preferenceIn(ahead, loser).over += 1;
+      if (behind) preferenceIn(behind, winner).under += 1;
+    }
   return {
     weekStarts: index.weekStarts,
     weekTotals,
@@ -293,10 +367,12 @@ export function buildInsights(
 }
 
 // The assessments in a comment that satisfy the filter. With a target set,
-// sentiment, aspect and confidence apply to that target's label only.
+// sentiment, aspect, theme and confidence apply to that target's label only.
+// The task belongs to the comment.
 export function matchingAssessments(row: IndexedComment, filter: HnFilter) {
   if (filter.fromWeek !== null && row.week < filter.fromWeek) return [];
   if (filter.toWeek !== null && row.week > filter.toWeek) return [];
+  if (filter.task !== null && row.task !== filter.task) return [];
   if (
     filter.alongside !== null &&
     !row.assessments.some((assessment) => assessment.key === filter.alongside)
@@ -308,6 +384,8 @@ export function matchingAssessments(row: IndexedComment, filter: HnFilter) {
       (filter.sentiment === null ||
         assessment.sentiment === filter.sentiment) &&
       (filter.aspect === null || assessment.aspects.includes(filter.aspect)) &&
+      (filter.theme === null ||
+        (assessment.themes?.includes(filter.theme) ?? false)) &&
       (filter.confidence === null ||
         assessment.confidence === filter.confidence),
   );
@@ -338,6 +416,8 @@ export function summariseSlice(
       research: 0,
       reasoning: 0,
     },
+    themes: new Map(),
+    tasks: new Map(),
     targets: new Map(),
   };
   for (const row of index.rows) {
@@ -346,11 +426,17 @@ export function summariseSlice(
     summary.total += 1;
     summary.weeks[row.week] = (summary.weeks[row.week] ?? 0) + 1;
     const seen = new Set<HnAspect>();
+    const themes = new Set<HnTheme>();
     for (const assessment of matched) {
       summary.tally[assessment.sentiment] += 1;
       for (const aspect of assessment.aspects) seen.add(aspect);
+      for (const theme of assessment.themes ?? []) themes.add(theme);
     }
     for (const aspect of seen) summary.aspects[aspect] += 1;
+    for (const theme of themes)
+      summary.themes.set(theme, (summary.themes.get(theme) ?? 0) + 1);
+    if (row.task)
+      summary.tasks.set(row.task, (summary.tasks.get(row.task) ?? 0) + 1);
     for (const assessment of row.assessments)
       summary.targets.set(
         assessment.key,
@@ -361,8 +447,9 @@ export function summariseSlice(
 }
 
 // Sentiment per target inside a slice, for ranking targets against each
-// other. Applies the period, topic, confidence and alongside filters; the
-// target and sentiment filters are ignored so every target keeps its split.
+// other. Applies the period, topic, theme, task, confidence and alongside
+// filters; the target and sentiment filters are ignored so every target keeps
+// its split.
 export function rankTargets(index: CommentIndex, filter: HnFilter) {
   const open = { ...filter, target: null, sentiment: null };
   const ranked = new Map<string, Tally>();

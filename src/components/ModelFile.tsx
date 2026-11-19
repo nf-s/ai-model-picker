@@ -3,16 +3,24 @@ import { ArrowUpRight, X } from 'lucide-react';
 import { benchmarks, models, reports } from '../lib/data';
 import type { Model } from '../lib/data';
 import { formatHnDate, formatHnRange } from '../lib/hn-client';
-import { hnAspects } from '../lib/hn-index';
-import type { HnAspect } from '../lib/hn-index';
+import { hnAspects, hnTasks, hnThemes } from '../lib/hn-index';
+import type { HnAspect, HnTask, HnTheme } from '../lib/hn-index';
 import {
   emptyFilter,
+  filterComments,
   parseTargetKey,
   positiveShare,
   relatedNames,
   tallyTotal,
+  themeLabel,
 } from '../lib/hn-insights';
-import type { HnFilter, HnSentiment, TargetInsight } from '../lib/hn-insights';
+import type {
+  CommentIndex,
+  HnFilter,
+  HnSentiment,
+  Tally,
+  TargetInsight,
+} from '../lib/hn-insights';
 import { dollars, duration } from '../lib/metrics';
 import type { Scope } from '../lib/model-filter';
 import {
@@ -60,6 +68,8 @@ const filterSentiments: HnSentiment[] = [
   'mixed',
   'neutral',
 ];
+// Claims listed when a theme opens, and how many "Show more" adds.
+const claimPage = 8;
 
 function Rail({
   hn,
@@ -471,41 +481,63 @@ function Themes({ modelId }: { modelId: string }) {
   );
 }
 
+// With `stated`, the two sides count comments that say one is better than the
+// other. Without, they are read off the two sentiment labels of one comment.
 function Pairs({
   insight,
+  stated,
   active,
   onPick,
 }: {
   insight: TargetInsight;
+  stated: boolean;
   active: string | null;
   onPick: (key: string | null) => void;
 }) {
-  const rows = [...insight.pairs.entries()]
-    .sort((a, b) => b[1].total - a[1].total)
+  const keys = new Set([
+    ...insight.pairs.keys(),
+    ...insight.preferences.keys(),
+  ]);
+  const rows = [...keys]
+    .map((key) => {
+      const pair = insight.pairs.get(key);
+      const preference = insight.preferences.get(key);
+      return {
+        key,
+        total: pair?.total ?? 0,
+        behind: stated ? (preference?.under ?? 0) : (pair?.behind ?? 0),
+        ahead: stated ? (preference?.over ?? 0) : (pair?.ahead ?? 0),
+      };
+    })
+    .sort(
+      (a, b) =>
+        (stated ? b.ahead + b.behind - (a.ahead + a.behind) : 0) ||
+        b.total - a.total,
+    )
     .slice(0, 10);
-  const widest = Math.max(
-    1,
-    ...rows.map(([, pair]) => pair.ahead + pair.behind),
-  );
+  const widest = Math.max(1, ...rows.map((row) => row.ahead + row.behind));
   return (
     <section className="rd-panel rd-mf-card">
-      <h2 className="rd-h">Mentioned together</h2>
+      <h2 className="rd-h">
+        {stated ? 'Stated preferences' : 'Mentioned together'}
+      </h2>
       <p className="rd-note">
-        Comments that label both. Ahead: this positive, the other critical.
-        Behind: the reverse.
+        {stated
+          ? 'Comments that say one is better than the other, beside the comments that label both.'
+          : 'Comments that label both. Ahead: this positive, the other critical. Behind: the reverse.'}
       </p>
       <table className="rd-mf-pairs">
         <thead>
           <tr>
             <th scope="col">Other</th>
             <th scope="col">Comments</th>
-            <th scope="col">Behind</th>
+            <th scope="col">{stated ? 'Other preferred' : 'Behind'}</th>
             <th scope="col" aria-label="Balance" />
-            <th scope="col">Ahead</th>
+            <th scope="col">{stated ? 'This preferred' : 'Ahead'}</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map(([key, pair]) => (
+          {rows.map(({ key, ...pair }) => (
             <tr key={key}>
               <th scope="row">
                 <button
@@ -541,45 +573,47 @@ function Pairs({
   );
 }
 
-function Topics({
-  insight,
+// Sentiment toward the target split by one property of its comments. A row
+// filters the comment stream.
+function Breakdown<Value extends string>({
+  title,
+  note,
+  heading,
+  rows,
   active,
   onPick,
 }: {
-  insight: TargetInsight;
-  active: HnAspect | null;
-  onPick: (aspect: HnAspect | null) => void;
+  title: string;
+  note: string;
+  heading: string;
+  rows: { value: Value; tally: Tally }[];
+  active: Value | null;
+  onPick: (value: Value | null) => void;
 }) {
-  const rows = hnAspects
-    .map((aspect) => ({ aspect, tally: insight.aspects[aspect] }))
-    .sort((a, b) => tallyTotal(b.tally) - tallyTotal(a.tally));
   return (
     <section className="rd-panel rd-mf-card">
-      <h2 className="rd-h">Automatic topic tags</h2>
-      <p className="rd-note">
-        Coarse: “reliability” and “design” are applied to about half of all
-        comments.
-      </p>
+      <h2 className="rd-h">{title}</h2>
+      <p className="rd-note">{note}</p>
       <table className="rd-mf-topics">
         <thead>
           <tr>
-            <th scope="col">Topic</th>
+            <th scope="col">{heading}</th>
             <th scope="col">Comments</th>
             <th scope="col">Sentiment</th>
             <th scope="col">Positive</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ aspect, tally }) => (
-            <tr key={aspect}>
+          {rows.map(({ value, tally }) => (
+            <tr key={value}>
               <th scope="row">
                 <button
                   type="button"
                   className="rd-link"
-                  aria-pressed={active === aspect}
-                  onClick={() => onPick(active === aspect ? null : aspect)}
+                  aria-pressed={active === value}
+                  onClick={() => onPick(active === value ? null : value)}
                 >
-                  {aspect}
+                  {value}
                 </button>
               </th>
               <td>{tallyTotal(tally).toLocaleString()}</td>
@@ -593,6 +627,213 @@ function Topics({
           ))}
         </tbody>
       </table>
+      {rows.length === 0 && <p className="rd-note">None.</p>}
+    </section>
+  );
+}
+
+function Topics({
+  insight,
+  active,
+  onPick,
+}: {
+  insight: TargetInsight;
+  active: HnAspect | null;
+  onPick: (aspect: HnAspect | null) => void;
+}) {
+  return (
+    <Breakdown
+      title="Automatic topic tags"
+      note="Coarse: “reliability” and “design” are applied to about half of all comments."
+      heading="Topic"
+      rows={hnAspects
+        .map((value) => ({ value, tally: insight.aspects[value] }))
+        .sort((a, b) => tallyTotal(b.tally) - tallyTotal(a.tally))}
+      active={active}
+      onPick={onPick}
+    />
+  );
+}
+
+function Tasks({
+  insight,
+  active,
+  onPick,
+}: {
+  insight: TargetInsight;
+  active: HnTask | null;
+  onPick: (task: HnTask | null) => void;
+}) {
+  return (
+    <Breakdown
+      title="By task"
+      note="What the commenter was doing. “Other” covers comments about no particular task."
+      heading="Task"
+      rows={hnTasks
+        .flatMap((value) => {
+          const tally = insight.tasks.get(value);
+          return tally ? [{ value, tally }] : [];
+        })
+        .sort(
+          (a, b) =>
+            Number(a.value === 'other') - Number(b.value === 'other') ||
+            tallyTotal(b.tally) - tallyTotal(a.tally),
+        )}
+      active={active}
+      onPick={onPick}
+    />
+  );
+}
+
+// One theme of a target: its sentiment split and, once opened, the claims of
+// the comments under it, newest first.
+function SaidTheme({
+  index,
+  target,
+  theme,
+  tally,
+  start,
+  active,
+  onPick,
+}: {
+  index: CommentIndex;
+  target: string;
+  theme: HnTheme;
+  tally: Tally;
+  start: boolean;
+  active: boolean;
+  onPick: (theme: HnTheme | null) => void;
+}) {
+  const [open, setOpen] = useState(start);
+  const [count, setCount] = useState(claimPage);
+  const rows = useMemo(
+    () =>
+      open
+        ? filterComments(index, { ...emptyFilter, target, theme }).filter(
+            (row) => row.claim !== undefined,
+          )
+        : [],
+    [open, index, target, theme],
+  );
+  return (
+    <details
+      className="rd-mf-theme"
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary>
+        <span className="rd-mf-theme-name">{themeLabel(theme)}</span>
+        <span className="rd-mf-theme-count">
+          {tallyTotal(tally).toLocaleString()}
+        </span>
+        <SentimentBar tally={tally} />
+        <span className="rd-mf-theme-share">
+          <ShareText tally={tally} minimum={10} />
+        </span>
+      </summary>
+      {open && (
+        <>
+          <ul>
+            {rows.slice(0, count).map((row) => {
+              const sentiment =
+                row.assessments.find((label) => label.key === target)
+                  ?.sentiment ?? 'unclear';
+              return (
+                <li key={row.id}>
+                  <i className={`rd-s-${sentiment}`} aria-hidden="true" />
+                  <p>
+                    <span className="rd-visually-hidden">
+                      {sentimentLabels[sentiment]}:{' '}
+                    </span>
+                    {row.claim}{' '}
+                    <a
+                      href={`https://news.ycombinator.com/item?id=${row.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {formatHnDate(row.createdAt)}
+                      <ArrowUpRight size={11} />
+                    </a>
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="rd-mf-theme-actions">
+            {rows.length > count && (
+              <button
+                type="button"
+                className="rd-link"
+                onClick={() => setCount(count + claimPage)}
+              >
+                Show {Math.min(claimPage, rows.length - count)} more
+              </button>
+            )}
+            <button
+              type="button"
+              className="rd-link"
+              aria-pressed={active}
+              onClick={() => onPick(active ? null : theme)}
+            >
+              {active ? 'Stop filtering the comments' : 'Filter the comments'}
+            </button>
+          </p>
+        </>
+      )}
+    </details>
+  );
+}
+
+// What the classifier recorded for every comment about the target: themes
+// with their sentiment, each opening into one-sentence claims.
+function Said({
+  index,
+  insight,
+  active,
+  onPick,
+}: {
+  index: CommentIndex;
+  insight: TargetInsight;
+  active: HnTheme | null;
+  onPick: (theme: HnTheme | null) => void;
+}) {
+  const rows = hnThemes
+    .flatMap((theme) => {
+      const tally = insight.themes.get(theme);
+      return tally ? [{ theme, tally }] : [];
+    })
+    .sort((a, b) => tallyTotal(b.tally) - tallyTotal(a.tally));
+  return (
+    <section className="rd-panel rd-mf-card">
+      <h2 className="rd-h">What people say</h2>
+      <p className="rd-note">
+        Themes and one-sentence claims written by the classifier, newest first.
+        A comment can fall under up to three themes.
+      </p>
+      {rows.length === 0 ? (
+        <p className="rd-note">None.</p>
+      ) : (
+        <div className="rd-mf-themes rd-mf-said">
+          <div className="rd-mf-said-cols" aria-hidden="true">
+            <span>Theme</span>
+            <span>Comments</span>
+            <span>Sentiment</span>
+            <span>Positive</span>
+          </div>
+          {rows.map(({ theme, tally }, position) => (
+            <SaidTheme
+              key={theme}
+              index={index}
+              target={insight.key}
+              theme={theme}
+              tally={tally}
+              start={position === 0}
+              active={active === theme}
+              onPick={onPick}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -608,19 +849,24 @@ function HnSection({
 }) {
   const [sentiment, setSentiment] = useState<HnSentiment | null>(null);
   const [aspect, setAspect] = useState<HnAspect | null>(null);
+  const [theme, setTheme] = useState<HnTheme | null>(null);
+  const [task, setTask] = useState<HnTask | null>(null);
   const [alongside, setAlongside] = useState<string | null>(null);
   const [range, setRange] = useState<WeekRange | null>(null);
+  const { detailed } = hn.index;
   const filter = useMemo<HnFilter>(
     () => ({
       ...emptyFilter,
       target: insight.key,
       sentiment,
       aspect,
+      theme,
+      task,
       alongside,
       fromWeek: range?.from ?? null,
       toWeek: range?.to ?? null,
     }),
-    [insight.key, sentiment, aspect, alongside, range],
+    [insight.key, sentiment, aspect, theme, task, alongside, range],
   );
   const share = positiveShare(insight.tally, 20);
   const trend = momentum(insight);
@@ -680,10 +926,28 @@ function HnSection({
         </ul>
       </div>
       <div className="rd-mf-columns">
-        {modelId ? <Themes modelId={modelId} /> : null}
+        {detailed ? (
+          <Said
+            index={hn.index}
+            insight={insight}
+            active={theme}
+            onPick={setTheme}
+          />
+        ) : modelId ? (
+          <Themes modelId={modelId} />
+        ) : null}
         <div className="rd-mf-stack">
-          <Pairs insight={insight} active={alongside} onPick={setAlongside} />
-          <Topics insight={insight} active={aspect} onPick={setAspect} />
+          <Pairs
+            insight={insight}
+            stated={detailed}
+            active={alongside}
+            onPick={setAlongside}
+          />
+          {detailed ? (
+            <Tasks insight={insight} active={task} onPick={setTask} />
+          ) : (
+            <Topics insight={insight} active={aspect} onPick={setAspect} />
+          )}
         </div>
       </div>
       <h2 className="rd-h">Comments</h2>
@@ -725,6 +989,24 @@ function HnSection({
             onClick={() => setAspect(null)}
           >
             Topic: {aspect} <X size={12} />
+          </button>
+        )}
+        {theme && (
+          <button
+            type="button"
+            className="rd-chip rd-chip-active"
+            onClick={() => setTheme(null)}
+          >
+            Theme: {themeLabel(theme)} <X size={12} />
+          </button>
+        )}
+        {task && (
+          <button
+            type="button"
+            className="rd-chip rd-chip-active"
+            onClick={() => setTask(null)}
+          >
+            Task: {task} <X size={12} />
           </button>
         )}
         {alongside && (

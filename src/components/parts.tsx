@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { formatHnDate } from '../lib/hn-client';
-import { filterComments, positiveShare } from '../lib/hn-insights';
+import { filterComments, positiveShare, themeLabel } from '../lib/hn-insights';
 import type {
   CommentIndex,
   HnFilter,
@@ -364,13 +364,16 @@ function CommentItem({
                 </span>
               </>
             );
+            const tags = label.themes?.length
+              ? label.themes.map(themeLabel)
+              : label.aspects;
             return (
               <li
                 key={label.key}
                 className={
                   label.key === focusKey ? 'rd-label-focus' : undefined
                 }
-                title={`${sentimentLabels[label.sentiment]} · ${label.confidence} confidence${label.aspects.length ? ` · ${label.aspects.join(', ')}` : ''}`}
+                title={`${sentimentLabels[label.sentiment]} · ${label.confidence} confidence${tags.length ? ` · ${tags.join(', ')}` : ''}`}
               >
                 {onPickTarget && label.key !== focusKey ? (
                   <button type="button" onClick={() => onPickTarget(label.key)}>

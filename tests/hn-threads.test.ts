@@ -9,6 +9,7 @@ import {
   sortThreads,
   tallyRows,
   trimNodes,
+  unclaimedIds,
 } from '../src/lib/hn-threads.ts';
 
 type Sentiment = HnIndexComment['assessments'][number]['sentiment'];
@@ -138,6 +139,26 @@ test('a trimmed tree keeps reading order and records the replies left out', () =
   // 113 with its unlisted parent still fits because the budget is not spent.
   assert.deepEqual(nodeIds(trimNodes(roots, 4)), [110, 111, 112, 113]);
   assert.deepEqual(nodeIds(trimNodes(roots, 3)), [110, 111, 112]);
+});
+
+test('comments without a claim are the ones whose text is needed', () => {
+  const [top, reply, last] = [
+    comment(110, '09', 'positive', { story: 100, parent: 100 }),
+    comment(111, '10', 'mixed', { story: 100, parent: 110 }),
+    comment(112, '11', 'positive', { story: 100, parent: 111 }),
+  ];
+  assert.ok(top && reply && last);
+  const claimed = indexComments([
+    { ...last, claim: 'Synthetic claim about the example model.' },
+    reply,
+    { ...top, claim: 'Another synthetic claim.' },
+  ]);
+  const roots = nestComments(claimed.rows, 100);
+  assert.deepEqual(nodeIds(roots), [110, 111, 112]);
+  assert.deepEqual(unclaimedIds(roots), [111]);
+  // Without claims every comment needs its text.
+  const rows = index.rows.filter((row) => row.story === 100);
+  assert.deepEqual(unclaimedIds(nestComments(rows, 100)), [110, 111, 112, 113]);
 });
 
 test('a tally counts one label per matching assessment', () => {

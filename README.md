@@ -3,8 +3,8 @@
 A reference for choosing an AI model. It joins published benchmark results with six months of Hacker News discussion, so a model can be judged on both in one place.
 
 - **Board** (home): choose a task. One table ranks models on that task's benchmarks beside HN comment volume, sentiment, its four-week change and sentiment on the matching topic.
-- **Models**: one page per model or family, with its rank on every benchmark, API price, app selections, published reports, weekly sentiment, what people say, which models it is compared with, and the comments.
-- **Discussion**: every collected comment, filtered by model, sentiment, topic, label confidence and period, with a ranking of models inside the current filter.
+- **Models**: one page per model or family, with its rank on every benchmark, API price, app selections, published reports, weekly sentiment, what people say by theme, which models commenters prefer it to, sentiment by task, and the comments.
+- **Discussion**: every collected comment, filtered by model, sentiment, theme, task, label confidence and period, with a ranking of models inside the current filter. Comments are listed under their stories as one-sentence claims or in full.
 - **Papers**: arXiv papers from the same six months whose title or abstract names a tracked model or family, filtered by model or family and title words.
 - **Benchmark pages**: every published result for one benchmark, including alternate configurations, with the source's method and limits. Reached from the Board's column headers and a model's benchmark tiles.
 - **App guide**: which selection to make in ChatGPT and Claude on their highest-usage plans for eight tasks, with alternatives, settings and sources. Coding-agent choices are a separate mode.
@@ -57,7 +57,7 @@ See [pipeline instructions](docs/hn-pipeline.md), [archive verification](docs/hn
 
 The public benchmark snapshot holds 107 published results across four benchmarks, 76 model/version identities, official API rates for 20 models and 14 reports. Scores keep each benchmark's own scale. A model's Board and tile score is its best published configuration; the benchmark page lists every configuration. Missing prices and results are not estimated.
 
-The HN views aggregate the full comment index in the browser: weekly sentiment, per-topic sentiment and co-mentions. Positive share is positive ÷ (positive + critical) and is hidden below a stated minimum. "What people say" on a model page comes from an AI-reviewed sample of recent comments for six models, [research/hn-themes-sample.json](research/hn-themes-sample.json); other models show only the automatic labels.
+The HN views aggregate the full comment index in the browser: weekly sentiment, sentiment by theme and task, stated preferences and co-mentions. Positive share is positive ÷ (positive + critical) and is hidden below a stated minimum. "What people say" on a model page lists the classifier's themes for that model, and each theme opens into the one-sentence claims it wrote for those comments. The published app still shows the previous analysis, which has no themes or claims: there the section comes from an AI-reviewed sample of recent comments for six models, [research/hn-themes-sample.json](research/hn-themes-sample.json), and other models show only topic tags.
 
 The earlier reviewed 49-comment HN sample stays in `research/` and is no longer shown in the app. Source links and check dates are on the Data page. See [design notes](docs/design.md).
 
@@ -92,7 +92,7 @@ npm run format:check
 - `src/components/comment-views/`, `src/lib/hn-threads.ts`: the Discussion comment section, which lists comments under their stories and nests them by reply, with its thread loader.
 - `src/lib/site-data.ts`: benchmark standings joined to HN aggregates.
 - `src/lib/hn-index.ts`, `hn-insights.ts`: comment index loading and browser-side aggregation.
-- `src/lib/hn-themes.ts`, `research/hn-themes-sample.json`: AI-reviewed theme sample for six models.
+- `src/lib/hn-themes.ts`, `research/hn-themes-sample.json`: AI-reviewed theme sample for six models, shown when the analysis has no themes.
 - `src/lib/snapshot.json`, `schema.ts`, `metrics.ts`: sourced benchmark data, validation and cost formatting.
 - `scripts/hn_pipeline.py`, `scripts/hn_local/`: collection, thread walks, text scrubbing, review on a local model or through the Anthropic API, and checkpointed storage.
 - `scripts/arxiv_pipeline.py`, `scripts/arxiv_local/`, `scripts/export-arxiv-site.py`: arXiv harvest, matching, labelling, evaluation results and publish export.

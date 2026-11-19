@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
-import { hnAspects } from '../lib/hn-index';
-import type { HnAspect } from '../lib/hn-index';
+import { hnAspects, hnTasks, hnThemes } from '../lib/hn-index';
+import type { HnAspect, HnTask, HnTheme } from '../lib/hn-index';
 import {
   parseTargetKey,
   positiveShare,
   rankTargets,
   summariseSlice,
   tallyTotal,
+  themeLabel,
 } from '../lib/hn-insights';
 import type {
   HnConfidence,
@@ -100,6 +101,8 @@ function Explorer({
   const [alongside, setAlongside] = useState<string | null>(null);
   const [sentiment, setSentiment] = useState<HnSentiment | null>(null);
   const [aspect, setAspect] = useState<HnAspect | null>(null);
+  const [theme, setTheme] = useState<HnTheme | null>(null);
+  const [task, setTask] = useState<HnTask | null>(null);
   const [confidence, setConfidence] = useState<HnConfidence | null>(null);
   const [range, setRange] = useState<WeekRange | null>(null);
   const [query, setQuery] = useState('');
@@ -112,11 +115,13 @@ function Explorer({
       alongside,
       sentiment,
       aspect,
+      theme,
+      task,
       confidence,
       fromWeek: range?.from ?? null,
       toWeek: range?.to ?? null,
     }),
-    [target, alongside, sentiment, aspect, confidence, range],
+    [target, alongside, sentiment, aspect, theme, task, confidence, range],
   );
   // Each facet is counted with its own selection lifted, so the alternatives
   // stay visible.
@@ -131,6 +136,14 @@ function Explorer({
   );
   const byAspect = useMemo(
     () => summariseSlice(index, { ...filter, aspect: null }).aspects,
+    [index, filter],
+  );
+  const byTheme = useMemo(
+    () => summariseSlice(index, { ...filter, theme: null }).themes,
+    [index, filter],
+  );
+  const byTask = useMemo(
+    () => summariseSlice(index, { ...filter, task: null }).tasks,
     [index, filter],
   );
   const byConfidence = useMemo(() => {
@@ -179,6 +192,8 @@ function Explorer({
     alongside !== null ||
     sentiment !== null ||
     aspect !== null ||
+    theme !== null ||
+    task !== null ||
     confidence !== null ||
     range !== null;
   function reset() {
@@ -186,6 +201,8 @@ function Explorer({
     setAlongside(null);
     setSentiment(null);
     setAspect(null);
+    setTheme(null);
+    setTask(null);
     setConfidence(null);
     setRange(null);
   }
@@ -241,19 +258,56 @@ function Explorer({
           value={sentiment}
           onChange={setSentiment}
         />
-        <Facet
-          title="Topic tag"
-          note="Automatic and coarse."
-          options={hnAspects
-            .map((value) => ({
-              value,
-              label: value,
-              count: byAspect[value],
-            }))
-            .sort((a, b) => b.count - a.count)}
-          value={aspect}
-          onChange={setAspect}
-        />
+        {index.detailed ? (
+          <>
+            <Facet
+              title="Theme"
+              note="What the comment says about the model."
+              options={hnThemes
+                .map((value) => ({
+                  value,
+                  label: themeLabel(value),
+                  count: byTheme.get(value) ?? 0,
+                }))
+                .filter((option) => option.count > 0 || option.value === theme)
+                .sort((a, b) => b.count - a.count)}
+              value={theme}
+              onChange={setTheme}
+            />
+            <Facet
+              title="Task"
+              note="What the commenter was doing."
+              options={hnTasks
+                .map((value) => ({
+                  value,
+                  label: value,
+                  count: byTask.get(value) ?? 0,
+                }))
+                .filter((option) => option.count > 0 || option.value === task)
+                .sort(
+                  (a, b) =>
+                    Number(a.value === 'other') - Number(b.value === 'other') ||
+                    b.count - a.count,
+                )}
+              value={task}
+              onChange={setTask}
+            />
+          </>
+        ) : (
+          <Facet
+            title="Topic tag"
+            note="Automatic and coarse."
+            options={hnAspects
+              .map((value) => ({
+                value,
+                label: value,
+                count: byAspect[value],
+              }))
+              .sort((a, b) => b.count - a.count)}
+            value={aspect}
+            onChange={setAspect}
+          />
+        )}
         <Facet
           title="Label confidence"
           options={confidences.map((value) => ({
@@ -348,6 +402,24 @@ function Explorer({
               onClick={() => setAspect(null)}
             >
               Topic: {aspect} <X size={12} />
+            </button>
+          )}
+          {theme && (
+            <button
+              type="button"
+              className="rd-chip rd-chip-active"
+              onClick={() => setTheme(null)}
+            >
+              Theme: {themeLabel(theme)} <X size={12} />
+            </button>
+          )}
+          {task && (
+            <button
+              type="button"
+              className="rd-chip rd-chip-active"
+              onClick={() => setTask(null)}
+            >
+              Task: {task} <X size={12} />
             </button>
           )}
           {confidence && (

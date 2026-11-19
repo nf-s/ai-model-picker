@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { formatHnDate } from '../../lib/hn-client';
-import { filterComments } from '../../lib/hn-insights';
+import { filterComments, themeLabel } from '../../lib/hn-insights';
 import type {
   CommentIndex,
   HnFilter,
@@ -238,11 +238,14 @@ export function Labels({
             </span>
           </>
         );
+        const tags = label.themes?.length
+          ? label.themes.map(themeLabel)
+          : label.aspects;
         return (
           <li
             key={label.key}
             className={label.key === focusKey ? 'cv-label-focus' : undefined}
-            title={`${sentimentLabels[label.sentiment]} · ${label.confidence} confidence${label.aspects.length ? ` · ${label.aspects.join(', ')}` : ''}`}
+            title={`${sentimentLabels[label.sentiment]} · ${label.confidence} confidence${tags.length ? ` · ${tags.join(', ')}` : ''}`}
           >
             {onPickTarget && label.key !== focusKey ? (
               <button type="button" onClick={() => onPickTarget(label.key)}>
@@ -549,14 +552,24 @@ export function ParentQuote({
 function ThreadNode({
   node,
   lines,
+  claims,
   index,
   focusKey,
   onPickTarget,
-}: ContextProps & { node: CommentNode; lines: number }) {
+}: ContextProps & { node: CommentNode; lines: number; claims: boolean }) {
   const { row } = node;
+  const claim = claims ? row.claim : undefined;
+  const [opened, setOpened] = useState(false);
+  // With claims, a comment's own text is read only once it is opened.
+  const folded = claim !== undefined && !opened;
+  const own = useHnItems(claim !== undefined && opened ? [row.id] : []);
   const item = hnItem(row.id);
   const [path, setPath] = useState(false);
   const [replies, setReplies] = useState(false);
+  const themes = useMemo(
+    () => [...new Set(row.assessments.flatMap((label) => label.themes ?? []))],
+    [row],
+  );
   // Labelled replies are nested below or held back by trimming, so the
   // plain reply list leaves both out.
   const nested = useMemo(
@@ -567,7 +580,7 @@ function ThreadNode({
   const others = item ? Math.max(0, item.replyCount - nested.size) : 0;
   return (
     <li className="cv-node">
-      {node.detached && (
+      {node.detached && !folded && (
         <div className="cv-node-above">
           {path ? (
             <AncestorChain
@@ -596,7 +609,9 @@ function ThreadNode({
         </div>
       )}
       <div
-        className={node.detached ? 'cv-node-own cv-node-reply' : 'cv-node-own'}
+        className={
+          node.detached && !folded ? 'cv-node-own cv-node-reply' : 'cv-node-own'
+        }
       >
         <CommentHead
           id={row.id}
@@ -604,9 +619,39 @@ function ThreadNode({
           row={row}
           focusKey={focusKey}
           onPickTarget={onPickTarget}
-        />
-        <ItemText item={item} lines={lines} />
-        {others > 0 && (
+        >
+          {node.detached && folded && <span className="cv-kicker">Reply</span>}
+        </CommentHead>
+        {claim !== undefined && (
+          <p className="cv-claim">
+            {claim}
+            {themes.length > 0 && (
+              <span className="cv-themes">
+                {' '}
+                {themes.map(themeLabel).join(' · ')}
+              </span>
+            )}
+          </p>
+        )}
+        {!folded && <ItemText item={item} lines={lines} />}
+        {claim !== undefined && (
+          <>
+            <LoadNote
+              failed={own.failed}
+              retry={own.retry}
+              what="The comment"
+            />
+            <button
+              type="button"
+              className="cv-toggle"
+              aria-expanded={opened}
+              onClick={() => setOpened(!opened)}
+            >
+              {opened ? 'Hide comment' : 'Show comment'}
+            </button>
+          </>
+        )}
+        {!folded && others > 0 && (
           <button
             type="button"
             className="cv-toggle"
@@ -620,18 +665,19 @@ function ThreadNode({
           </button>
         )}
       </div>
-      {(replies || node.replies.length > 0) && (
+      {((replies && !folded) || node.replies.length > 0) && (
         <div className="cv-node-below">
           {node.replies.length > 0 && (
             <ThreadNodes
               nodes={node.replies}
               lines={lines}
+              claims={claims}
               index={index}
               focusKey={focusKey}
               onPickTarget={onPickTarget}
             />
           )}
-          {replies && (
+          {replies && !folded && (
             <ReplyTree
               id={row.id}
               index={index}
@@ -649,13 +695,20 @@ function ThreadNode({
 // Labelled comments of one story as a reply tree, from nestComments or
 // trimNodes. A comment whose parent is not labelled shows that parent above
 // it. The caller reads the comments' text with useHnItems(nodeIds(nodes)).
+// With `claims`, a comment that has a claim shows it in place of its text
+// until opened, and the caller reads only unclaimedIds(nodes).
 export function ThreadNodes({
   nodes,
   index,
   focusKey,
   onPickTarget,
   lines = 8,
-}: ContextProps & { nodes: readonly CommentNode[]; lines?: number }) {
+  claims = false,
+}: ContextProps & {
+  nodes: readonly CommentNode[];
+  lines?: number;
+  claims?: boolean;
+}) {
   return (
     <ol className="cv-nodes">
       {nodes.map((node) => (
@@ -663,6 +716,7 @@ export function ThreadNodes({
           key={node.row.id}
           node={node}
           lines={lines}
+          claims={claims}
           index={index}
           focusKey={focusKey}
           onPickTarget={onPickTarget}

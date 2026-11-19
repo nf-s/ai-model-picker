@@ -308,6 +308,33 @@
   font-size: 11.5px;
   white-space: nowrap;
 }
+/* Themes from the full index: wider counts and a positive-share column. */
+.rd-mf-said .rd-mf-theme summary,
+.rd-mf-said-cols {
+  grid-template-columns: minmax(0, 1fr) 52px 96px 40px;
+}
+.rd-mf-said-cols {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 4px;
+  color: var(--rd-ink3);
+  font-size: 11.5px;
+}
+.rd-mf-said-cols span:not(:first-child),
+.rd-mf-theme-share {
+  text-align: right;
+}
+.rd-mf-said .rd-mf-theme-name {
+  text-transform: capitalize;
+}
+.rd-mf-theme-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0 0 10px 14px;
+  font-size: 12px;
+}
 .rd-mf-subhead {
   margin-top: 6px;
   font-size: 12.5px;
