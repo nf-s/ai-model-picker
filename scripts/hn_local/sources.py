@@ -182,11 +182,7 @@ def build_plan(source, first_item=None, last_item=None, window=None, previous_la
             raise PipelineError('firebase-item-range')
     anchor = previous_last if previous_last is not None and first <= previous_last < last else last
     tail_source = 'clickhouse-and-firebase' if source == 'archive-and-tail' else 'firebase'
-    tail = []
-    for start, end in ((anchor + 1, last), (first, anchor)):
-        for upper in range(end, start - 1, -TAIL_PARTITION_SIZE):
-            lower = max(start, upper - TAIL_PARTITION_SIZE + 1)
-            tail.append(Partition(f'items-{lower}-{upper}', tail_source, upper - lower + 1, lower, upper))
+    tail = [*tail_partitions(anchor + 1, last, tail_source), *tail_partitions(first, anchor, tail_source)]
     plan_first = min(
         (p.first_item for p in archive if p.first_item is not None), default=min(first, last),
     )
@@ -195,6 +191,15 @@ def build_plan(source, first_item=None, last_item=None, window=None, previous_la
         full_range=source == 'firebase' and window is None and first == 1 and last == maximum,
         window=window,
     )
+
+
+def tail_partitions(first, last, source):
+    """Partitions of at most TAIL_PARTITION_SIZE items covering first..last, newest first."""
+    partitions = []
+    for upper in range(last, first - 1, -TAIL_PARTITION_SIZE):
+        lower = max(first, upper - TAIL_PARTITION_SIZE + 1)
+        partitions.append(Partition(f'items-{lower}-{upper}', source, upper - lower + 1, lower, upper))
+    return partitions
 
 
 def scoped_archive(revision, archive, window):

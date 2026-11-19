@@ -17,7 +17,9 @@ from hn_local.classify import (
     parse_review, plain, review_prompt, sanitize_html,
 )
 from hn_local.clickhouse import CLICKHOUSE_BATCH_SIZE, ClickHouseReader
-from hn_local.sources import RECONCILE_ID, FirebaseReader, Partition, PipelineError, archive_pages, build_plan
+from hn_local.sources import (
+    RECONCILE_ID, FirebaseReader, Partition, PipelineError, archive_pages, build_plan, get_maxitem, tail_partitions,
+)
 from hn_local.state import Counters, Found, State, writer_lock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,6 +41,9 @@ BACKENDS = {
 KNOWN_ITEMS = 20_000
 MAX_THREAD_DEPTH = 128
 STORY_KINDS = ('story', 'poll')
+# Threads walked before an extension are walked again when their story is this recent. In the run of
+# 17 November 2026, no thread older than 30 days had a comment more than 28 days after its story.
+REWALK_DAYS = 30
 
 
 def positive_integer(text):
@@ -165,7 +170,8 @@ def walk_thread(firebase, story_id, window):
 def expand_stories(state, firebase, targets, classifier, classifier_key, stopped, certain_only=False):
     """Queue every comment under each story whose title names a target.
 
-    With certain_only, titles that need the model's judgement stay pending for a later run.
+    With certain_only, titles that need the model's judgement stay pending for a later run. A pending
+    story that has comments was walked before the window was extended, so its title was accepted then.
     """
     window = state.scan_window()
     progress = Progress(state)
@@ -173,9 +179,10 @@ def expand_stories(state, firebase, targets, classifier, classifier_key, stopped
         if stopped():
             return
         named = story_targets(targets, story)
-        if certain_only and named and not story['certain']:
+        accepted = story['certain'] or story['comments'] > 0
+        if certain_only and named and not accepted:
             continue
-        if not named or not (story['certain'] or classifier.about_story(story['title'], named)):
+        if not named or not (accepted or classifier.about_story(story['title'], named)):
             state.reject_story(story['item_id'])
         else:
             state.expand_story(classifier_key, story['item_id'], walk_thread(firebase, story['item_id'], window))
@@ -432,6 +439,20 @@ def migrate_window(state, job):
         state.restrict_to_plan(plan)
 
 
+def extend_window(state, now=None):
+    """Extend a finished or paused archive-and-tail run to the present, for `run` to scan and review."""
+    job = state.job()
+    if job is None:
+        raise PipelineError('no-checkpoint')
+    window = state.scan_window(job)
+    if window is None:
+        raise PipelineError('checkpoint-configuration-mismatch')
+    end = int(time.time()) if now is None else now
+    last = get_maxitem()
+    partitions = tail_partitions(job['last_item'] + 1, last, 'clickhouse-and-firebase')
+    state.extend(end, last, partitions, window.end - REWALK_DAYS * 86_400)
+
+
 def build_classifier(args):
     if args.backend == 'anthropic':
         # Imported here so that the other commands and the local backend do not load the SDK.
@@ -585,7 +606,10 @@ def arguments():
     export = commands.add_parser('export', help='Rebuild the two sanitized JSON snapshots')
     migrate = commands.add_parser('migrate', help='Restrict an existing archive checkpoint to six months')
     backfill = commands.add_parser('context', help='Store parent and story IDs and story titles, without the model')
-    for command in (scan, status, export, migrate, backfill):
+    extend = commands.add_parser(
+        'extend', help='Move the end of the saved window to now, for the next run to collect and review',
+    )
+    for command in (scan, status, export, migrate, backfill, extend):
         command.add_argument('--state-dir', type=Path, default=STATE_DIR)
     for command in (scan, backfill):
         command.add_argument('--workers', type=int, choices=range(1, 65), default=16, metavar='1..64')
@@ -638,6 +662,10 @@ def main():
                 export_progress(state)
                 return 0
             if args.command == 'export':
+                export_progress(state)
+                return 0
+            if args.command == 'extend':
+                extend_window(state)
                 export_progress(state)
                 return 0
             if args.command == 'context':

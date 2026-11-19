@@ -285,14 +285,14 @@ class State:
                 (classifier, classifier_key, int(time.time())),
             )
 
-    def insert_partitions(self, partitions):
+    def insert_partitions(self, partitions, first_sequence=0):
         self.connection.executemany(
             """INSERT INTO partition
                (id, sequence, source, expected_items, first_item, last_item, row_offset, archive_rows)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             [
                 (p.id, index, p.source, p.expected_items, p.first_item, p.last_item, p.row_offset, p.archive_rows)
-                for index, p in enumerate(partitions)
+                for index, p in enumerate(partitions, first_sequence)
             ],
         )
 
@@ -340,6 +340,31 @@ class State:
                 """UPDATE run SET archive_revision = ?, first_item = ?, last_item = ?, full_range = 0,
                    start_at = ?, end_at = ?, state = 'paused', reason = NULL, retry_failures = 0, updated = ?""",
                 (plan.archive_revision, plan.first_item, plan.last_item, window.start, window.end, int(time.time())),
+            )
+
+    def extend(self, end, last_item, partitions, rewalk_after):
+        """Move the end of the window and of the item range forward, keeping every review.
+
+        partitions cover the items after the old range and are scanned next. Walked stories created
+        from rewalk_after on are walked again, since their threads can have comments after the old end.
+        """
+        job = self.job()
+        window = self.scan_window(job)
+        if (
+            job is None or window is None or job['source'] != 'archive-and-tail'
+            or end <= window.end or last_item <= job['last_item']
+            or any(not job['last_item'] < p.first_item <= p.last_item <= last_item for p in partitions)
+        ):
+            raise PipelineError('checkpoint-configuration-mismatch')
+        sequence = self.connection.execute('SELECT COALESCE(MAX(sequence), -1) + 1 FROM partition').fetchone()[0]
+        with self.connection:
+            self.insert_partitions(partitions, sequence)
+            self.connection.execute(
+                "UPDATE story SET state = 'pending' WHERE state = 'expanded' AND created >= ?", (rewalk_after,),
+            )
+            self.connection.execute(
+                """UPDATE run SET last_item = ?, end_at = ?, state = 'paused', reason = NULL, updated = ?""",
+                (last_item, end, int(time.time())),
             )
 
     def ensure_reconciliation(self):
@@ -409,7 +434,8 @@ class State:
 
     def pending_stories(self):
         return list(self.connection.execute(
-            "SELECT item_id, title, targets, certain FROM story WHERE state = 'pending' ORDER BY item_id DESC"
+            """SELECT item_id, title, targets, certain, comments FROM story
+               WHERE state = 'pending' ORDER BY item_id DESC"""
         ))
 
     def story(self, item_id):

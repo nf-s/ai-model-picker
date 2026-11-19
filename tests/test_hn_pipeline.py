@@ -27,12 +27,12 @@ from hn_local.classify import (
 from hn_local.clickhouse import read_row
 from hn_local.sources import (
     RECONCILE_ID, DateWindow, FirebaseReader, Item, Partition, PipelineError, SourcePlan,
-    archive_pages, build_plan, clip_archive_partition, iso_time, read_item, recent_window, screened,
+    archive_pages, build_plan, clip_archive_partition, iso_time, read_item, recent_window, screened, tail_partitions,
 )
 from hn_local.state import Counters, State
 from hn_pipeline import (
-    arguments, consume_partition, expand_stories, mirror_pages, process_block, read_ancestors, reconcile_pages,
-    resolve_context, review_batches, review_comments, thread_root,
+    REWALK_DAYS, arguments, consume_partition, expand_stories, extend_window, mirror_pages, process_block,
+    read_ancestors, reconcile_pages, resolve_context, review_batches, review_comments, thread_root,
 )
 
 MODEL_FIXTURES = [
@@ -659,6 +659,56 @@ class TestState(unittest.TestCase):
             self.assertIsNone(state.story(1))
             self.assertEqual([(row['item_id'], row['root']) for row in state.queued(10)], [(3, None)])
 
+    def test_extension_moves_the_window_end_and_queues_new_items_after_the_old_ones(self):
+        tail = Partition('items-1-4', 'clickhouse-and-firebase', 4, 1, 4)
+        window = DateWindow(TIME, TIME + 20)
+        plan = SourcePlan('archive-and-tail', 'fixture-revision', 1, 4, (tail,), window=window)
+        new = [Partition('items-6-7', 'clickhouse-and-firebase', 2, 6, 7),
+               Partition('items-5-5', 'clickhouse-and-firebase', 1, 5, 5)]
+        items = [
+            story(1, 'GPT-6 Astra released', created=TIME),
+            story(2, 'GPT-6 Astra benchmarks', created=TIME + 10),
+            comment(3, 2, 'GPT-6 Astra is useful.', created=TIME + 11),
+        ]
+        with State(self.directory) as state:
+            state.initialize(plan, 'fixture', 'key')
+            state.ensure_reconciliation()
+            process_block(state, tail, 0, items, self.targets, 'key')
+            state.expand_story('key', 1, [(4, TIME + 1, 1)])
+            state.expand_story('key', 2, [(3, TIME + 11, 2)])
+            state.connection.execute('UPDATE comment SET failed_groups = 0')
+            state.connection.execute("UPDATE partition SET state = 'complete'")
+            state.set_run('complete')
+            for end, last, partitions in (
+                (TIME + 20, 7, new),
+                (TIME + 30, 4, ()),
+                (TIME + 30, 7, [Partition('items-4-7', 'clickhouse-and-firebase', 4, 4, 7)]),
+            ):
+                with self.subTest(end=end, last=last), self.assertRaises(PipelineError):
+                    state.extend(end, last, partitions, TIME + 5)
+            state.extend(TIME + 30, 7, new, TIME + 5)
+            status = state.status()
+            self.assertEqual((status['state'], status['reason']), ('paused', None))
+            self.assertEqual((status['lastItem'], status['endAt'], status['startAt']),
+                             (7, iso_time(TIME + 30), iso_time(TIME)))
+            self.assertEqual([p['id'] for p in status['partitions']][-2:], ['items-6-7', 'items-5-5'])
+            self.assertEqual(state.next_partition(), (new[0], 0))
+            # Only the walked story created from the cut-off on is walked again; reviews stay.
+            self.assertEqual([row['item_id'] for row in state.pending_stories()], [2])
+            self.assertEqual(state.story(1)['state'], 'expanded')
+            self.assertEqual(status['totals']['storiesPending'], 1)
+            self.assertEqual(status['totals']['classified'], 2)
+            self.assertEqual(state.queued(10), [])
+
+    def test_extension_needs_a_dated_archive_and_tail_run(self):
+        tail = Partition('items-1-4', 'firebase', 4, 1, 4)
+        with State(self.directory) as state:
+            with self.assertRaisesRegex(PipelineError, 'no-checkpoint'):
+                extend_window(state, TIME)
+            state.initialize(SourcePlan('firebase', None, 1, 4, (tail,), window=DateWindow(TIME, TIME + 20)), 'f', 'k')
+            with patch('hn_pipeline.get_maxitem', return_value=7), self.assertRaises(PipelineError):
+                extend_window(state, TIME + 30)
+
     def test_reconciliation_request_cap_allows_single_id_checkpoint(self):
         archive = Partition('data/2026/2026-08.parquet', 'archive', 1, 1, 3)
         plan = SourcePlan('archive-and-tail', 'fixture-revision', 1, 3, (archive,))
@@ -788,6 +838,37 @@ class TestPhases(unittest.TestCase):
         self.assertEqual(self.state.story(300)['state'], 'expanded')
         self.assertEqual(self.rows(), {301: (300, 300, 0)})
         self.assertEqual(self.state.status()['totals']['stories'], 1)
+
+    def test_an_extended_window_walks_recent_threads_again_without_judging_titles_again(self):
+        items = [
+            story(300, 'Claude keeps rewriting my tests', kids=(301, 302)),
+            comment(301, 300, 'Mine too.'),
+            comment(302, 300, 'Later reply.', created=TIME + 15),
+        ]
+        reviewer = Reviewer(about={'Claude keeps rewriting my tests'})
+        self.scan([items[0]])
+        self.expand(Firebase(items), reviewer)
+        self.review(Firebase(items), reviewer)
+        self.assertEqual(self.rows(), {301: (300, 300, 0)})
+        self.state.connection.execute("UPDATE partition SET state = 'complete'")
+        self.state.connection.execute("UPDATE run SET source = 'archive-and-tail'")
+        new = Partition('items-1001-1010', 'clickhouse-and-firebase', 10, 1001, 1010)
+        with patch('hn_pipeline.get_maxitem', return_value=1010):
+            extend_window(self.state, TIME + 20)
+        self.assertEqual(self.state.next_partition(), (new, 0))
+        # The title was accepted before, so a reviewer that now accepts nothing is not asked again.
+        judge = Reviewer()
+        self.expand(Firebase(items), judge)
+        self.assertEqual(judge.titles, [])
+        self.assertEqual(self.state.story(300)['state'], 'expanded')
+        self.assertEqual(self.rows(), {301: (300, 300, 0), 302: (300, 300, 0)})
+        self.assertEqual([row['item_id'] for row in self.state.queued(10)], [302])
+        self.assertEqual(self.state.status()['totals']['classified'], 1)
+        # A story recorded by the new scan is still judged by its title.
+        self.state.connection.execute("UPDATE story SET state = 'pending', comments = 0 WHERE item_id = 300")
+        self.expand(Firebase(items), judge)
+        self.assertEqual(judge.titles, ['Claude keeps rewriting my tests'])
+        self.assertEqual(self.state.story(300)['state'], 'rejected')
 
     def test_collecting_without_the_model_leaves_uncertain_titles_pending(self):
         items = [
@@ -1233,6 +1314,14 @@ class TestSources(unittest.TestCase):
         self.assertEqual(plan.first_item, 101)
         self.assertEqual([p.id for p in plan.partitions[:3]], ['items-20501-20505', 'items-10501-20500', 'items-501-10500'])
         self.assertEqual(plan.partitions[-2:], (archive, clipped))
+
+    def test_tail_partitions_run_newest_first_in_fixed_sizes(self):
+        self.assertEqual(
+            [(p.id, p.expected_items) for p in tail_partitions(5, 25_004, 'clickhouse-and-firebase')],
+            [('items-15005-25004', 10_000), ('items-5005-15004', 10_000), ('items-5-5004', 5_000)],
+        )
+        self.assertEqual(tail_partitions(6, 5, 'firebase'), [])
+        self.assertEqual(REWALK_DAYS, 30)
 
     def test_archive_watermark_and_bounded_official_range(self):
         archive = Partition('data/2026/2026-08.parquet', 'archive', 200, 200, 400)
