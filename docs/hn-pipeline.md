@@ -84,7 +84,7 @@ A reply that fails validation, or a request that ends in an error, counts as a f
 
 `Ctrl+C` or `SIGTERM` pauses the command but leaves the batches already sent running at Anthropic, where they are still charged. The next `run` stores their results before sending anything new. Results stay retrievable for 29 days. If the command dies between a batch's creation and the write that records it, that batch is charged but never read, and its comments are sent again.
 
-After each stored batch the command prints a line with the batch ID, the number of reviews stored and the running token counts for the invocation (`inputTokens`, `cacheReadTokens`, `cacheWriteTokens` and `outputTokens`).
+After each stored batch the command prints a line with the batch ID, the number of reviews stored and the running token counts for the invocation (`inputTokens`, `cacheReadTokens`, `cacheWriteTokens` and `outputTokens`). The counts include the title checks made earlier in the same invocation.
 
 ## Runs, models and files
 
