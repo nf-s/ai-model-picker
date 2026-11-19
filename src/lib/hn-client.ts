@@ -6,7 +6,8 @@ import { hnPublished, loadHnSnapshot } from './hn-published';
 export { hnClassifierCheck, hnSentimentSchema } from './hn-schema';
 export type { HnResponse } from './hn-schema';
 
-export const hnSources = [
+const publicAccess = 'Public; no account required';
+const publicSources = [
   {
     id: 'hn-archive',
     name: 'HN historical archive',
@@ -30,19 +31,28 @@ export const hnSources = [
     coverage: 'Public item lookups and historical ID gap checks.',
     limitations: 'Deleted and unavailable content cannot be recovered.',
   },
+];
+export const hnSources = [
+  ...publicSources.map((source) => ({ ...source, access: publicAccess })),
   {
-    id: 'hn-local-classifier',
-    name: `${hnClassifierCheck.modelName} local classifier`,
+    id: 'hn-classifier',
     url: hnClassifierCheck.modelUrl,
-    coverage: 'Public model weights for automated sentiment classification.',
     limitations:
-      'Experimental labels from masked context; see the local quality check.',
+      'Experimental labels; see the quality check under Hacker News collection.',
+    ...(hnClassifierCheck.backend === 'local'
+      ? {
+          name: `${hnClassifierCheck.modelName} local classifier`,
+          coverage:
+            'Public model weights for automated sentiment classification.',
+          access: publicAccess,
+        }
+      : {
+          name: `${hnClassifierCheck.modelName} through the Anthropic API`,
+          coverage: 'Hosted model for automated sentiment classification.',
+          access: 'Paid API; account required',
+        }),
   },
-].map((source) => ({
-  ...source,
-  kind: 'Local HN analysis',
-  access: 'Public; no account required',
-}));
+].map((source) => ({ ...source, kind: 'Local HN analysis' }));
 const hnDateFormat = new Intl.DateTimeFormat('en-AU', {
   day: 'numeric',
   month: 'short',

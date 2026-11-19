@@ -1,21 +1,29 @@
 import { z } from 'zod';
 import rawCheck from '../../research/hn-classifier-check.json' with { type: 'json' };
 const count = z.number().int().nonnegative();
+const checkFields = {
+  checkedAt: z.iso.date(),
+  classifierId: z.string().min(1),
+  modelName: z.string().min(1),
+  modelUrl: z.httpUrl(),
+  referenceAssessments: count,
+  agrees: count,
+  disagrees: count,
+  oppositePolarity: count,
+  unclear: count,
+  targetMissed: count,
+  failed: count,
+};
+// The backend names match the pipeline's --backend option.
 export const hnClassifierCheck = z
-  .object({
-    checkedAt: z.iso.date(),
-    classifierId: z.string().min(1),
-    modelName: z.string().min(1),
-    modelUrl: z.httpUrl(),
-    downloadGigabytes: z.number().positive(),
-    referenceAssessments: count,
-    agrees: count,
-    disagrees: count,
-    oppositePolarity: count,
-    unclear: count,
-    targetMissed: count,
-    failed: count,
-  })
+  .discriminatedUnion('backend', [
+    z.object({
+      ...checkFields,
+      backend: z.literal('local'),
+      downloadGigabytes: z.number().positive(),
+    }),
+    z.object({ ...checkFields, backend: z.literal('anthropic') }),
+  ])
   .refine(
     (value) =>
       value.agrees +

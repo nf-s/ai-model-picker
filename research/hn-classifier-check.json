@@ -1,14 +1,14 @@
 {
-  "checkedAt": "2026-11-16",
-  "classifierId": "qwen3-4b-instruct-2507-4bit-v3",
-  "modelName": "Qwen3 4B",
-  "modelUrl": "https://huggingface.co/mlx-community/Qwen3-4B-Instruct-2507-4bit",
-  "downloadGigabytes": 2.3,
+  "checkedAt": "2026-11-18",
+  "classifierId": "claude-haiku-5.5-thread-v1",
+  "backend": "anthropic",
+  "modelName": "Claude Haiku 5.5",
+  "modelUrl": "https://www.anthropic.com/claude/haiku",
   "referenceAssessments": 37,
-  "agrees": 21,
-  "disagrees": 11,
-  "oppositePolarity": 3,
-  "unclear": 3,
+  "agrees": 22,
+  "disagrees": 12,
+  "oppositePolarity": 1,
+  "unclear": 1,
   "targetMissed": 2,
   "failed": 0
 }

@@ -48,6 +48,8 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
   const checkApplies = status?.classifier === hnClassifierCheck.classifierId;
   const active = data?.runner.active ?? false;
   const external = data?.runner.external ?? false;
+  const hosted =
+    external || (checkApplies && hnClassifierCheck.backend !== 'local');
   const totalExpected =
     status?.partitions.reduce((sum, part) => sum + part.expectedItems, 0) ?? 0;
   const scanned = status?.totals.itemsScanned ?? 0;
@@ -179,11 +181,22 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
         )}
         {!hnPublished && blocked && (
           <p className="rd-alert rd-dp-alert" role="status">
-            The scan stopped before completion.{' '}
-            {external
-              ? 'Running it again from a terminal resumes from its checkpoint.'
-              : 'Retry resumes from its checkpoint.'}{' '}
-            {status.reason && <span>{status.reason}.</span>}
+            {status.reason === 'classification-unresolved' ? (
+              <>
+                {unresolved.toLocaleString()} comments have no valid review.{' '}
+                {external
+                  ? 'Running the review again from a terminal sends them once more.'
+                  : 'Retry sends them once more.'}
+              </>
+            ) : (
+              <>
+                The scan stopped before completion.{' '}
+                {external
+                  ? 'Running it again from a terminal resumes from its checkpoint.'
+                  : 'Retry resumes from its checkpoint.'}{' '}
+                {status.reason && <span>{status.reason}.</span>}
+              </>
+            )}
           </p>
         )}
         {data?.runner.message && (
@@ -230,7 +243,7 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
             </div>
             <div>
               <dt>Inference API charges</dt>
-              <dd>{external ? 'Not tracked here' : '$0'}</dd>
+              <dd>{hosted ? 'Not tracked here' : '$0'}</dd>
             </div>
           </dl>
           <p className="rd-note">
@@ -293,18 +306,19 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
                 {hnClassifierCheck.agrees} of{' '}
                 {hnClassifierCheck.referenceAssessments} labels matched an
                 earlier AI review. {hnClassifierCheck.disagrees} differed,
-                including {hnClassifierCheck.oppositePolarity} opposite
-                positive/negative labels. {hnClassifierCheck.unclear} were
-                unclear and {hnClassifierCheck.targetMissed} targets were
+                including {hnClassifierCheck.oppositePolarity} with the opposite
+                sign. {hnClassifierCheck.unclear} had no clear stance and{' '}
+                {hnClassifierCheck.targetMissed === 1
+                  ? '1 target was'
+                  : `${hnClassifierCheck.targetMissed} targets were`}{' '}
                 missed.
                 {hnClassifierCheck.failed > 0 && (
                   <> {hnClassifierCheck.failed} classifications failed.</>
                 )}
               </p>
               <p>
-                The reference uses fuller context and has no independent human
-                validation. Read the original comments before using a label to
-                choose a model.
+                The reference has no independent human validation. Read the
+                original comments before using a label to choose a model.
               </p>
             </div>
           )}
@@ -318,11 +332,13 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
                 counted separately.
               </p>
               <p>
-                A text filter identifies model and app mentions. The classifier
-                reads short, privacy-masked windows around each mention. It can
-                miss comments without recognizable names and replies that depend
-                on discussion context. Archived records reflect a source
-                snapshot.
+                A text filter finds comments that name a model or app. Every
+                comment in a thread whose story title names one is included. The
+                classifier reads each comment with the text it replies to and
+                the story title, after links, contact details, handles, quoted
+                lines and code are removed. Outside those threads it misses
+                comments that do not name a model. Archived records reflect a
+                source snapshot.
               </p>
               <p>
                 Unspecified versions are kept as family feedback. Unresolved
@@ -332,23 +348,32 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
             </div>
             <div className="rd-dp-block">
               <h3>{hnPublished ? 'Published data' : 'On this computer'}</h3>
-              {!hnPublished && (
-                <p>
-                  The quantized model uses local compute and electricity.
-                  Initial setup downloads about{' '}
-                  {hnClassifierCheck.downloadGigabytes} GB of model files.
-                </p>
-              )}
+              {!hnPublished &&
+                (hnClassifierCheck.backend === 'local' ? (
+                  <p>
+                    The quantized model uses local compute and electricity.
+                    Initial setup downloads about{' '}
+                    {hnClassifierCheck.downloadGigabytes} GB of model files.
+                  </p>
+                ) : (
+                  <p>
+                    The review ran through the Anthropic API from a terminal. It
+                    is paid and sends each comment, the text it replies to and
+                    the story title to Anthropic after links, contact details
+                    and handles are removed.
+                  </p>
+                ))}
               <p>
                 {hnPublished
-                  ? 'The snapshot contains IDs, timestamps and classifications.'
-                  : 'Comment bodies are processed in memory. Saved data contains IDs, timestamps, classifications and checkpoints.'}{' '}
+                  ? 'The snapshot contains IDs, timestamps, classifications, story titles and one-sentence claims written by the classifier.'
+                  : 'Comment bodies are processed in memory. Saved data contains IDs, timestamps, classifications, story titles, one-sentence claims written by the classifier and checkpoints.'}{' '}
                 The reader loads original wording from Hacker News as you
                 browse. Parent context and replies can extend beyond the scan
                 dates.
               </p>
               <p>
                 {!hnPublished &&
+                  !external &&
                   'Pause keeps progress. Resume continues the same pinned run. '}
                 The quality check uses earlier AI assessments as its reference.
               </p>

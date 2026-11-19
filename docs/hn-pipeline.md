@@ -86,25 +86,27 @@ A reply that fails validation, or a request that ends in an error, counts as a f
 
 After each stored batch the command prints a line with the batch ID, the number of reviews stored and the running token counts for the invocation (`inputTokens`, `cacheReadTokens`, `cacheWriteTokens` and `outputTokens`). The counts include the title checks made earlier in the same invocation.
 
+The run the app serves was reviewed this way on 19 November 2026 with Claude Haiku 5.5. It sent 186,960 comments in 38 batches and the 707 invalid replies in one more, finished in 1 hour 56 minutes and cost about US$6.94 at batch rates. 331 comments still have no valid review. The measurements are in [verification](verification.md#thread-pipeline).
+
 ## Runs, models and files
 
 All local state is in ignored `.local/hn/` directories.
 
-| Path                                 | Contents                                                                                                                                     |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.local/hn/`                         | The previous analysis: `checkpoint.sqlite3`, `status.json` and `results.json`, produced by classifier `qwen3-4b-instruct-2507-4bit-v3`.      |
-| `.local/hn/threads/`                 | The `hn-thread-v1` run, reviewed locally or through the Anthropic API, with the same three files.                                            |
-| `.local/hn/models/qwen3.8-27b-4bit/` | Model weights from `mlx-community/Qwen3.8-27B-4bit` at a pinned revision with checksums. The download is 16.1 GB; the licence is Apache-2.0. |
+| Path                                 | Contents                                                                                                                                                            |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.local/hn/`                         | The previous analysis: `checkpoint.sqlite3`, `status.json` and `results.json`, produced by classifier `qwen3-4b-instruct-2507-4bit-v3`. No longer served.           |
+| `.local/hn/threads/`                 | The `hn-thread-v1` run, reviewed locally or through the Anthropic API, with the same three files. The current one was reviewed by Claude Haiku 5.5 through the API. |
+| `.local/hn/models/qwen3.8-27b-4bit/` | Model weights from `mlx-community/Qwen3.8-27B-4bit` at a pinned revision with checksums. The download is 16.1 GB; the licence is Apache-2.0.                        |
 
 The classifier ID for the local run is `qwen3.8-27b-4bit-thread-v1`, and for a run through the Anthropic API `claude-haiku-5.5-thread-v1`. The local model is served through an OpenAI-compatible loopback endpoint. The CLI also accepts an Ollama-compatible loopback endpoint with `--endpoint`, `--model` and `--classifier-id`. A checkpoint is tied to one classifier, pipeline version and target list; `run` refuses a mismatch, so use a separate state directory when any of them changes. The exception is a checkpoint that no model has touched, such as one made with `--collect-only`: its queue does not depend on the model, so `run` continues it with a different classifier.
 
-The previous analysis keeps being served by the app and the dev API, and exported, until the new run has reviewed everything. The controller and the export switch to `.local/hn/threads/` when all its partitions are complete, no stories are pending and no comments are queued. Unresolved failures do not block the switch. While the new run is in progress, the Data page status shows its progress and `runner.showingPrevious` is true.
+The controller and the export use `.local/hn/threads/` once all its partitions are complete, no stories are pending and no comments are queued. Unresolved failures do not hold that back. Until then the app, the dev API and the export keep using the previous analysis, the Data page status shows the new run's progress and `runner.showingPrevious` is true. The switch happened on 19 November 2026, when the review through the Anthropic API finished.
 
 The scan uses no paid model API, and neither does the local backend. Collection transfers only the selected archive portions, recent data and scoped gap checks; the thread and review phases add official API requests for each walked story and each reviewed comment and its parent. The 6.8 GB full-archive measurement in the source audit is not the current run target.
 
 ## Coverage
 
-The default plan uses six calendar months in Australia/Hobart time, from midnight on the starting date to the time the run starts. The previous analysis's saved window is **16 May–16 November 2026**; a new run pins its own window when its first `run` starts. `startAt` and `endAt` expose the inclusive UTC bounds; the app displays Hobart dates. Resume preserves the saved window.
+The default plan uses six calendar months in Australia/Hobart time, from midnight on the starting date to the time the run starts. The served run's saved window is **17 May–17 November 2026**, and the previous analysis covered 16 May–16 November. A new run pins its own window when its first `run` starts. `startAt` and `endAt` expose the inclusive UTC bounds; the app displays Hobart dates. Resume preserves the saved window.
 
 Recent records come from bounded ranges in the public ClickHouse HN mirror, with official Firebase lookups for missing or malformed items. Archive selection excludes months before the cutoff. The boundary month is trimmed using ID/time metadata before comment text is read. The scan and thread walks check each comment's timestamp, so a reply outside the window is not queued even when its story is inside it. Archive gap reconciliation starts at the first in-scope ID, not ID 1.
 
@@ -132,9 +134,11 @@ Use the counts to find examples and recurring topics among the people who commen
 
 ## Known limitations
 
-The review is slow. On an M4 Max with 64 GB the 27B model reviews about 0.5 comments a second with 8 parallel requests, and more parallel requests did not raise that, so the roughly 190,000 queued comments take four to five days. Two faster local models were tested on 18 November 2026 and rejected for label quality (see below).
+The local review is slow. On an M4 Max with 64 GB the 27B model reviews about 0.5 comments a second with 8 parallel requests, and more parallel requests did not raise that, so the roughly 190,000 queued comments take four to five days. Two faster local models were tested on 18 November 2026 and rejected for label quality (see below). Through the Anthropic API the same queue took under two hours.
 
-The new classifier differs from the reference labels in about a third of checked pairs (see below). Thread walks depend on the official HN API at the time of the run, so comments deleted since posting are missed. Outside threads whose title names a model, a comment is found only when its own text names one. The previous analysis, which the app serves until the switch, saw only allowlisted words in short windows around a model name, so it can miss implicit references, sarcasm and context.
+The classifier of the served run, Claude Haiku 5.5, differs from the reference labels in about a third of checked pairs and leans neutral: 11 of its 12 holdout disagreements returned neutral for a positive reference (see below). Thread walks depend on the official HN API at the time of the run, so comments deleted since posting are missed. Outside threads whose title names a model, a comment is found only when its own text names one.
+
+A comment whose scrubbed text is only the mark for a removed link leaves the model nothing to label, and Haiku 5.5 tends to say so in a sentence before the JSON, which fails validation. Most of the served run's 331 unresolved failures are such comments. Another 34 of the 331 were refused by the model with no output.
 
 ## In-app discussion reader
 
@@ -153,13 +157,13 @@ The Discussion threads use `story`, `parent` and `stories`. No view shows `task`
 
 The service fetches public bodies only when they are requested for display. It strips account fields, decodes markup to plain text and sends responses with `Cache-Control: no-store`. React renders escaped text. Bodies fetched for display are not written to checkpoint files or logs. A five-minute memory cache is limited to 512 items and 8 MB.
 
-The [published app](https://ai-model-picker.pages.dev/) uses the same discussion reader with an exported comment index and direct browser requests to HN. It displays the snapshot publication time, does not poll the local controller, and has no start/pause controls. Once a run made by `hn-thread-v1` is exported, the published files also include scrubbed story titles, claims, themes, task, preferences and the story ID. Rebuilding and publishing updates its results. See [deployment](deployment.md).
+The [published app](https://ai-model-picker.pages.dev/) uses the same discussion reader with an exported comment index and direct browser requests to HN. It displays the snapshot publication time, does not poll the local controller, and has no start/pause controls. Once a run made by `hn-thread-v1` is exported, the published files also include scrubbed story titles, claims, themes, task, preferences and the story ID. Rebuilding and publishing updates its results. The served run has not been published: its comment index is 38.5 MB, above the 25 MiB that Cloudflare Pages accepts for one file. See [deployment](deployment.md).
 
 Thread requests follow parents to the root, with a bounded ancestry walk and an explicit incomplete-context flag. Replies paginate by ascending ID so changes in HN ranking cannot skip existing replies. Each branch can be expanded inside the app. Individual fetch failures leave retryable placeholders and do not block later pages. Deleted content is unavailable. Parent and reply context can fall outside the collection window; browsing it does not classify it or alter coverage counts.
 
 ## Agreement with reviewed feedback
 
-`research/hn-classifier-check.json` and the first table describe the previous classifier, `qwen3-4b-instruct-2507-4bit-v3`, which produced the analysis currently served. The export refuses a run whose classifier ID differs from that record. The record is to be replaced with the new classifier's check when the new run is complete, so the new run cannot be published until then. The new classifier's check is under [New classifier](#new-classifier).
+`research/hn-classifier-check.json` describes the classifier of the served run, `claude-haiku-5.5-thread-v1`. It holds the holdout row of that classifier's check, which is under [New classifier](#new-classifier), with the pair that got no stance counted as unclear. Its `backend` is `local` or `anthropic`, as in the pipeline's `--backend` option, and a local record also gives the size of the model download. The export refuses a run whose classifier ID differs from the record. The first table below describes the previous classifier, `qwen3-4b-instruct-2507-4bit-v3`.
 
 The 16 November 2026 check compared local labels with the app's prior AI assessments for explicit exact-model mentions. Comments were split by item ID. The development sample contains 20 comments stratified by reference sentiment. The remaining 24 comments contribute 37 held-out assessments, which also informed the choice between the trial configurations. The reference labels have no independent human validation.
 
