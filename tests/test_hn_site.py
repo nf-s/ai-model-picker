@@ -32,7 +32,7 @@ class TestPublishedExport(unittest.TestCase):
         self.addCleanup(directory.cleanup)
         self.directory = Path(directory.name)
         self.output = self.directory / 'hn-snapshot.json'
-        self.comments = self.directory / 'hn-comments.json'
+        self.comments = self.directory / 'hn-comments-1.json'
         plan = SourcePlan(
             'firebase', None, 1, 100, (Partition('items-1-100', 'firebase', 100, 1, 100),),
             False, DateWindow(START, END),
@@ -98,6 +98,9 @@ class TestPublishedExport(unittest.TestCase):
         comments_text = self.comments.read_text(encoding='utf-8')
         snapshot, collection = self.read()
         self.assertEqual(snapshot['publishedAt'], collection['publishedAt'])
+        self.assertEqual(snapshot['commentParts'], 1)
+        self.assertEqual(sorted(path.name for path in self.directory.glob('hn-*.json')),
+                         ['hn-comments-1.json', 'hn-snapshot.json'])
         self.assertEqual([row['id'] for row in collection['comments']], [19, 18, 10])
         self.assertEqual(collection['comments'][2]['createdAt'], iso_time(START))
         totals = snapshot['status']['totals']
@@ -116,6 +119,37 @@ class TestPublishedExport(unittest.TestCase):
         self.assertNotIn('comments', snapshot)
         self.assertNotIn('synthetic-private-', snapshot_text + comments_text)
         self.assertNotIn('classifier_key', snapshot_text + comments_text)
+
+    def test_comments_are_split_into_parts_under_the_size_limit(self):
+        self.assertEqual(export_snapshot(self.directory, self.output, part_bytes=1), 3)
+        snapshot = json.loads(self.output.read_text(encoding='utf-8'))
+        self.assertEqual(snapshot['commentParts'], 3)
+        parts = [
+            json.loads((self.directory / f'hn-comments-{number}.json').read_text(encoding='utf-8'))
+            for number in (1, 2, 3)
+        ]
+        self.assertEqual([[row['id'] for row in part['comments']] for part in parts], [[19], [18], [10]])
+        self.assertEqual({part['publishedAt'] for part in parts}, {snapshot['publishedAt']})
+        self.assertEqual(len(parts[0]['stories']), 2)
+        self.assertNotIn('stories', parts[1])
+        self.assertNotIn('stories', parts[2])
+        # Two comments fit a part that has room for them beside the stories.
+        sizes = [len(json.dumps(row, separators=(',', ':'))) + 1 for part in parts for row in part['comments']]
+        stories = len(json.dumps(parts[0]['stories'], separators=(',', ':')))
+        export_snapshot(self.directory, self.output, part_bytes=stories + sizes[0] + sizes[1])
+        snapshot, first = self.read()
+        self.assertEqual(snapshot['commentParts'], 2)
+        self.assertEqual([row['id'] for row in first['comments']], [19, 18])
+        # A later export with fewer parts leaves none of the earlier ones behind.
+        self.assertFalse((self.directory / 'hn-comments-3.json').exists())
+        export_snapshot(self.directory, self.output)
+        self.assertEqual(sorted(path.name for path in self.directory.glob('hn-comments-*.json')),
+                         ['hn-comments-1.json'])
+        # More parts than the reader accepts is an error, and nothing is replaced.
+        before = self.output.read_text(encoding='utf-8')
+        with patch.dict(export_snapshot.__globals__, {'MAX_PARTS': 2}), self.assertRaises(PipelineError):
+            export_snapshot(self.directory, self.output, part_bytes=1)
+        self.assertEqual(self.output.read_text(encoding='utf-8'), before)
 
     def test_queued_failed_and_off_topic_comments_are_not_listed(self):
         export_snapshot(self.directory, self.output)

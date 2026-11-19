@@ -19,6 +19,9 @@ STORY_STATES = ('pending', 'expanded', 'rejected', 'context')
 TITLE_LIMIT = 300
 STORY_TARGET_LIMIT = 20
 THREAD_TOTALS = ('commentsQueued', 'commentsAboutTargets', 'stories', 'storiesPending', 'threadComments')
+# Cloudflare Pages accepts at most 25 MiB for one file, so the comments are written in parts.
+PART_BYTES = 12 * 1024 * 1024
+MAX_PARTS = 16
 
 
 def check(condition):
@@ -116,6 +119,27 @@ def published_status(status, classifier, candidates, listed, classified, failed,
     }
 
 
+def compact(value):
+    return json.dumps(value, ensure_ascii=True, separators=(',', ':'))
+
+
+def comment_parts(comments, stories, limit):
+    """Split the comments, in order, into runs that each stay near `limit` bytes of JSON.
+
+    The first part also carries the stories. Every part holds at least one comment, except
+    the only part of an empty collection.
+    """
+    parts, size = [[]], len(compact(stories))
+    for comment in comments:
+        length = len(compact(comment)) + 1
+        if parts[-1] and size + length > limit:
+            parts.append([])
+            size = 0
+        parts[-1].append(comment)
+        size += length
+    return parts
+
+
 def review_finished(directory):
     """Whether every partition is scanned and nothing waits for review. Failures do not count."""
     if not (directory / DATABASE).is_file():
@@ -141,7 +165,7 @@ def published_directory(state_dir):
     return run_dir if review_finished(run_dir) else state_dir
 
 
-def export_snapshot(directory, output):
+def export_snapshot(directory, output, part_bytes=PART_BYTES):
     database = directory / DATABASE
     check(database.is_file() and not database.is_symlink())
     model_data = json.loads((ROOT / 'src/lib/snapshot.json').read_text(encoding='utf-8'))
@@ -259,17 +283,27 @@ def export_snapshot(directory, output):
         )
         results = state.results(status, labels)
 
+    parts = comment_parts(comments, published_stories, part_bytes)
+    check(len(parts) <= MAX_PARTS)
+
     # Write only after the read transaction has been released.
     published_at = datetime.now(timezone.utc).isoformat()
-    atomic_write(output.with_name('hn-comments.json'), {
-        'schemaVersion': 1,
-        'publishedAt': published_at,
-        'comments': comments,
-        'stories': published_stories,
-    })
+    names = [f'hn-comments-{number}.json' for number in range(1, len(parts) + 1)]
+    for name, part in zip(names, parts):
+        atomic_write(output.with_name(name), {
+            'schemaVersion': 1,
+            'publishedAt': published_at,
+            'comments': part,
+            **({'stories': published_stories} if name == names[0] else {}),
+        })
+    # Parts left by an earlier export with more of them would not belong to this one.
+    for stale in output.parent.glob('hn-comments-*.json'):
+        if stale.name not in names:
+            stale.unlink()
     atomic_write(output, {
         'schemaVersion': 1,
         'publishedAt': published_at,
+        'commentParts': len(parts),
         'status': status,
         'results': results,
     })

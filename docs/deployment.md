@@ -22,9 +22,9 @@ Run the deploy command from the repository root so Wrangler compiles `functions/
 
 Authenticate the CLI through its existing login or an operator-managed environment. Do not put account identifiers or credentials in source, build output or command arguments. Confirm that the authenticated account contains the existing project before uploading. Upload only `dist/`, never the repository or `.local/` directory.
 
-`build:pages` selects the published reader and exports a consistent SQLite snapshot after the frontend build. The exporter reads the current classifier and saved six-month window. `hn-snapshot.json` carries summary results and coverage counters; `hn-comments.json` carries the ID and valid assessments of every comment that has at least one, and loads only when the reader is opened. For a run made by the thread pipeline it also carries each comment's story ID, task, one-sentence claim, themes and preferences, and the scrubbed titles of those stories. Matching revision identifiers prevent mixing releases. Both files exclude comment bodies, account fields, local paths, classifier prompts, model weights and credentials. Generated snapshots remain in ignored build output.
+`build:pages` selects the published reader and exports a consistent SQLite snapshot after the frontend build. The exporter reads the current classifier and saved six-month window. `hn-snapshot.json` carries summary results, coverage counters and the number of comment files. The comment files, `hn-comments-1.json` onwards, carry the ID and valid assessments of every comment that has at least one, newest first, and load only when a view needs the comments. For a run made by the thread pipeline they also carry each comment's story ID, task, one-sentence claim, themes and preferences, and the first file carries the scrubbed titles of those stories. Matching revision identifiers prevent mixing releases. These files exclude comment bodies, account fields, local paths, classifier prompts, model weights and credentials. Generated snapshots remain in ignored build output.
 
-Cloudflare Pages accepts at most 25 MiB for one file. The `hn-comments.json` of the run served locally since 19 November 2026 is 38.5 MB (6.8 MB gzipped), so that run cannot be published until the index is split or shortened. The hosted app keeps the previous snapshot until then.
+Cloudflare Pages accepts at most 25 MiB for one file, so the export starts a new comment file at 12 MiB and the app reads the files together. It refuses to write more than 16. The run reviewed on 19 November 2026 exports 86,745 comments in four files, 38.5 MB in all, and was published that day.
 
 `build:pages` then exports `.local/arxiv/` to `arxiv-snapshot.json`, which carries titles, identifiers, dates, categories, matched targets and labels but no abstracts. The build fails without an arXiv checkpoint, as it does without an HN checkpoint. See [arXiv pipeline instructions](arxiv-pipeline.md).
 
@@ -42,7 +42,7 @@ The Data page's **Licences and attribution** section credits every source with i
 
 ## Crawler exclusion
 
-`public/robots.txt` disallows every path. `public/_headers` applies `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` to every static response, including the JSON snapshots and deployment aliases. The HTML also includes the robots meta tag. All snapshot files use `Cache-Control: no-store`.
+`public/robots.txt` disallows every path. `public/_headers` applies `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` to every static response, including the JSON snapshots and deployment aliases. The HTML also includes the robots meta tag. All snapshot files, including every comment file, use `Cache-Control: no-store`.
 
 These directives discourage compliant crawlers and indexing. They are not access control and cannot prevent determined scraping. A crawler blocked by robots.txt cannot read the noindex header; external links can still cause URL-only search listings. The app's selected access policy is public link access. See [Google's noindex guidance](https://developers.google.com/search/docs/crawling-indexing/block-indexing).
 

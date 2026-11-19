@@ -35,7 +35,7 @@ The thread pipeline's review records up to three themes for each label, and a ta
 - **Stated preferences** replaces the co-mention table. For each other model it counts the comments that label both, the comments that say this one is better and the comments that say the other is. A preference between a name and its own family or version line is left out, as for co-mentions.
 - **By task** replaces the topic tag table and filters the comment stream. "Other" is the task of comments about no particular task and is listed last.
 
-With an analysis made before the thread pipeline, which the published site still shows, the same places show the topic tag filter, the reviewed theme sample for six models, the co-mention table ("Mentioned together") and the topic tag table.
+With an analysis made before the thread pipeline, the same places show the topic tag filter, the reviewed theme sample for six models, the co-mention table ("Mentioned together") and the topic tag table.
 
 The tallies are built in `src/lib/hn-insights.ts` from the comment index, in the browser. Nothing is requested per theme or per claim.
 

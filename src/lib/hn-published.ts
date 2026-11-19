@@ -93,10 +93,15 @@ const status = hnStatusSchema.extend({
   startAt: timestamp,
   endAt: timestamp,
 });
+// The export writes the listed comments as numbered parts, each under the
+// size Cloudflare Pages accepts for one file. The first part carries the
+// stories.
+const maxCommentParts = 16;
 export const hnPublishedSnapshotSchema = z
   .strictObject({
     schemaVersion: z.literal(1),
     publishedAt: timestamp,
+    commentParts: z.number().int().min(1).max(maxCommentParts),
     status,
     results: hnResultsSchema.extend({
       classifier: z.literal(hnClassifierCheck.classifierId),
@@ -165,20 +170,22 @@ export function loadHnSnapshot(refresh = false) {
   return loading;
 }
 
+// `parts` are the comment files of one export, in order.
 export function parsePublishedCollection(
   snapshot: HnPublishedSnapshot,
-  raw: unknown,
+  parts: readonly unknown[],
 ) {
-  const collection = commentsSchema.parse(raw);
+  const collections = parts.map((part) => commentsSchema.parse(part));
+  const comments = collections.flatMap((part) => part.comments);
   const { totals } = snapshot.status;
   const start = Date.parse(snapshot.status.startAt);
   const end = Date.parse(snapshot.status.endAt);
   let before = Infinity;
   if (
-    snapshot.publishedAt !== collection.publishedAt ||
-    (totals.commentsAboutTargets ?? totals.candidates) !==
-      collection.comments.length ||
-    !collection.comments.every((comment) => {
+    collections.length !== snapshot.commentParts ||
+    collections.some((part) => part.publishedAt !== snapshot.publishedAt) ||
+    (totals.commentsAboutTargets ?? totals.candidates) !== comments.length ||
+    !comments.every((comment) => {
       const date = Date.parse(comment.createdAt);
       const included = comment.id < before && date >= start && date <= end;
       before = comment.id;
@@ -186,21 +193,28 @@ export function parsePublishedCollection(
     })
   )
     throw new Error('Invalid published comments.');
-  return { comments: collection.comments, stories: collection.stories };
+  return {
+    comments,
+    stories: collections.flatMap((part) => part.stories),
+  };
 }
 
 export function parsePublishedComments(
   snapshot: HnPublishedSnapshot,
-  raw: unknown,
+  parts: readonly unknown[],
 ) {
-  return parsePublishedCollection(snapshot, raw).comments;
+  return parsePublishedCollection(snapshot, parts).comments;
 }
 
 export function loadPublishedCollection(snapshot: HnPublishedSnapshot) {
   const { publishedAt } = snapshot;
   if (commentRequest?.publishedAt === publishedAt) return commentRequest.data;
-  const data = publishedJson('/hn-comments.json')
-    .then((raw) => parsePublishedCollection(snapshot, raw))
+  const data = Promise.all(
+    Array.from({ length: snapshot.commentParts }, (_, part) =>
+      publishedJson(`/hn-comments-${part + 1}.json`),
+    ),
+  )
+    .then((parts) => parsePublishedCollection(snapshot, parts))
     .catch(() => {
       if (commentRequest?.publishedAt === publishedAt) commentRequest = null;
       throw new Error('Could not load the published Hacker News comments.');

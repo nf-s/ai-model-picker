@@ -7,7 +7,7 @@
 /hn-snapshot.json
   Cache-Control: no-store
 
-/hn-comments.json
+/hn-comments-*
   Cache-Control: no-store
 
 /arxiv-snapshot.json

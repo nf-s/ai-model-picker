@@ -25,6 +25,7 @@ const metadata = {
 const summary = {
   schemaVersion: 1,
   publishedAt,
+  commentParts: 1,
   status: {
     ...metadata,
     state: 'blocked',
@@ -83,7 +84,7 @@ const collection = { schemaVersion: 1, publishedAt, comments: rows };
 const snapshot = hnPublishedSnapshotSchema.parse(summary);
 
 test('the published reader pages through all candidates and pairs filters on each label', () => {
-  const comments = parsePublishedComments(snapshot, collection);
+  const comments = parsePublishedComments(snapshot, [collection]);
   assert.equal(comments[0]?.assessments.length, 0);
   const seen: number[] = [];
   let cursor = null;
@@ -121,25 +122,28 @@ test('the published reader rejects inconsistent revisions, date ranges, and item
     }),
   );
   assert.throws(() =>
-    parsePublishedComments(snapshot, { ...collection, publishedAt: endAt }),
+    parsePublishedComments(snapshot, [{ ...collection, publishedAt: endAt }]),
   );
   assert.throws(() =>
-    parsePublishedComments(snapshot, {
-      ...collection,
-      comments: rows.map((row) => ({ ...row, createdAt: publishedAt })),
-    }),
+    parsePublishedComments(snapshot, [
+      {
+        ...collection,
+        comments: rows.map((row) => ({ ...row, createdAt: publishedAt })),
+      },
+    ]),
   );
   assert.throws(() =>
-    parsePublishedComments(snapshot, {
-      ...collection,
-      comments: rows.map((row) => ({ ...row, id: 1 })),
-    }),
+    parsePublishedComments(snapshot, [
+      { ...collection, comments: rows.map((row) => ({ ...row, id: 1 })) },
+    ]),
   );
   assert.throws(() =>
-    parsePublishedComments(snapshot, {
-      ...collection,
-      comments: rows.map((row) => ({ ...row, by: 'synthetic-account' })),
-    }),
+    parsePublishedComments(snapshot, [
+      {
+        ...collection,
+        comments: rows.map((row) => ({ ...row, by: 'synthetic-account' })),
+      },
+    ]),
   );
 });
 
@@ -192,7 +196,10 @@ test('task and theme values match the pipeline lists', () => {
 });
 
 test('published comments accept the old shape and the reviewed shape with stories', () => {
-  assert.deepEqual(parsePublishedCollection(snapshot, collection).stories, []);
+  assert.deepEqual(
+    parsePublishedCollection(snapshot, [collection]).stories,
+    [],
+  );
   const listed = rows.slice(1);
   const current = hnPublishedSnapshotSchema.parse({
     ...summary,
@@ -208,27 +215,49 @@ test('published comments accept the old shape and the reviewed shape with storie
       },
     },
   });
-  const parsed = parsePublishedCollection(current, {
-    ...collection,
-    comments: [reviewed, ...listed],
-    stories: [story],
-  });
+  const parsed = parsePublishedCollection(current, [
+    { ...collection, comments: [reviewed, ...listed], stories: [story] },
+  ]);
   assert.deepEqual(parsed.comments[0], reviewed);
   const { parent, ...unparented } = reviewed;
   assert.equal(parent, 39);
   assert.deepEqual(hnIndexCommentSchema.parse(unparented), unparented);
   assert.deepEqual(parsed.stories, [story]);
   assert.throws(() =>
-    parsePublishedCollection(current, {
-      ...collection,
-      comments: listed,
-      stories: [story],
-    }),
+    parsePublishedCollection(current, [
+      { ...collection, comments: listed, stories: [story] },
+    ]),
   );
   assert.equal(
     hnStorySchema.parse({ ...story, createdAt: null, about: [] }).createdAt,
     null,
   );
+});
+
+test('published comments are read from every part of one export, in order', () => {
+  const split = hnPublishedSnapshotSchema.parse({
+    ...summary,
+    commentParts: 2,
+  });
+  const first = { ...collection, comments: rows.slice(0, 12), stories: [] };
+  const second = { ...collection, comments: rows.slice(12) };
+  const parsed = parsePublishedCollection(split, [first, second]);
+  assert.deepEqual(
+    parsed.comments.map((comment) => comment.id),
+    rows.map((row) => row.id),
+  );
+  assert.deepEqual(parsed.stories, []);
+  // A missing part, a part of another export and parts out of order.
+  assert.throws(() => parsePublishedCollection(split, [first]));
+  assert.throws(() => parsePublishedCollection(snapshot, [first, second]));
+  assert.throws(() =>
+    parsePublishedCollection(split, [first, { ...second, publishedAt: endAt }]),
+  );
+  assert.throws(() => parsePublishedCollection(split, [second, first]));
+  for (const commentParts of [0, 1.5, 17, undefined])
+    assert.throws(() =>
+      hnPublishedSnapshotSchema.parse({ ...summary, commentParts }),
+    );
 });
 
 test('published comment fields reject unknown keys and unlisted values', () => {
