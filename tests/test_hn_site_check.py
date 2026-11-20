@@ -1,0 +1,98 @@
+"""Check the pre-upload checks against a synthetic site build."""
+
+import json
+import runpy
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+check_module = runpy.run_path(str(ROOT / 'scripts/check-site.py'))
+site_report = check_module['site_report']
+MUST_BE_ZERO = check_module['MUST_BE_ZERO']
+CLAIM = 'Synthetic claim about the example model.'
+TITLE = 'Synthetic story about the example model'
+LOCAL_PATH = Path('/synthetic/checkout')
+
+
+class TestSiteCheck(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.dist = Path(directory.name) / 'dist'
+        (self.dist / 'assets').mkdir(parents=True)
+        self.restricted = Path(directory.name) / 'payload.json'
+        self.public = Path(directory.name) / 'snapshot.json'
+        self.write(self.public, {'models': [{'id': 'example-model'}], 'sources': [{'id': 'shared-source'}]})
+        self.write(self.restricted, {
+            'benchmarks': [{'id': 'restricted-benchmark'}],
+            'results': [{'id': 'restricted-result', 'modelId': 'example-model'}],
+            'sources': [{'id': 'shared-source'}],
+        })
+        self.build()
+
+    def write(self, path, value):
+        path.write_text(json.dumps(value), encoding='utf-8')
+
+    def build(self, second_release='release', claim=CLAIM, title=TITLE, script='const model = "example-model";'):
+        self.write(self.dist / 'hn-snapshot.json', {'publishedAt': 'release', 'commentParts': 2})
+        self.write(self.dist / 'hn-comments-1.json', {
+            'publishedAt': 'release',
+            'comments': [{'id': 2, 'claim': claim}, {'id': 1}],
+            'stories': [{'id': 9, 'title': title}],
+        })
+        self.write(self.dist / 'hn-comments-2.json', {'publishedAt': second_release, 'comments': [{'id': 0}]})
+        (self.dist / 'assets/index.js').write_text(script, encoding='utf-8')
+
+    def report(self, **options):
+        return site_report(self.dist, self.restricted, self.public, (LOCAL_PATH,), **options)
+
+    def failed(self, **options):
+        report = self.report(**options)
+        return [name for name in MUST_BE_ZERO if report[name]]
+
+    def test_a_consistent_build_passes_with_its_totals(self):
+        report = self.report()
+        self.assertEqual(self.failed(), [])
+        self.assertEqual(
+            (report['commentFiles'], report['comments'], report['claimsAndTitles']), (2, 3, 2),
+        )
+        # An identifier that the public snapshot also holds is not a restricted one.
+        self.assertEqual(report['restrictedOnlyIdentifiers'], 2)
+
+    def test_a_part_from_another_export_is_counted(self):
+        self.build(second_release='earlier-release')
+        self.assertEqual(self.failed(), ['mixedReleases'])
+
+    def test_contact_details_in_a_claim_or_a_title_are_counted(self):
+        for text in ('Write to example.contact@example.test', 'See https://example.test/page', 'Ask @hidden-test-handle'):
+            with self.subTest(text=text):
+                self.build(claim=text)
+                self.assertEqual(self.report()['personalDetails'], 1)
+                self.build(claim=text, title=text)
+                self.assertEqual(self.report()['personalDetails'], 2)
+        self.assertEqual(self.failed(), ['personalDetails'])
+
+    def test_an_identifier_found_only_in_the_restricted_results_is_counted(self):
+        self.build(script='const results = ["restricted-result", "shared-source"];')
+        self.assertEqual(self.report()['restrictedIdentifiers'], 1)
+        self.assertEqual(self.failed(), ['restrictedIdentifiers'])
+
+    def test_a_file_over_the_limit_is_counted(self):
+        size = (self.dist / 'hn-comments-1.json').stat().st_size
+        self.assertEqual(self.failed(file_bytes=size), [])
+        self.assertEqual(self.failed(file_bytes=size - 1), ['oversizeFiles'])
+
+    def test_a_path_on_this_computer_is_counted(self):
+        self.build(script=f'const source = "{LOCAL_PATH}/src/App.tsx";')
+        self.assertEqual(self.failed(), ['localPaths'])
+
+    def test_a_missing_comment_file_stops_the_check(self):
+        (self.dist / 'hn-comments-2.json').unlink()
+        with self.assertRaises(OSError):
+            self.report()
+
+
+if __name__ == '__main__':
+    unittest.main()

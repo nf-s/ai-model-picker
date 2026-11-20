@@ -27,6 +27,8 @@ The build script joins exact reviewed names and a small explicit spelling-alias 
 
 ## Refresh procedure
 
+The commands, expected output and the steps after a change to the model list are in [Updating the data](updating.md#benchmarks-prices-reports-and-the-app-guide). In short:
+
 1. Reopen each relevant primary source. Record a new checked date; preserve evaluation dates and versions.
 2. Update the reviewed JSON in `research/`, preserving units, uncertainty, cost basis and exact configuration.
 3. Review model-name joins explicitly; an API alias can change its served release.
@@ -51,7 +53,7 @@ The read-only `scripts/collect-hn.py` provides discovery metadata and official-i
 
 ## arXiv papers
 
-The Papers page lists arXiv papers whose title or abstract names a tracked model or family, harvested from arXiv's OAI-PMH metadata for the same six-month window. Matching reads only the title and abstract, so papers that mention a model in passing are included and models named only in the body are missed. Abstract labels are produced by a local model. They exist for 1,382 of the 1,383 papers that name an exact tracked model; papers that name only a family are unlabelled. For papers labelled as evaluations, the same model also records the area and task tested, the named models the abstract reports as best or as behind the best, and a one-sentence finding. 413 of the 414 evaluation papers have a result. The published snapshot carries titles, identifiers, dates, categories, matched targets, labels and results; abstracts stay local. See [arXiv pipeline instructions](arxiv-pipeline.md).
+The Papers page lists arXiv papers whose title or abstract names a tracked model or family, harvested from arXiv's OAI-PMH metadata for the same six-month window. Matching reads only the title and abstract, so papers that mention a model in passing are included and models named only in the body are missed. Abstract labels are produced by a local model. On 18 November 2026 they existed for 1,382 of the 1,383 papers that name an exact tracked model, and papers harvested later have none until labelling is run again; papers that name only a family are unlabelled. For papers labelled as evaluations, the same model also records the area and task tested, the named models the abstract reports as best or as behind the best, and a one-sentence finding. 413 of the 414 evaluation papers have a result. The published snapshot carries titles, identifiers, dates, categories, matched targets, labels and results; abstracts stay local. See [arXiv pipeline instructions](arxiv-pipeline.md).
 
 ## Reviewed theme sample
 

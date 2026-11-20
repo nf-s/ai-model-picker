@@ -8,6 +8,8 @@ Benchmarks whose source terms do not allow republishing are not in the public bu
 
 ## Build and publish
 
+The step-by-step release, with the expected output of each command, is under [Publish](updating.md#publish) in Updating the data. In short:
+
 ```sh
 npm test
 npm run hn:test
@@ -15,12 +17,15 @@ npm run arxiv:test
 npm run format
 npm run format:check
 npm run build:pages
+npm run check:pages
 npx wrangler@4.163.0 pages deploy dist --project-name ai-model-picker --branch main
 ```
 
+`check:pages` reads `dist/` and stops the release if the comment files come from different exports, a file is over 25 MiB, a claim or story title still contains a link, an email address, a handle or a phone number, the build contains an identifier that exists only in the restricted results, or it contains a path on this computer. It prints counts only.
+
 Run the deploy command from the repository root so Wrangler compiles `functions/`. It reads the ignored `wrangler.jsonc` (copied from `wrangler.example.jsonc`) for the `AUTH_DB` binding, `PUBLIC_URL` and `ADMIN_EMAIL`; that file is the source of truth for the project's bindings and variables. `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are Pages secrets set with `wrangler pages secret put`. Apply new files in `server/auth/migrations/` with `npx wrangler@4.163.0 d1 migrations apply ai-model-picker-access --remote` before deploying.
 
-Authenticate the CLI through its existing login or an operator-managed environment. Do not put account identifiers or credentials in source, build output or command arguments. Confirm that the authenticated account contains the existing project before uploading. Upload only `dist/`, never the repository or `.local/` directory.
+Authenticate the CLI through its existing login or an operator-managed environment. Do not put account identifiers or credentials in source, build output or command arguments. `wrangler whoami` prints the account's email address and `wrangler pages deployment list` an address that contains the account identifier; keep both out of commits, documents and messages. Confirm that the authenticated account contains the existing project before uploading. Upload only `dist/`, never the repository or `.local/` directory.
 
 `build:pages` selects the published reader and exports a consistent SQLite snapshot after the frontend build. The exporter reads the current classifier and saved six-month window. `hn-snapshot.json` carries summary results, coverage counters and the number of comment files. The comment files, `hn-comments-1.json` onwards, carry the ID and valid assessments of every comment that has at least one, newest first, and load only when a view needs the comments. For a run made by the thread pipeline they also carry each comment's story ID, task, one-sentence claim, themes and preferences, and the first file carries the scrubbed titles of those stories. Matching revision identifiers prevent mixing releases. These files exclude comment bodies, account fields, local paths, classifier prompts, model weights and credentials. Generated snapshots remain in ignored build output.
 
@@ -48,6 +53,6 @@ These directives discourage compliant crawlers and indexing. They are not access
 
 ## Release verification
 
-Read back the project's latest successful production deployment, then verify the canonical URL rather than only its immutable deployment URL. Check the guide, HN snapshot timestamp/counts, comment pagination, sentiment filters, parent context and nested replies without exposing source bodies in test output. Confirm the hosted app makes no localhost requests and offers no scan controls. Check a versioned asset, `robots.txt`, HTML and snapshot response headers, and browser console errors. Confirm the public bundle contains no restricted result IDs, `/api/restricted` returns 401 without a session, and a granted account sees the restricted results after signing in.
+`npm run check:pages` covers the build before upload. After upload, read back the project's latest successful production deployment, then verify the canonical URL rather than only its immutable deployment URL. Check the guide, HN snapshot timestamp/counts, comment pagination, sentiment filters, parent context and nested replies without exposing source bodies in test output. Confirm the hosted app makes no localhost requests and offers no scan controls. Check a versioned asset, `robots.txt`, HTML and snapshot response headers, and browser console errors. Confirm the public bundle contains no restricted result IDs, `/api/restricted` returns 401 without a session, and a granted account sees the restricted results after signing in.
 
 NFS Home links to this canonical URL. Publish launcher changes through its existing GitHub Pages `main`/`docs` process and verify its live links page. Keep the launcher's root blank.

@@ -439,13 +439,24 @@ def migrate_window(state, job):
         state.restrict_to_plan(plan)
 
 
-def extend_window(state, now=None):
+def current_targets():
+    return Targets(json.loads(MODEL_DATA.read_text(encoding='utf-8'))['models'])
+
+
+def scan_key_for(targets):
+    """Identifies the scan's rules and target names. The classifier is not part of it."""
+    return hashlib.sha256(f'{PIPELINE_VERSION}/{targets.registry_id}'.encode()).hexdigest()
+
+
+def extend_window(state, scan_key, now=None):
     """Extend a finished or paused archive-and-tail run to the present, for `run` to scan and review."""
     job = state.job()
     if job is None:
         raise PipelineError('no-checkpoint')
     window = state.scan_window(job)
-    if window is None:
+    # `run` refuses a reviewed checkpoint whose target names have changed, so extending one
+    # would leave it unfinished with no way to finish it.
+    if window is None or job['scan_key'] != scan_key:
         raise PipelineError('checkpoint-configuration-mismatch')
     end = int(time.time()) if now is None else now
     last = get_maxitem()
@@ -462,11 +473,10 @@ def build_classifier(args):
 
 
 def run(args, state):
-    models = json.loads(MODEL_DATA.read_text(encoding='utf-8'))['models']
-    targets = Targets(models)
+    targets = current_targets()
     identity = f'{PIPELINE_VERSION}/{args.classifier_id}/{args.model}/{targets.registry_id}'
     classifier_key = hashlib.sha256(identity.encode()).hexdigest()
-    scan_key = hashlib.sha256(f'{PIPELINE_VERSION}/{targets.registry_id}'.encode()).hexdigest()
+    scan_key = scan_key_for(targets)
     classifier = build_classifier(args)
     job = state.job()
     if job is None:
@@ -665,7 +675,7 @@ def main():
                 export_progress(state)
                 return 0
             if args.command == 'extend':
-                extend_window(state)
+                extend_window(state, scan_key_for(current_targets()))
                 export_progress(state)
                 return 0
             if args.command == 'context':

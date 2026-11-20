@@ -32,7 +32,7 @@ from hn_local.sources import (
 from hn_local.state import Counters, State
 from hn_pipeline import (
     REWALK_DAYS, arguments, consume_partition, expand_stories, extend_window, mirror_pages, process_block,
-    read_ancestors, reconcile_pages, resolve_context, review_batches, review_comments, thread_root,
+    read_ancestors, reconcile_pages, resolve_context, review_batches, review_comments, scan_key_for, thread_root,
 )
 
 MODEL_FIXTURES = [
@@ -704,10 +704,29 @@ class TestState(unittest.TestCase):
         tail = Partition('items-1-4', 'firebase', 4, 1, 4)
         with State(self.directory) as state:
             with self.assertRaisesRegex(PipelineError, 'no-checkpoint'):
-                extend_window(state, TIME)
-            state.initialize(SourcePlan('firebase', None, 1, 4, (tail,), window=DateWindow(TIME, TIME + 20)), 'f', 'k')
+                extend_window(state, 'scan', TIME)
+            state.initialize(
+                SourcePlan('firebase', None, 1, 4, (tail,), window=DateWindow(TIME, TIME + 20)), 'f', 'k', 'scan',
+            )
             with patch('hn_pipeline.get_maxitem', return_value=7), self.assertRaises(PipelineError):
-                extend_window(state, TIME + 30)
+                extend_window(state, 'scan', TIME + 30)
+
+    def test_extension_refuses_a_run_whose_target_names_changed(self):
+        tail = Partition('items-1-4', 'clickhouse-and-firebase', 4, 1, 4)
+        plan = SourcePlan('archive-and-tail', 'fixture-revision', 1, 4, (tail,), window=DateWindow(TIME, TIME + 20))
+        with State(self.directory) as state:
+            state.initialize(plan, 'fixture', 'key', scan_key_for(self.targets))
+            state.connection.execute("UPDATE partition SET state = 'complete'")
+            state.set_run('complete')
+            before = state.status()
+            renamed = Targets([*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}])
+            with patch('hn_pipeline.get_maxitem', return_value=7):
+                # `run` would refuse the checkpoint afterwards, so nothing may change.
+                with self.assertRaisesRegex(PipelineError, 'checkpoint-configuration-mismatch'):
+                    extend_window(state, scan_key_for(renamed), TIME + 30)
+                self.assertEqual(state.status(), before)
+                extend_window(state, scan_key_for(self.targets), TIME + 30)
+            self.assertEqual((state.status()['state'], state.status()['lastItem']), ('paused', 7))
 
     def test_reconciliation_request_cap_allows_single_id_checkpoint(self):
         archive = Partition('data/2026/2026-08.parquet', 'archive', 1, 1, 3)
@@ -851,10 +870,10 @@ class TestPhases(unittest.TestCase):
         self.review(Firebase(items), reviewer)
         self.assertEqual(self.rows(), {301: (300, 300, 0)})
         self.state.connection.execute("UPDATE partition SET state = 'complete'")
-        self.state.connection.execute("UPDATE run SET source = 'archive-and-tail'")
+        self.state.connection.execute("UPDATE run SET source = 'archive-and-tail', scan_key = 'scan'")
         new = Partition('items-1001-1010', 'clickhouse-and-firebase', 10, 1001, 1010)
         with patch('hn_pipeline.get_maxitem', return_value=1010):
-            extend_window(self.state, TIME + 20)
+            extend_window(self.state, 'scan', TIME + 20)
         self.assertEqual(self.state.next_partition(), (new, 0))
         # The title was accepted before, so a reviewer that now accepts nothing is not asked again.
         judge = Reviewer()

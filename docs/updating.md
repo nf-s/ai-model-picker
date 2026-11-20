@@ -1,0 +1,325 @@
+# Updating the data
+
+Procedures for bringing each data source up to date and for publishing the site. They are written to be followed exactly, by a person, an agent or a script. The rules in [AGENTS.md](../AGENTS.md) apply to every step.
+
+Nothing updates on its own. Each source is updated separately, and the published site changes only when it is built and uploaded.
+
+| Source                                     | Procedure                                                                                     | Cost                                          | Changes files in Git |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------- | --------------------------------------------- | -------------------- |
+| Hacker News comments                       | [Hacker News comments](#hacker-news-comments)                                                 | Paid: about 5 US cents per 1,000 new comments | No                   |
+| arXiv papers                               | [arXiv papers](#arxiv-papers)                                                                 | Free                                          | No                   |
+| Benchmarks, prices, reports, the app guide | [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide) | Free, but someone has to read the sources     | Yes                  |
+| Published site                             | [Publish](#publish)                                                                           | Free                                          | No                   |
+
+The Hacker News and arXiv data live in the ignored `.local/` directory, and the published site carries its own publication time. An update of either therefore leaves nothing to commit. Do not edit the documentation to restate their counts: the app's Data page and the `status` commands below are the record.
+
+## How to use these procedures
+
+- Run every command from the repository root.
+- A command block is one command. Some tools start a new shell for each command, so a block that sets a variable also uses it.
+- Compare what you see with the expected result written under each step. If it differs and the step does not say what to do, stop and report the command and its output. Do not edit or delete state files to get past a step.
+- The procedures need the working setup on the owner's Mac: `node_modules/`, `.local/hn/venv/`, `.local/hn/threads/`, `.local/arxiv/` and `.local/restricted/`. If one is missing, stop and report it. Do not run `npm run hn:setup` to recreate `.local/hn/venv/`: it also downloads a 16 GB model.
+
+## Before any update
+
+```sh
+git status --short
+```
+
+```sh
+pgrep -f '[h]n_pipeline|[a]rxiv_pipeline'
+```
+
+Both must print nothing. Output from the first means someone has uncommitted work: leave those files alone and never stage them with yours. Output from the second is the process ID of a pipeline that is still running: wait for it to end. Each state directory takes one command at a time, and a second one stops with `already-running`.
+
+## Hacker News comments
+
+This reviews the comments posted since the last update and adds them to the served analysis. Reviews already made are kept. It needs the owner's Anthropic sign-in (see step 4) and is paid: the update of 19 November 2026 reviewed 2,680 new comments, two days' worth, for about 12 US cents in about 50 minutes.
+
+### 1. Check that the run is finished
+
+```sh
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py status --state-dir .local/hn/threads | python3 -c "import json,sys; s=json.load(sys.stdin); t=s['totals']; print(s['state'], s['reason'], s['endAt']); print({k: t[k] for k in ('commentsQueued','storiesPending','partitionsComplete','partitionsTotal','candidates','classified','classificationFailures','commentsAboutTargets')})"
+```
+
+Expected, with other numbers:
+
+```text
+blocked classification-unresolved 2026-11-19T10:40:14Z
+{'commentsQueued': 0, 'storiesPending': 0, 'partitionsComplete': 122, 'partitionsTotal': 122, 'candidates': 190025, 'classified': 189714, 'classificationFailures': 311, 'commentsAboutTargets': 88309}
+```
+
+The run is finished when `commentsQueued` and `storiesPending` are 0 and `partitionsComplete` equals `partitionsTotal`. The first line is then `blocked classification-unresolved` or `complete None`. `blocked` with `classification-unresolved` is the normal finished state: a few hundred comments never get a valid review, and that does not stop the app or the export from using the run.
+
+Keep these numbers for step 5. `candidates` is the comments collected, `classified` those with a valid review, `classificationFailures` those without one and `commentsAboutTargets` those listed in the app.
+
+If the run is not finished, an earlier update was interrupted. Skip steps 2 and 3 and go to step 4, which resumes it.
+
+### 2. Copy the checkpoint
+
+```sh
+BACKUP=.local/hn/threads-backup-$(date +%Y%m%d-%H%M%S) && mkdir "$BACKUP" && sqlite3 .local/hn/threads/checkpoint.sqlite3 ".backup '$BACKUP/checkpoint.sqlite3'" && cp .local/hn/threads/status.json .local/hn/threads/results.json "$BACKUP/" && ls -l "$BACKUP"
+```
+
+Expected: three files, with `checkpoint.sqlite3` at about 90 MB. Note the directory name. Do not delete older copies; the owner removes them.
+
+### 3. Extend the run to the present
+
+```sh
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py extend --state-dir .local/hn/threads
+```
+
+Expected: no output and exit code 0. The command reads one number from the HN API and calls no model.
+
+| Output                              | Meaning                                                                                                                       | What to do                                                             |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `checkpoint-configuration-mismatch` | The model list has changed since the run was reviewed, or no item has been posted since the last update. Nothing was changed. | Stop. See [When the model list changes](#when-the-model-list-changes). |
+| `firebase-maxitem`                  | The HN API could not be read. Nothing was changed.                                                                            | Try again later.                                                       |
+| `already-running`                   | Another command is using the directory.                                                                                       | Wait for it to end.                                                    |
+| `no-checkpoint`                     | `.local/hn/threads/` holds no run.                                                                                            | Stop and report.                                                       |
+
+From this step until step 4 finishes, the run is unfinished. The local app shows the older analysis kept in `.local/hn/`, and `npm run build:pages` stops with "Could not export the current Hacker News checkpoint." Do not publish in between.
+
+### 4. Review the new comments
+
+```sh
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads --backend anthropic >> .local/hn/update.log 2>&1; echo "exit $?"
+```
+
+This is the paid step. It sends the scrubbed text of the new comments to the Anthropic API, as described in the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api). The one timed update took about 50 minutes for two days of comments; a longer gap takes longer. If your tool limits how long a command may run, start it in the background and read the log:
+
+```sh
+tail -n 2 .local/hn/update.log
+```
+
+Do not start a second copy. Stopping it is safe; batches already sent stay charged and are read by the next run.
+
+| Exit code | Last lines of the log                                                                | Meaning                                                                         | What to do                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0         | `"state": "complete"`                                                                | Every comment has a valid review.                                               | Go to step 5.                                                                                                                              |
+| 1         | `"state": "blocked", "reason": "classification-unresolved"`                          | Finished. A few comments have no valid review. This is the usual end.           | Go to step 5.                                                                                                                              |
+| 1         | `anthropic-api-credential-missing` or `anthropic-api-credential-failed`              | There is no usable sign-in. Nothing was sent.                                   | Ask the owner to run `ant auth login` in a terminal, which opens a browser. Then repeat step 4. Never ask for a key or token in a message. |
+| 1         | `anthropic-api-unreachable`                                                          | The API could not be reached.                                                   | Repeat step 4 later.                                                                                                                       |
+| 1         | `clickhouse-read`, `firebase-item-request`, `firebase-item-range` or `request-limit` | A request to an HN source failed.                                               | Repeat step 4; it resumes from the checkpoint. After three failures in a row, stop and report.                                             |
+| 1         | `checkpoint-configuration-mismatch`                                                  | The command differs from the one above, or the model list changed after step 3. | Check the command. If it is exact, stop and report; the owner may restore the copy from step 2.                                            |
+| 1         | `already-running`                                                                    | Another copy is running.                                                        | Wait for it to end.                                                                                                                        |
+| Other     | `"state": "paused"`                                                                  | The command was interrupted.                                                    | Repeat step 4.                                                                                                                             |
+
+Repeating step 4 on a finished run is safe. It sends only the comments that have no valid review once more, for under one US cent, and most fail again.
+
+### 5. Check the result
+
+Run the command from step 1 again. Expected:
+
+- The run is finished, as defined in step 1.
+- The time on the first line is the time step 3 ran, in UTC.
+- `candidates`, `classified` and `commentsAboutTargets` are at least what they were before.
+- `classificationFailures` has grown by no more than 2% of the growth in `candidates`. On 19 November 2026, 6 of 2,680 new comments failed. If it grew by more, stop and report before anyone publishes.
+
+There is nothing to commit. The local app (`npm run dev`, then http://127.0.0.1:5186/#/data) shows the new range and counts. The published site does not change until someone follows [Publish](#publish).
+
+### Restoring the copy
+
+Restore only when the owner says so, with no pipeline command running. Batches sent after the copy was made are unknown to it, so their reviews are lost although they were charged.
+
+```sh
+BACKUP=.local/hn/threads-backup-YYYYMMDD-HHMMSS && sqlite3 .local/hn/threads/checkpoint.sqlite3 ".restore '$BACKUP/checkpoint.sqlite3'" && cp "$BACKUP/status.json" "$BACKUP/results.json" .local/hn/threads/
+```
+
+Replace `YYYYMMDD-HHMMSS` with the name noted in step 2, then run step 1 to confirm the earlier numbers are back.
+
+## arXiv papers
+
+This reads the days of arXiv metadata published since the last harvest. It is free, needs no model and no sign-in, and is paced at one request every three seconds. The first harvest of 186 days took on the order of an hour, so a week of new days should take a few minutes; a short update has not been timed.
+
+### 1. Check the state
+
+```sh
+python3 -B scripts/arxiv_pipeline.py status | python3 -c "import json,sys; s=json.load(sys.stdin); print(s['state'], s['reason'], s['lastDay']); print(s['totals'])"
+```
+
+Expected, with other numbers:
+
+```text
+complete None 2026-11-17
+{'recordsScanned': 314096, 'recordsEligible': 206286, 'unavailable': 0, 'invalid': 71, 'recordsStored': 206286, 'papers': 11031, 'assessed': 1382, 'assessmentFailures': 1, 'results': 413, 'resultFailures': 1, 'daysComplete': 185, 'daysTotal': 186}
+```
+
+### 2. Harvest
+
+```sh
+npm run arxiv:run
+```
+
+Expected: JSON progress lines, then exit code 0. If the model list changed since the last harvest, the command first matches every stored paper again, without reading arXiv.
+
+Never run two harvests at once, even in separate directories: arXiv allows one request every three seconds across all of them. If the command stops with a code that starts with `arxiv-oai-`, run it again later; it retries the unfinished days. The codes are listed in the [arXiv pipeline instructions](arxiv-pipeline.md#coverage). `already-running` means another command holds the directory.
+
+### 3. Check the result
+
+Run the command from step 1 again. Expected: `complete None` and today's or yesterday's date in UTC. `daysComplete` is one less than `daysTotal`, because the current UTC day stays open and is read again next time. `papers` is at least what it was.
+
+New papers have no label, and the Papers page counts them as Unlabelled. Labelling runs a local model for about 3.5 seconds a paper and is done only when the owner asks; see [Labelling](arxiv-pipeline.md#labelling). There is nothing to commit.
+
+## Benchmarks, prices, reports and the app guide
+
+No command fetches this data. Someone reads each source again and edits the reviewed files, and the build script only normalises what the files say. Do it when the owner asks, or when a source is known to have changed.
+
+| File                                | Holds                                                           | Reaches the app through                                     |
+| ----------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------- |
+| `research/pricing.json`             | Priced models and their API rates                               | `npm run data:build`                                        |
+| `research/benchmarks.json`          | Three benchmarks and their results                              | `npm run data:build`                                        |
+| `research/creative-benchmarks.json` | One benchmark and its results                                   | `npm run data:build`                                        |
+| `research/reports.json`             | Published reports                                               | `npm run data:build`                                        |
+| `.local/restricted/research.json`   | Benchmarks whose terms do not allow republishing. Never in Git. | `npm run data:build`, into `.local/restricted/payload.json` |
+| `research/app-model-choices.json`   | The app guide                                                   | Imported directly by `src/lib/guide.ts`                     |
+
+1. Open each URL in the `sources` list of the file you are refreshing and compare it with the file. Edit the JSON to match the source. Keep each value's unit, uncertainty, cost basis and exact configuration. Leave out what the source does not state; never estimate a value or copy one from a similar model. Keep a dated model version as its own model.
+2. Set `checkedAt` at the top of each file you compared to today's date, also when nothing in it changed.
+3. Build and read the summary line:
+
+   ```sh
+   npm run data:build
+   ```
+
+   Expected, with other numbers: `Saved 76 model identities, 4 benchmarks, 107 results, 14 reports, 27 sources; …`. It writes `src/lib/snapshot.json` and `.local/restricted/payload.json`. If the number of model identities changed, or you renamed a model, read [When the model list changes](#when-the-model-list-changes) before going on.
+
+4. Run the tests:
+
+   ```sh
+   npm test
+   ```
+
+   `tests/data.test.ts` states the number of results and of priced models. When a count changed because the source changed, update the number there.
+
+5. Update the text that quotes the old check date and counts. Find it with:
+
+   ```sh
+   grep -rn "16 November 2026" README.md docs src/lib/attribution.ts research/*.md
+   ```
+
+   Replace the date in the command with the previous `checkedAt`. Change a line only where the fact it states was checked again. The counts are in the first paragraphs of `README.md` under "Data in the app" and in [data provenance](data.md).
+
+6. Run the remaining checks, look at the Board, one benchmark page and one model page in `npm run dev`, then commit the files you changed by name:
+
+   ```sh
+   npm run build && npm run format && npm run format:check
+   ```
+
+The names of the benchmarks in `.local/restricted/` must not appear in a tracked file, a commit message or a log.
+
+### When the model list changes
+
+The model list is the `models` array in `src/lib/snapshot.json`. It changes when a model is added to or removed from `research/pricing.json`, when a benchmark or report row names a model that was not in the list, when a model's `id`, `name`, `apiId` or `version` changes, and when the name tables in `scripts/hn_local/classify.py` change.
+
+- **arXiv:** the next `npm run arxiv:run` matches every stored paper again. Nothing else is needed.
+- **Hacker News, serving:** the reviewed run keeps being served and can still be published, as long as no model `id` it refers to was removed. If one was, `npm run build:pages` stops with "Could not export the current Hacker News checkpoint."
+- **Hacker News, updating:** the reviewed run can no longer be extended. `extend` stops with `checkpoint-configuration-mismatch` and changes nothing, because the run was scanned for the old names. A model added to the list has no comments under its own name until there is a new full run.
+
+A new full run reads six months of items again and reviews every comment again. Through the Anthropic API the first one cost about US$7 and took about two hours. Start one only when the owner asks. The steps are in the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api): move the reviewed run out of `.local/hn/threads/` first and keep it. Until the new run finishes, the local app shows the older analysis in `.local/hn/` and the site cannot be built for publishing.
+
+## Publish
+
+Publish only when the owner asks for it. A request to update data is not a request to publish.
+
+### 1. Check what will be published
+
+Run step 1 of [Hacker News comments](#hacker-news-comments): the run must be finished. Then:
+
+```sh
+npm test && npm run hn:test && npm run arxiv:test && npm run format:check
+```
+
+Expected: every command passes.
+
+### 2. Build
+
+```sh
+npm run build:pages
+```
+
+Expected last lines, with other numbers:
+
+```text
+Exported 88,309 Hacker News comment records.
+Exported 11,031 arXiv papers.
+```
+
+Use this command, not `npm run build`: only this one builds the published mode and writes the data files into `dist/`.
+
+### 3. Check the build
+
+```sh
+npm run check:pages
+```
+
+Expected, with other numbers in the first four lines:
+
+```text
+commentFiles: 4
+comments: 88,309
+claimsAndTitles: 95,331
+restrictedOnlyIdentifiers: 91
+mixedReleases: 0
+oversizeFiles: 0
+personalDetails: 0
+restrictedIdentifiers: 0
+localPaths: 0
+The site build passed the checks.
+```
+
+The last five counts must be 0. They are comment files from different exports, files over the 25 MiB that Cloudflare Pages accepts, claims or story titles that still contain a link, an address, a handle or a phone number, identifiers that exist only in the restricted results, and paths on this computer. If the command ends with "Do not upload", do not upload: report the output. `comments` must equal the first number printed in step 2.
+
+### 4. Upload
+
+```sh
+npx wrangler@4.163.0 pages deploy dist --project-name ai-model-picker --branch main
+```
+
+Expected: `Deployment complete!` followed by an address ending in `.ai-model-picker.pages.dev`. Upload only `dist/`.
+
+If Wrangler reports that it is not signed in, ask the owner to run `npx wrangler@4.163.0 login` in a terminal. Do not run `wrangler whoami`, which prints the account's email address. `wrangler pages deployment list` prints an address that contains the account identifier; keep its output out of commits, documents and messages.
+
+### 5. Check the live site
+
+```sh
+curl -s https://ai-model-picker.pages.dev/hn-snapshot.json | python3 -c "import json,sys; s=json.load(sys.stdin); print(s['publishedAt'], s['commentParts'], s['status']['endAt'], s['status']['totals']['commentsAboutTargets'])"
+```
+
+```sh
+python3 -c "import json; s=json.load(open('dist/hn-snapshot.json')); print(s['publishedAt'], s['commentParts'], s['status']['endAt'], s['status']['totals']['commentsAboutTargets'])"
+```
+
+The two commands must print the same line. If the first still shows the earlier release, wait a minute and repeat it.
+
+```sh
+curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/restricted
+```
+
+Expected: `401`.
+
+```sh
+curl -sI https://ai-model-picker.pages.dev/hn-comments-1.json | grep -i -E '^(cache-control|x-robots-tag)'
+```
+
+Expected:
+
+```text
+cache-control: no-store
+x-robots-tag: noindex, nofollow, noarchive, nosnippet
+```
+
+If a browser is available, open https://ai-model-picker.pages.dev/ and check that the header shows the new date range and comment count, that Discussion lists threads, that "Show comment" loads a comment, that the Data page has no scan controls and that the console has no errors. The remaining checks are listed under [release verification](deployment.md#release-verification).
+
+## Automating the updates
+
+Nothing is scheduled today. These notes are for whoever sets that up.
+
+- **Safe to run unattended:** [Before any update](#before-any-update), the Hacker News steps 1 to 5 and the arXiv steps 1 to 3. Every decision in them is a comparison of printed values.
+- **Order:** arXiv and Hacker News are independent and can run one after the other in either order. Do not build for publishing while the Hacker News update is between steps 3 and 5.
+- **Exit codes:** for the Hacker News review, exit code 1 with `classification-unresolved` is success. Decide from the step 1 command, not from the exit code alone.
+- **Sign-in:** the `ant auth login` sign-in expires some weeks after the login and needs a browser to renew. An unattended job needs an API key supplied through the environment for that one command, as the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api) show with the macOS keychain. Wrangler's sign-in can expire too.
+- **Cost and time:** an update pays for the new comments and for one more attempt at the unresolved ones, so a weekly update costs about the same as seven daily ones. Each update also walks the threads of the last 30 days again and sends two batches, whatever the number of new comments, so frequent small updates repeat that work. Only one update has been timed.
+- **Copies:** every Hacker News update leaves a 90 MB copy in `.local/hn/`. A job that runs often needs the owner's rule for removing old ones.
+- **Not suitable for a script:** the benchmark, price, report and app guide refresh, which needs someone to read the sources; a new full Hacker News run; and labelling arXiv papers with the local model.
+- **Publishing:** steps 1 to 5 of [Publish](#publish) can be scripted, but the upload makes the data public. Publish from a script only if the owner has decided that updates go out without being looked at.

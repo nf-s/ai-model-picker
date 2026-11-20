@@ -7,6 +7,7 @@
     "dev": "node scripts/dev.mjs",
     "build": "tsc -b && vite build",
     "build:pages": "VITE_HN_MODE=published VITE_RESTRICTED=remote npm run build && python3 -B scripts/export-hn-site.py && python3 -B scripts/export-arxiv-site.py",
+    "check:pages": "python3 -B scripts/check-site.py",
     "preview": "vite preview --host 127.0.0.1 --port 5186",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

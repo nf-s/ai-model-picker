@@ -47,14 +47,14 @@ The same command without the limits resumes that directory's entire run. `Ctrl+C
 .local/hn/venv/bin/python -B scripts/hn_pipeline.py context --state-dir .local/hn
 ```
 
-`extend` brings a run up to date without reviewing it again. It moves the end of the saved window to the present and adds the HN items posted since the run's last item as new partitions. Walked stories created in the last 30 days of the old window are set to be walked again, because their threads can have comments posted after the old end; in the first run no thread older than 30 days had a comment more than 28 days after its story. The command reads only the current maximum item ID from the official API and calls no model. The next `run`, with the same backend as before, scans the new items, walks the new and recent threads and reviews only comments that have no review. A story walked before is not sent for a title check again, because its title was accepted then. Every existing review is kept. The window's start does not move, so an extended window is longer than six months. It accepts `--state-dir` and holds the directory's lock.
+`extend` brings a run up to date without reviewing it again. It moves the end of the saved window to the present and adds the HN items posted since the run's last item as new partitions. Walked stories created in the last 30 days of the old window are set to be walked again, because their threads can have comments posted after the old end; in the first run no thread older than 30 days had a comment more than 28 days after its story. The command reads only the current maximum item ID from the official API and calls no model. The next `run`, with the same backend as before, scans the new items, walks the new and recent threads and reviews only comments that have no review. A story walked before is not sent for a title check again, because its title was accepted then. Every existing review is kept. The window's start does not move, so an extended window is longer than six months. It refuses a run whose target names have changed since it was scanned, because `run` would then refuse to finish it; it stops with `checkpoint-configuration-mismatch` and changes nothing. It accepts `--state-dir` and holds the directory's lock.
 
 ```sh
 .local/hn/venv/bin/python -B scripts/hn_pipeline.py extend --state-dir .local/hn/threads
 .local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads --backend anthropic
 ```
 
-While the extended run is unfinished, the app and the export use the previous analysis, as for any unfinished run (see [Runs, models and files](#runs-models-and-files)).
+While the extended run is unfinished, the app and the export use the previous analysis, as for any unfinished run (see [Runs, models and files](#runs-models-and-files)). The full update procedure, with the copy made first, the expected output and what to do on each error, is in [Updating the data](updating.md#hacker-news-comments).
 
 ## Review through the Anthropic API
 
@@ -106,6 +106,7 @@ All local state is in ignored `.local/hn/` directories.
 | `.local/hn/`                         | The previous analysis: `checkpoint.sqlite3`, `status.json` and `results.json`, produced by classifier `qwen3-4b-instruct-2507-4bit-v3`. No longer served.           |
 | `.local/hn/threads/`                 | The `hn-thread-v1` run, reviewed locally or through the Anthropic API, with the same three files. The current one was reviewed by Claude Haiku 5.5 through the API. |
 | `.local/hn/threads-before-extend/`   | A copy of that run's three files made before `extend` on 19 November 2026.                                                                                          |
+| `.local/hn/threads-backup-<time>/`   | The copy made before each later update, as in [Updating the data](updating.md#2-copy-the-checkpoint).                                                               |
 | `.local/hn/models/qwen3.8-27b-4bit/` | Model weights from `mlx-community/Qwen3.8-27B-4bit` at a pinned revision with checksums. The download is 16.1 GB; the licence is Apache-2.0.                        |
 
 The classifier ID for the local run is `qwen3.8-27b-4bit-thread-v1`, and for a run through the Anthropic API `claude-haiku-5.5-thread-v1`. The local model is served through an OpenAI-compatible loopback endpoint. The CLI also accepts an Ollama-compatible loopback endpoint with `--endpoint`, `--model` and `--classifier-id`. A checkpoint is tied to one classifier, pipeline version and target list; `run` refuses a mismatch, so use a separate state directory when any of them changes. The exception is a checkpoint that no model has touched, such as one made with `--collect-only`: its queue does not depend on the model, so `run` continues it with a different classifier.
@@ -116,7 +117,7 @@ The scan uses no paid model API, and neither does the local backend. Collection 
 
 ## Coverage
 
-The default plan uses six calendar months in Australia/Hobart time, from midnight on the starting date to the time the run starts. The served run's saved window was **17 May–17 November 2026** and was extended to 19 November 2026, 21:40; the previous analysis covered 16 May–16 November. A new run pins its own window when its first `run` starts. `startAt` and `endAt` expose the inclusive UTC bounds; the app displays Hobart dates. Resume preserves the saved window; only `extend` moves its end.
+The default plan uses six calendar months in Australia/Hobart time, from midnight on the starting date to the time the run starts. The served run's saved window was **17 May–17 November 2026** when it was first reviewed, and each update with `extend` moves its end; the first moved it to 19 November 2026, 21:40. The Data page shows the current range. The previous analysis covered 16 May–16 November. A new run pins its own window when its first `run` starts. `startAt` and `endAt` expose the inclusive UTC bounds; the app displays Hobart dates. Resume preserves the saved window; only `extend` moves its end.
 
 Recent records come from bounded ranges in the public ClickHouse HN mirror, with official Firebase lookups for missing or malformed items. Archive selection excludes months before the cutoff. The boundary month is trimmed using ID/time metadata before comment text is read. The scan and thread walks check each comment's timestamp, so a reply outside the window is not queued even when its story is inside it. Archive gap reconciliation starts at the first in-scope ID, not ID 1.
 
@@ -148,7 +149,7 @@ The local review is slow. On an M4 Max with 64 GB the 27B model reviews about 0.
 
 The classifier of the served run, Claude Haiku 5.5, differs from the reference labels in about a third of checked pairs and leans neutral: 11 of its 12 holdout disagreements returned neutral for a positive reference (see below). Thread walks depend on the official HN API at the time of the run, so comments deleted since posting are missed. Outside threads whose title names a model, a comment is found only when its own text names one.
 
-A comment whose scrubbed text is only the mark for a removed link leaves the model nothing to label, and Haiku 5.5 tends to say so in a sentence before the JSON, which fails validation. Most of the 331 unresolved failures of the first review were such comments, and another 34 were refused by the model with no output. After the extension's retry 311 remain.
+A comment whose scrubbed text is only the mark for a removed link leaves the model nothing to label, and Haiku 5.5 tends to say so in a sentence before the JSON, which fails validation. Most of the 331 unresolved failures of the first review were such comments, and another 34 were refused by the model with no output. After the first update's retry 311 remained. Each update sends them once more.
 
 ## In-app discussion reader
 
