@@ -1,6 +1,56 @@
 {
-  "checkedAt": "2026-11-16",
+  "checkedAt": "2026-11-21",
   "models": [
+    {
+      "id": "gpt-6.2-astra",
+      "name": "GPT-6.2 Astra",
+      "provider": "OpenAI",
+      "apiId": "gpt-6.2-astra",
+      "description": "Provider positions 6.2 Astra as its most capable model, for software, computer use and documents.",
+      "pricing": {
+        "input": 8,
+        "output": 40,
+        "cachedInput": 0.4,
+        "url": "https://developers.openai.com/api/docs/models/gpt-6.2-astra",
+        "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-astra",
+        "notes": "Standard API, up to 272K input tokens. Longer prompts: 2× input/cache, 1.5× output. Cache writes and tools cost extra. No Flex processing.",
+        "contextType": "unified",
+        "contextTokens": 1050000,
+        "longContext": {
+          "input": 16,
+          "output": 60,
+          "cachedInput": 0.8,
+          "thresholdTokens": 272000,
+          "inclusive": false
+        }
+      },
+      "status": "current"
+    },
+    {
+      "id": "gpt-6.2-sol",
+      "name": "GPT-6.2 Sol",
+      "provider": "OpenAI",
+      "apiId": "gpt-6.2-sol",
+      "description": "Provider positions 6.2 Sol for everyday coding and agent workflows.",
+      "pricing": {
+        "input": 2,
+        "output": 10,
+        "cachedInput": 0.1,
+        "url": "https://developers.openai.com/api/docs/models/gpt-6.2-sol",
+        "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-sol",
+        "notes": "Standard API, up to 272K input tokens. Longer prompts: 2× input/cache, 1.5× output. Cache writes and tools cost extra. No Flex processing.",
+        "contextType": "unified",
+        "contextTokens": 1050000,
+        "longContext": {
+          "input": 4,
+          "output": 15,
+          "cachedInput": 0.2,
+          "thresholdTokens": 272000,
+          "inclusive": false
+        }
+      },
+      "status": "current"
+    },
     {
       "id": "gpt-6-astra",
       "name": "GPT-6 Astra",
@@ -272,6 +322,24 @@
       "status": "current"
     },
     {
+      "id": "gemini-4-neon",
+      "name": "Gemini 4 Neon",
+      "provider": "Google",
+      "apiId": "gemini-4-neon",
+      "description": "Provider positions Neon for fast task completion in software engineering, knowledge work and science.",
+      "pricing": {
+        "input": 3,
+        "output": 15,
+        "cachedInput": 0.15,
+        "url": "https://aistudio.google.com/docs/pricing#gemini-4-neon",
+        "modelUrl": "https://aistudio.google.com/docs/models/gemini-4-neon",
+        "notes": "Standard paid API; no free tier. Thinking counts as output; only implicit caching. Grounding tools add charges.",
+        "contextType": "unified",
+        "contextTokens": 1048576
+      },
+      "status": "current"
+    },
+    {
       "id": "gemini-4-hydrogen",
       "name": "Gemini 4 Hydrogen",
       "provider": "Google",
@@ -435,14 +503,14 @@
       "name": "Grok Build 0.1",
       "provider": "xAI",
       "apiId": "grok-build-0.1",
-      "description": "Coding model; older grok-code-fast aliases resolve to this model.",
+      "description": "Coding model for agentic coding workflows, released in early access.",
       "pricing": {
         "input": 1,
         "output": 2,
         "cachedInput": 0.2,
         "url": "https://docs.x.ai/developers/pricing",
         "modelUrl": "https://docs.x.ai/developers/models/grok-build-0.1",
-        "notes": "Global API rates below 200K input tokens. Pricing table doubles all token rates at ≥200K. Regional endpoints and tools cost extra.",
+        "notes": "Rates as listed on 16 Nov 2026. On 21 Nov 2026 the xAI pricing table no longer listed this model and its model page redirected to the model list.",
         "contextType": "unified",
         "contextTokens": 256000,
         "longContext": {
@@ -471,6 +539,11 @@
       "provider": "Meta"
     },
     {
+      "id": "qwen4-max",
+      "name": "Qwen4-Max",
+      "provider": "Alibaba"
+    },
+    {
       "id": "muse-ember",
       "name": "Muse Ember",
       "provider": "Meta"
@@ -491,14 +564,14 @@
       "provider": "Z.ai"
     },
     {
-      "id": "gemini-3-8-flash",
-      "name": "Gemini 3.8 Flash",
-      "provider": "Google"
-    },
-    {
       "id": "inkling-2-small",
       "name": "Inkling 2 Small",
       "provider": "Thinking Machines Lab"
+    },
+    {
+      "id": "gemini-3-8-flash",
+      "name": "Gemini 3.8 Flash",
+      "provider": "Google"
     },
     {
       "id": "mimo-v2-6-pro",
@@ -516,6 +589,31 @@
       "provider": "MiniMax"
     },
     {
+      "id": "qwen3-8-flash-next",
+      "name": "Qwen3.8-Flash-Next",
+      "provider": "Alibaba"
+    },
+    {
+      "id": "step-5-preview",
+      "name": "Step 5 Preview",
+      "provider": "StepFun"
+    },
+    {
+      "id": "joyai-vl-preview",
+      "name": "JoyAI-VL-Preview",
+      "provider": "Joy Future Academy"
+    },
+    {
+      "id": "glm-5-3-flash",
+      "name": "GLM-5.3-Flash",
+      "provider": "Z.ai"
+    },
+    {
+      "id": "copilot-fusion",
+      "name": "Copilot Fusion",
+      "provider": "GitHub"
+    },
+    {
       "id": "claude-opus-5",
       "name": "Claude Opus 5",
       "provider": "Anthropic"
@@ -529,11 +627,6 @@
       "id": "gpt-5-6-sol",
       "name": "GPT-5.6 Sol",
       "provider": "OpenAI"
-    },
-    {
-      "id": "glm-5-3-flash",
-      "name": "GLM-5.3-Flash",
-      "provider": "Z.ai"
     },
     {
       "id": "mistral-large-4",
@@ -551,6 +644,11 @@
       "provider": "Moonshot AI"
     },
     {
+      "id": "ember-1",
+      "name": "Ember-1",
+      "provider": "Fireworks"
+    },
+    {
       "id": "gpt-5-6-terra",
       "name": "GPT-5.6 Terra",
       "provider": "OpenAI"
@@ -559,6 +657,11 @@
       "id": "grok-4-6",
       "name": "Grok 4.6",
       "provider": "xAI"
+    },
+    {
+      "id": "hy4-preview",
+      "name": "Hy4 Preview",
+      "provider": "Tencent"
     },
     {
       "id": "gpt-5-6-luna",
@@ -589,6 +692,11 @@
       "id": "claude-sonnet-5",
       "name": "Claude Sonnet 5",
       "provider": "Anthropic"
+    },
+    {
+      "id": "hy4-flash",
+      "name": "Hy4 Flash",
+      "provider": "Tencent"
     },
     {
       "id": "minimax-m3",
@@ -661,14 +769,14 @@
       "provider": "OpenAI"
     },
     {
-      "id": "muse-wonder-1-0",
-      "name": "Muse Wonder 1.0",
-      "provider": "Meta"
+      "id": "qwen-3-8-max",
+      "name": "Qwen 3.8 Max",
+      "provider": "Alibaba"
     },
     {
-      "id": "qwen4-max",
-      "name": "Qwen4-Max",
-      "provider": "Alibaba"
+      "id": "muse-spark-open",
+      "name": "Muse Spark Open",
+      "provider": "Meta"
     },
     {
       "id": "gemini-3-6-flash",
@@ -676,8 +784,63 @@
       "provider": "Google"
     },
     {
+      "id": "muse-spark-1-2",
+      "name": "Muse Spark 1.2",
+      "provider": "Meta"
+    },
+    {
       "id": "muse-spark-1-1",
       "name": "Muse Spark 1.1",
+      "provider": "Meta"
+    },
+    {
+      "id": "deepseek-v4-flash-0731",
+      "name": "DeepSeek V4 Flash 0731",
+      "provider": "DeepSeek"
+    },
+    {
+      "id": "mistral-large-4-preview",
+      "name": "Mistral Large 4 Preview",
+      "provider": "Mistral AI"
+    },
+    {
+      "id": "qwen-3-8-27b",
+      "name": "Qwen 3.8 27B",
+      "provider": "Alibaba"
+    },
+    {
+      "id": "kimi-k2-7-code",
+      "name": "Kimi K2.7 Code",
+      "provider": "Moonshot AI"
+    },
+    {
+      "id": "qwen3-7-plus",
+      "name": "Qwen3.7-Plus",
+      "provider": "Alibaba"
+    },
+    {
+      "id": "nemotron-3-ultra",
+      "name": "Nemotron 3 Ultra",
+      "provider": "NVIDIA"
+    },
+    {
+      "id": "gemini-3-5-flash-lite",
+      "name": "Gemini 3.5 Flash-Lite",
+      "provider": "Google"
+    },
+    {
+      "id": "claude-opus-4",
+      "name": "Claude Opus 4",
+      "provider": "Anthropic"
+    },
+    {
+      "id": "claude-sonnet-4",
+      "name": "Claude Sonnet 4",
+      "provider": "Anthropic"
+    },
+    {
+      "id": "muse-wonder-1-0",
+      "name": "Muse Wonder 1.0",
       "provider": "Meta"
     },
     {
@@ -726,14 +889,14 @@
       "provider": "Google"
     },
     {
-      "id": "claude-opus-4",
-      "name": "Claude Opus 4",
-      "provider": "Anthropic"
+      "id": "qwen3-8-max-prime",
+      "name": "Qwen3.8 Max Prime",
+      "provider": "Alibaba"
     },
     {
-      "id": "claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "provider": "Anthropic"
+      "id": "glm-5-3-prime",
+      "name": "GLM-5.3 Prime",
+      "provider": "Z.ai"
     }
   ],
   "benchmarks": [
@@ -748,7 +911,7 @@
       "url": "https://www.tbench.ai/",
       "costMethod": "Derived mean per trial: reported total evaluation cost divided by reported trial count. Raw totals retained; not a per-success cost.",
       "timeMethod": "Source-reported average trial duration in seconds.",
-      "updatedAt": "2026-11-14T06:10:26.015148+00:00"
+      "updatedAt": "2026-11-20T00:57:53.314015+00:00"
     },
     {
       "id": "swe-rebench-2026-05-15-2026-07-01",
@@ -769,7 +932,7 @@
       "category": "general",
       "unit": "ECI points",
       "description": "A capability estimate fitted across benchmarks; ECI is unbounded and is not a percentage.",
-      "methodology": "A capability estimate fitted across benchmarks; ECI is unbounded and is not a percentage. Methodology: https://epoch.ai/eci 25 models. Attribution: Epoch AI, CC-BY 4.0",
+      "methodology": "A capability estimate fitted across benchmarks; ECI is unbounded and is not a percentage. Methodology: https://epoch.ai/eci 64 models: every model in the CSV released on or after 1 June 2026, and earlier models the app already lists. The CSV row named DeepSeek V4.1 Flash (released 9 September 2026) is left out because that name is the app identity for the later 1017 release. Attribution: Epoch AI, CC-BY 4.0",
       "url": "https://epoch.ai/eci",
       "costMethod": "No task costs are reported in this dataset.",
       "timeMethod": "No task durations are reported in this dataset."
@@ -790,6 +953,20 @@
   "results": [
     {
       "id": "terminal-bench-4-1:1",
+      "modelId": "copilot-fusion",
+      "benchmarkId": "terminal-bench-4-1",
+      "score": 71.21,
+      "configuration": "GitHub Copilot · max effort",
+      "details": "",
+      "sourceUrl": "https://www.tbench.ai/",
+      "costUsd": 6.022212,
+      "timeSeconds": 4233.6,
+      "totalCostUsd": 1987.33,
+      "trials": 330,
+      "interval": "±2.88 · 95% confidence interval"
+    },
+    {
+      "id": "terminal-bench-4-1:2",
       "modelId": "claude-opus-5-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 65.76,
@@ -803,7 +980,7 @@
       "interval": "±3.11 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:2",
+      "id": "terminal-bench-4-1:3",
       "modelId": "claude-fable-5-2",
       "benchmarkId": "terminal-bench-4-1",
       "score": 65.76,
@@ -817,7 +994,7 @@
       "interval": "±2.85 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:3",
+      "id": "terminal-bench-4-1:4",
       "modelId": "gemini-4-carbon",
       "benchmarkId": "terminal-bench-4-1",
       "score": 64.55,
@@ -831,7 +1008,7 @@
       "interval": "±3.23 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:4",
+      "id": "terminal-bench-4-1:5",
       "modelId": "claude-sonnet-5-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 63.94,
@@ -845,7 +1022,35 @@
       "interval": "±3 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:5",
+      "id": "terminal-bench-4-1:6",
+      "modelId": "gpt-6.2-astra",
+      "benchmarkId": "terminal-bench-4-1",
+      "score": 62.12,
+      "configuration": "Codex · max effort",
+      "details": "",
+      "sourceUrl": "https://www.tbench.ai/",
+      "costUsd": 4.270121,
+      "timeSeconds": 1349.5,
+      "totalCostUsd": 1409.14,
+      "trials": 330,
+      "interval": "±2.3 · 95% confidence interval"
+    },
+    {
+      "id": "terminal-bench-4-1:7",
+      "modelId": "gpt-6.2-sol",
+      "benchmarkId": "terminal-bench-4-1",
+      "score": 61.52,
+      "configuration": "Codex · max effort",
+      "details": "",
+      "sourceUrl": "https://www.tbench.ai/",
+      "costUsd": 1.058061,
+      "timeSeconds": 1214.3,
+      "totalCostUsd": 349.16,
+      "trials": 330,
+      "interval": "±2.75 · 95% confidence interval"
+    },
+    {
+      "id": "terminal-bench-4-1:8",
       "modelId": "gpt-6.1-sol",
       "benchmarkId": "terminal-bench-4-1",
       "score": 60.91,
@@ -859,7 +1064,7 @@
       "interval": "±2.97 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:6",
+      "id": "terminal-bench-4-1:9",
       "modelId": "gpt-6-astra",
       "benchmarkId": "terminal-bench-4-1",
       "score": 60.3,
@@ -873,7 +1078,7 @@
       "interval": "±2.82 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:7",
+      "id": "terminal-bench-4-1:10",
       "modelId": "gpt-6-astra",
       "benchmarkId": "terminal-bench-4-1",
       "score": 60,
@@ -887,7 +1092,7 @@
       "interval": "±2.79 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:8",
+      "id": "terminal-bench-4-1:11",
       "modelId": "gpt-6-astra",
       "benchmarkId": "terminal-bench-4-1",
       "score": 59.7,
@@ -901,7 +1106,7 @@
       "interval": "±2.69 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:9",
+      "id": "terminal-bench-4-1:12",
       "modelId": "kimi-k3-1-pro",
       "benchmarkId": "terminal-bench-4-1",
       "score": 59.7,
@@ -915,7 +1120,7 @@
       "interval": "±4.18 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:10",
+      "id": "terminal-bench-4-1:13",
       "modelId": "claude-fable-5-1",
       "benchmarkId": "terminal-bench-4-1",
       "score": 57.58,
@@ -929,7 +1134,7 @@
       "interval": "±3.31 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:11",
+      "id": "terminal-bench-4-1:14",
       "modelId": "claude-fable-5-1",
       "benchmarkId": "terminal-bench-4-1",
       "score": 57.27,
@@ -943,7 +1148,7 @@
       "interval": "±3.83 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:12",
+      "id": "terminal-bench-4-1:15",
       "modelId": "gemini-4-hydrogen",
       "benchmarkId": "terminal-bench-4-1",
       "score": 56.36,
@@ -957,7 +1162,7 @@
       "interval": "±2.97 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:13",
+      "id": "terminal-bench-4-1:16",
       "modelId": "gemini-4-argon",
       "benchmarkId": "terminal-bench-4-1",
       "score": 55.45,
@@ -971,7 +1176,7 @@
       "interval": "±2.85 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:14",
+      "id": "terminal-bench-4-1:17",
       "modelId": "gpt-6-astra",
       "benchmarkId": "terminal-bench-4-1",
       "score": 55.15,
@@ -985,7 +1190,7 @@
       "interval": "±2.66 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:15",
+      "id": "terminal-bench-4-1:18",
       "modelId": "claude-fable-5-1",
       "benchmarkId": "terminal-bench-4-1",
       "score": 54.85,
@@ -999,7 +1204,7 @@
       "interval": "±3.41 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:16",
+      "id": "terminal-bench-4-1:19",
       "modelId": "claude-fable-5-1",
       "benchmarkId": "terminal-bench-4-1",
       "score": 53.94,
@@ -1013,7 +1218,7 @@
       "interval": "±3.39 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:17",
+      "id": "terminal-bench-4-1:20",
       "modelId": "claude-opus-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 53.33,
@@ -1027,7 +1232,7 @@
       "interval": "±3.09 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:18",
+      "id": "terminal-bench-4-1:21",
       "modelId": "gpt-6.1-terra",
       "benchmarkId": "terminal-bench-4-1",
       "score": 53.33,
@@ -1041,7 +1246,7 @@
       "interval": "±3.09 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:19",
+      "id": "terminal-bench-4-1:22",
       "modelId": "claude-opus-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 52.12,
@@ -1055,7 +1260,7 @@
       "interval": "±3.39 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:20",
+      "id": "terminal-bench-4-1:23",
       "modelId": "gpt-6-astra",
       "benchmarkId": "terminal-bench-4-1",
       "score": 50.91,
@@ -1069,7 +1274,7 @@
       "interval": "±2.79 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:21",
+      "id": "terminal-bench-4-1:24",
       "modelId": "gpt-6-sol",
       "benchmarkId": "terminal-bench-4-1",
       "score": 50.3,
@@ -1083,7 +1288,7 @@
       "interval": "±3.23 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:22",
+      "id": "terminal-bench-4-1:25",
       "modelId": "claude-opus-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 49.7,
@@ -1097,7 +1302,7 @@
       "interval": "±3.69 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:23",
+      "id": "terminal-bench-4-1:26",
       "modelId": "muse-wonder",
       "benchmarkId": "terminal-bench-4-1",
       "score": 46.97,
@@ -1111,7 +1316,7 @@
       "interval": "±3.78 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:24",
+      "id": "terminal-bench-4-1:27",
       "modelId": "claude-opus-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 45.15,
@@ -1125,7 +1330,7 @@
       "interval": "±3.85 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:25",
+      "id": "terminal-bench-4-1:28",
       "modelId": "claude-fable-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 44.85,
@@ -1139,7 +1344,7 @@
       "interval": "±3.83 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:26",
+      "id": "terminal-bench-4-1:29",
       "modelId": "claude-fable-5-1",
       "benchmarkId": "terminal-bench-4-1",
       "score": 43.33,
@@ -1153,7 +1358,7 @@
       "interval": "±3.61 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:27",
+      "id": "terminal-bench-4-1:30",
       "modelId": "glm-5-3",
       "benchmarkId": "terminal-bench-4-1",
       "score": 41.21,
@@ -1167,7 +1372,7 @@
       "interval": "±3.28 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:28",
+      "id": "terminal-bench-4-1:31",
       "modelId": "claude-haiku-5-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 40,
@@ -1181,7 +1386,7 @@
       "interval": "±3.61 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:29",
+      "id": "terminal-bench-4-1:32",
       "modelId": "grok-4.7",
       "benchmarkId": "terminal-bench-4-1",
       "score": 38.79,
@@ -1195,7 +1400,7 @@
       "interval": "±3.59 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:30",
+      "id": "terminal-bench-4-1:33",
       "modelId": "gpt-5-6-sol",
       "benchmarkId": "terminal-bench-4-1",
       "score": 38.48,
@@ -1209,7 +1414,7 @@
       "interval": "±3.83 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:31",
+      "id": "terminal-bench-4-1:34",
       "modelId": "deepseek-flash",
       "benchmarkId": "terminal-bench-4-1",
       "score": 38.48,
@@ -1223,7 +1428,7 @@
       "interval": "±3.76 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:32",
+      "id": "terminal-bench-4-1:35",
       "modelId": "tencent-hy4",
       "benchmarkId": "terminal-bench-4-1",
       "score": 37.88,
@@ -1237,7 +1442,7 @@
       "interval": "±3.51 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:33",
+      "id": "terminal-bench-4-1:36",
       "modelId": "glm-5-3-flash",
       "benchmarkId": "terminal-bench-4-1",
       "score": 36.97,
@@ -1251,7 +1456,7 @@
       "interval": "±3.64 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:34",
+      "id": "terminal-bench-4-1:37",
       "modelId": "glm-5-3-flash",
       "benchmarkId": "terminal-bench-4-1",
       "score": 35.45,
@@ -1265,7 +1470,7 @@
       "interval": "±3.56 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:35",
+      "id": "terminal-bench-4-1:38",
       "modelId": "claude-opus-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 34.85,
@@ -1279,7 +1484,7 @@
       "interval": "±3.92 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:36",
+      "id": "terminal-bench-4-1:39",
       "modelId": "muse-ember",
       "benchmarkId": "terminal-bench-4-1",
       "score": 30.61,
@@ -1293,7 +1498,7 @@
       "interval": "±3.8 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:37",
+      "id": "terminal-bench-4-1:40",
       "modelId": "mistral-large-4",
       "benchmarkId": "terminal-bench-4-1",
       "score": 27.58,
@@ -1307,7 +1512,7 @@
       "interval": "±3.87 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:38",
+      "id": "terminal-bench-4-1:41",
       "modelId": "qwen3-8-max-0902",
       "benchmarkId": "terminal-bench-4-1",
       "score": 26.97,
@@ -1321,7 +1526,7 @@
       "interval": "±3.87 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:39",
+      "id": "terminal-bench-4-1:42",
       "modelId": "mimo-v2-6-pro",
       "benchmarkId": "terminal-bench-4-1",
       "score": 26.97,
@@ -1335,7 +1540,7 @@
       "interval": "±3.61 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:40",
+      "id": "terminal-bench-4-1:43",
       "modelId": "claude-opus-4-8",
       "benchmarkId": "terminal-bench-4-1",
       "score": 23.64,
@@ -1349,7 +1554,7 @@
       "interval": "±3.59 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:41",
+      "id": "terminal-bench-4-1:44",
       "modelId": "kimi-k3",
       "benchmarkId": "terminal-bench-4-1",
       "score": 23.03,
@@ -1363,7 +1568,21 @@
       "interval": "±3.73 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:42",
+      "id": "terminal-bench-4-1:45",
+      "modelId": "ember-1",
+      "benchmarkId": "terminal-bench-4-1",
+      "score": 21.82,
+      "configuration": "mini-swe-agent · none effort",
+      "details": "",
+      "sourceUrl": "https://www.tbench.ai/",
+      "costUsd": 14.298455,
+      "timeSeconds": 4959.5,
+      "totalCostUsd": 4718.49,
+      "trials": 330,
+      "interval": "±3.46 · 95% confidence interval"
+    },
+    {
+      "id": "terminal-bench-4-1:46",
       "modelId": "gpt-5-6-terra",
       "benchmarkId": "terminal-bench-4-1",
       "score": 21.52,
@@ -1377,7 +1596,7 @@
       "interval": "±3.25 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:43",
+      "id": "terminal-bench-4-1:47",
       "modelId": "grok-4-6",
       "benchmarkId": "terminal-bench-4-1",
       "score": 19.7,
@@ -1391,7 +1610,21 @@
       "interval": "±3.09 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:44",
+      "id": "terminal-bench-4-1:48",
+      "modelId": "hy4-preview",
+      "benchmarkId": "terminal-bench-4-1",
+      "score": 19.09,
+      "configuration": "Claude Code · max effort",
+      "details": "",
+      "sourceUrl": "https://www.tbench.ai/",
+      "costUsd": 1.994212,
+      "timeSeconds": 6967,
+      "totalCostUsd": 658.09,
+      "trials": 330,
+      "interval": "±3.09 · 95% confidence interval"
+    },
+    {
+      "id": "terminal-bench-4-1:49",
       "modelId": "gemini-3-8-flash",
       "benchmarkId": "terminal-bench-4-1",
       "score": 18.18,
@@ -1405,7 +1638,7 @@
       "interval": "±3.36 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:45",
+      "id": "terminal-bench-4-1:50",
       "modelId": "gpt-5-6-luna",
       "benchmarkId": "terminal-bench-4-1",
       "score": 17.58,
@@ -1419,7 +1652,7 @@
       "interval": "±2.91 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:46",
+      "id": "terminal-bench-4-1:51",
       "modelId": "mimo-v2-6-flash",
       "benchmarkId": "terminal-bench-4-1",
       "score": 16.06,
@@ -1433,7 +1666,7 @@
       "interval": "±3.36 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:47",
+      "id": "terminal-bench-4-1:52",
       "modelId": "gpt-6-luna",
       "benchmarkId": "terminal-bench-4-1",
       "score": 15.15,
@@ -1447,7 +1680,7 @@
       "interval": "±2.66 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:48",
+      "id": "terminal-bench-4-1:53",
       "modelId": "muse-spark-1-3",
       "benchmarkId": "terminal-bench-4-1",
       "score": 14.85,
@@ -1461,7 +1694,7 @@
       "interval": "±3 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:49",
+      "id": "terminal-bench-4-1:54",
       "modelId": "inkling-2-small",
       "benchmarkId": "terminal-bench-4-1",
       "score": 13.03,
@@ -1475,7 +1708,7 @@
       "interval": "±2.85 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:50",
+      "id": "terminal-bench-4-1:55",
       "modelId": "gemini-3-7-flash",
       "benchmarkId": "terminal-bench-4-1",
       "score": 12.42,
@@ -1489,7 +1722,7 @@
       "interval": "±2.52 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:51",
+      "id": "terminal-bench-4-1:56",
       "modelId": "grok-4-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 12.42,
@@ -1503,7 +1736,7 @@
       "interval": "±2.62 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:52",
+      "id": "terminal-bench-4-1:57",
       "modelId": "claude-sonnet-5",
       "benchmarkId": "terminal-bench-4-1",
       "score": 12.12,
@@ -1517,7 +1750,21 @@
       "interval": "±3 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:53",
+      "id": "terminal-bench-4-1:58",
+      "modelId": "hy4-flash",
+      "benchmarkId": "terminal-bench-4-1",
+      "score": 11.82,
+      "configuration": "mini-swe-agent · none effort",
+      "details": "",
+      "sourceUrl": "https://www.tbench.ai/",
+      "costUsd": 0.046879,
+      "timeSeconds": 1837.1,
+      "totalCostUsd": 15.47,
+      "trials": 330,
+      "interval": "±2.85 · 95% confidence interval"
+    },
+    {
+      "id": "terminal-bench-4-1:59",
       "modelId": "minimax-m3",
       "benchmarkId": "terminal-bench-4-1",
       "score": 7.58,
@@ -1531,7 +1778,7 @@
       "interval": "±2.75 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:54",
+      "id": "terminal-bench-4-1:60",
       "modelId": "deepseek-v4-pro",
       "benchmarkId": "terminal-bench-4-1",
       "score": 6.67,
@@ -1545,7 +1792,7 @@
       "interval": "±2.52 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:55",
+      "id": "terminal-bench-4-1:61",
       "modelId": "beam-1-0",
       "benchmarkId": "terminal-bench-4-1",
       "score": 6.36,
@@ -1559,7 +1806,21 @@
       "interval": "±1.68 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:56",
+      "id": "terminal-bench-4-1:62",
+      "modelId": "gemini-3.1-pro-preview",
+      "benchmarkId": "terminal-bench-4-1",
+      "score": 2.73,
+      "configuration": "Antigravity CLI · high effort",
+      "details": "",
+      "sourceUrl": "https://www.tbench.ai/",
+      "costUsd": 11.064091,
+      "timeSeconds": 4583.2,
+      "totalCostUsd": 3651.15,
+      "trials": 330,
+      "interval": "±1.68 · 95% confidence interval"
+    },
+    {
+      "id": "terminal-bench-4-1:63",
       "modelId": "gpt-5-4-mini",
       "benchmarkId": "terminal-bench-4-1",
       "score": 1.82,
@@ -1573,7 +1834,7 @@
       "interval": "±1.26 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:57",
+      "id": "terminal-bench-4-1:64",
       "modelId": "inkling-small",
       "benchmarkId": "terminal-bench-4-1",
       "score": 0.91,
@@ -1587,7 +1848,7 @@
       "interval": "±0.94 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:58",
+      "id": "terminal-bench-4-1:65",
       "modelId": "nemotron-3-5-super-vl",
       "benchmarkId": "terminal-bench-4-1",
       "score": 0.3,
@@ -1601,7 +1862,7 @@
       "interval": "±0.59 · 95% confidence interval"
     },
     {
-      "id": "terminal-bench-4-1:59",
+      "id": "terminal-bench-4-1:66",
       "modelId": "inkling",
       "benchmarkId": "terminal-bench-4-1",
       "score": 0,
@@ -1761,251 +2022,641 @@
       "id": "epoch-eci:1",
       "modelId": "claude-fable-5-2",
       "benchmarkId": "epoch-eci",
-      "score": 173.44,
+      "score": 173.4,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "169.93–177.49 · Source-reported credible interval"
+      "interval": "170.04–177.22 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:2",
-      "modelId": "gemini-4-carbon",
+      "modelId": "gpt-6.2-astra",
       "benchmarkId": "epoch-eci",
-      "score": 169.76,
+      "score": 172.82,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "166.48–173.5 · Source-reported credible interval"
+      "interval": "169.37–176.94 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:3",
-      "modelId": "gpt-6-astra",
+      "modelId": "gemini-4-carbon",
       "benchmarkId": "epoch-eci",
-      "score": 169.0,
+      "score": 169.68,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "166.08–172.26 · Source-reported credible interval"
+      "interval": "166.58–173.14 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:4",
-      "modelId": "claude-opus-5-5",
+      "modelId": "gpt-6-astra",
       "benchmarkId": "epoch-eci",
-      "score": 168.54,
+      "score": 169.21,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "165.63–171.83 · Source-reported credible interval"
+      "interval": "166.41–172.49 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:5",
-      "modelId": "gpt-6.1-sol",
+      "modelId": "claude-opus-5-5",
       "benchmarkId": "epoch-eci",
-      "score": 168.48,
+      "score": 168.67,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "165.49–171.8 · Source-reported credible interval"
+      "interval": "165.92–171.96 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:6",
-      "modelId": "gpt-6.1-terra",
+      "modelId": "gpt-6.1-sol",
       "benchmarkId": "epoch-eci",
-      "score": 167.67,
+      "score": 168.61,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "164.73–170.98 · Source-reported credible interval"
+      "interval": "165.69–171.91 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:7",
-      "modelId": "claude-fable-5-1",
+      "modelId": "gpt-6.1-terra",
       "benchmarkId": "epoch-eci",
-      "score": 166.99,
+      "score": 167.71,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "164.23–170.11 · Source-reported credible interval"
+      "interval": "164.86–171.04 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:8",
-      "modelId": "claude-sonnet-5-5",
+      "modelId": "claude-fable-5-1",
       "benchmarkId": "epoch-eci",
-      "score": 166.56,
+      "score": 167.06,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "163.76–169.58 · Source-reported credible interval"
+      "interval": "164.41–170.13 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:9",
-      "modelId": "gemini-4-argon",
+      "modelId": "gemini-4-hydrogen",
       "benchmarkId": "epoch-eci",
-      "score": 166.48,
+      "score": 166.81,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "163.77–169.46 · Source-reported credible interval"
+      "interval": "163.99–170.1 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:10",
-      "modelId": "claude-opus-5",
+      "modelId": "claude-sonnet-5-5",
       "benchmarkId": "epoch-eci",
-      "score": 164.68,
+      "score": 166.6,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "162.14–167.49 · Source-reported credible interval"
+      "interval": "163.92–169.61 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:11",
-      "modelId": "claude-fable-5",
+      "modelId": "gemini-4-argon",
       "benchmarkId": "epoch-eci",
-      "score": 164.13,
+      "score": 166.53,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "161.68–166.83 · Source-reported credible interval"
+      "interval": "163.94–169.47 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:12",
-      "modelId": "gpt-6-sol",
+      "modelId": "claude-opus-5",
       "benchmarkId": "epoch-eci",
-      "score": 163.75,
+      "score": 164.72,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "161.33–166.42 · Source-reported credible interval"
+      "interval": "162.27–167.48 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:13",
-      "modelId": "gpt-5-6-sol",
+      "modelId": "claude-fable-5",
       "benchmarkId": "epoch-eci",
-      "score": 162.99,
+      "score": 164.18,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "160.68–165.49 · Source-reported credible interval"
+      "interval": "161.82–166.91 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:14",
-      "modelId": "gpt-5-5-pro",
+      "modelId": "gpt-6-sol",
       "benchmarkId": "epoch-eci",
-      "score": 162.7,
+      "score": 163.83,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "159.98–165.86 · Source-reported credible interval"
+      "interval": "161.39–166.55 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:15",
-      "modelId": "muse-wonder",
+      "modelId": "gpt-5-6-sol",
       "benchmarkId": "epoch-eci",
-      "score": 161.68,
+      "score": 163.02,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "159.36–164.34 · Source-reported credible interval"
+      "interval": "160.72–165.58 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:16",
-      "modelId": "kimi-k3-1-pro",
+      "modelId": "gpt-5-5-pro",
       "benchmarkId": "epoch-eci",
-      "score": 161.37,
+      "score": 162.78,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "158.99–164.0 · Source-reported credible interval"
+      "interval": "160.07–165.88 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:17",
-      "modelId": "gpt-5-6-terra",
+      "modelId": "muse-wonder",
       "benchmarkId": "epoch-eci",
-      "score": 160.73,
+      "score": 161.74,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "158.47–163.25 · Source-reported credible interval"
+      "interval": "159.37–164.29 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:18",
-      "modelId": "claude-haiku-5-5",
+      "modelId": "kimi-k3-1-pro",
       "benchmarkId": "epoch-eci",
-      "score": 160.43,
+      "score": 161.2,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "158.27–162.87 · Source-reported credible interval"
+      "interval": "158.95–163.74 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:19",
-      "modelId": "gpt-5-4-pro",
+      "modelId": "gpt-5-6-terra",
       "benchmarkId": "epoch-eci",
-      "score": 160.24,
+      "score": 160.8,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "157.75–163.04 · Source-reported credible interval"
+      "interval": "158.49–163.29 · Source-reported credible interval"
     },
     {
       "id": "epoch-eci:20",
+      "modelId": "claude-haiku-5-5",
+      "benchmarkId": "epoch-eci",
+      "score": 160.33,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "158.18–162.69 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:21",
+      "modelId": "gpt-5-4-pro",
+      "benchmarkId": "epoch-eci",
+      "score": 160.31,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "157.93–163.02 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:22",
+      "modelId": "claude-opus-4-8",
+      "benchmarkId": "epoch-eci",
+      "score": 159.9,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "157.83–162.21 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:23",
       "modelId": "deepseek-flash",
       "benchmarkId": "epoch-eci",
       "score": 159.41,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "157.01–162.0 · Source-reported credible interval"
+      "interval": "157.13–161.91 · Source-reported credible interval"
     },
     {
-      "id": "epoch-eci:21",
+      "id": "epoch-eci:24",
       "modelId": "gemini-3-8-flash",
       "benchmarkId": "epoch-eci",
-      "score": 158.79,
+      "score": 158.81,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "156.77–160.94 · Source-reported credible interval"
+      "interval": "156.82–161.01 · Source-reported credible interval"
     },
     {
-      "id": "epoch-eci:22",
+      "id": "epoch-eci:25",
+      "modelId": "kimi-k3",
+      "benchmarkId": "epoch-eci",
+      "score": 158.61,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "156.66–160.8 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:26",
+      "modelId": "gemini-3-7-flash",
+      "benchmarkId": "epoch-eci",
+      "score": 158.4,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "156.47–160.58 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:27",
+      "modelId": "muse-spark-1-3",
+      "benchmarkId": "epoch-eci",
+      "score": 158.24,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "156.16–160.48 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:28",
+      "modelId": "grok-4-6",
+      "benchmarkId": "epoch-eci",
+      "score": 157.82,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "155.9–159.99 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:29",
+      "modelId": "qwen-3-8-max",
+      "benchmarkId": "epoch-eci",
+      "score": 157.55,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "155.52–159.85 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:30",
       "modelId": "glm-5-3",
       "benchmarkId": "epoch-eci",
       "score": 157.1,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "154.94–159.53 · Source-reported credible interval"
+      "interval": "155.01–159.42 · Source-reported credible interval"
     },
     {
-      "id": "epoch-eci:23",
+      "id": "epoch-eci:31",
+      "modelId": "claude-sonnet-5",
+      "benchmarkId": "epoch-eci",
+      "score": 156.9,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "154.92–159.06 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:32",
+      "modelId": "gpt-5-6-luna",
+      "benchmarkId": "epoch-eci",
+      "score": 156.72,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "154.87–158.77 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:33",
       "modelId": "gpt-6-luna",
       "benchmarkId": "epoch-eci",
-      "score": 156.41,
+      "score": 156.45,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "154.45–158.5 · Source-reported credible interval"
+      "interval": "154.58–158.48 · Source-reported credible interval"
     },
     {
-      "id": "epoch-eci:24",
+      "id": "epoch-eci:34",
       "modelId": "grok-4.7",
       "benchmarkId": "epoch-eci",
-      "score": 156.18,
+      "score": 156.43,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "154.23–158.27 · Source-reported credible interval"
+      "interval": "154.51–158.52 · Source-reported credible interval"
     },
     {
-      "id": "epoch-eci:25",
-      "modelId": "qwen3-8-max-0902",
+      "id": "epoch-eci:35",
+      "modelId": "gemini-3.1-pro-preview",
       "benchmarkId": "epoch-eci",
-      "score": 155.97,
+      "score": 156.25,
       "configuration": "Epoch combined estimate; underlying evaluation settings vary",
       "details": "",
       "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
-      "interval": "153.85–158.27 · Source-reported credible interval"
+      "interval": "154.53–158.16 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:36",
+      "modelId": "qwen3-8-max-0902",
+      "benchmarkId": "epoch-eci",
+      "score": 155.99,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "153.89–158.32 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:37",
+      "modelId": "deepseek-v4-pro",
+      "benchmarkId": "epoch-eci",
+      "score": 155.96,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "154.05–158.06 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:38",
+      "modelId": "muse-spark-open",
+      "benchmarkId": "epoch-eci",
+      "score": 155.47,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "153.34–157.75 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:39",
+      "modelId": "gemini-3-6-flash",
+      "benchmarkId": "epoch-eci",
+      "score": 155.24,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "153.42–157.26 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:40",
+      "modelId": "muse-spark-1-2",
+      "benchmarkId": "epoch-eci",
+      "score": 155.02,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "152.68–157.54 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:41",
+      "modelId": "grok-4-5",
+      "benchmarkId": "epoch-eci",
+      "score": 154.98,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "153.13–156.87 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:42",
+      "modelId": "muse-spark-1-1",
+      "benchmarkId": "epoch-eci",
+      "score": 154.94,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "152.38–157.72 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:43",
+      "modelId": "mistral-large-4",
+      "benchmarkId": "epoch-eci",
+      "score": 154.57,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "151.81–157.43 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:44",
+      "modelId": "deepseek-v4-flash-0731",
+      "benchmarkId": "epoch-eci",
+      "score": 154.43,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "152.61–156.4 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:45",
+      "modelId": "glm-5-3-flash",
+      "benchmarkId": "epoch-eci",
+      "score": 153.77,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "151.95–155.78 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:46",
+      "modelId": "glm-5-2",
+      "benchmarkId": "epoch-eci",
+      "score": 153.07,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "151.34–154.91 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:47",
+      "modelId": "mistral-large-4-preview",
+      "benchmarkId": "epoch-eci",
+      "score": 152.74,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "150.84–154.68 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:48",
+      "modelId": "qwen-3-8-27b",
+      "benchmarkId": "epoch-eci",
+      "score": 152.63,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "150.65–154.67 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:49",
+      "modelId": "kimi-k2-7-code",
+      "benchmarkId": "epoch-eci",
+      "score": 151.17,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "149.18–153.25 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:50",
+      "modelId": "beam-1-0",
+      "benchmarkId": "epoch-eci",
+      "score": 150.84,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "148.56–153.14 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:51",
+      "modelId": "inkling-small",
+      "benchmarkId": "epoch-eci",
+      "score": 150.77,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "149.02–152.54 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:52",
+      "modelId": "reported-deepseek-v4-pro",
+      "benchmarkId": "epoch-eci",
+      "score": 150.19,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "148.42–151.99 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:53",
+      "modelId": "gpt-5-4-mini",
+      "benchmarkId": "epoch-eci",
+      "score": 149.37,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "147.71–151.13 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:54",
+      "modelId": "inkling",
+      "benchmarkId": "epoch-eci",
+      "score": 148.39,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "146.76–150.08 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:55",
+      "modelId": "qwen3-7-plus",
+      "benchmarkId": "epoch-eci",
+      "score": 147.92,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "145.96–150.02 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:56",
+      "modelId": "minimax-m3",
+      "benchmarkId": "epoch-eci",
+      "score": 147.84,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "145.68–149.96 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:57",
+      "modelId": "nemotron-3-ultra",
+      "benchmarkId": "epoch-eci",
+      "score": 147.02,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "144.86–149.16 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:58",
+      "modelId": "qwen3-6-27b",
+      "benchmarkId": "epoch-eci",
+      "score": 146.72,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "144.63–148.91 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:59",
+      "modelId": "gemini-3-5-flash-lite",
+      "benchmarkId": "epoch-eci",
+      "score": 145.63,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "144.02–147.23 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:60",
+      "modelId": "gemini-3.1-flash-lite",
+      "benchmarkId": "epoch-eci",
+      "score": 144.97,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "142.78–147.09 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:61",
+      "modelId": "qwen3-6-35b-a3b",
+      "benchmarkId": "epoch-eci",
+      "score": 144.07,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "142.18–145.89 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:62",
+      "modelId": "qwen3-5-35b-a3b",
+      "benchmarkId": "epoch-eci",
+      "score": 144.05,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "141.51–146.63 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:63",
+      "modelId": "claude-opus-4",
+      "benchmarkId": "epoch-eci",
+      "score": 142.85,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "141.26–144.43 · Source-reported credible interval"
+    },
+    {
+      "id": "epoch-eci:64",
+      "modelId": "claude-sonnet-4",
+      "benchmarkId": "epoch-eci",
+      "score": 141.84,
+      "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+      "details": "",
+      "sourceUrl": "https://epoch.ai/data/eci_scores.csv",
+      "interval": "140.33–143.29 · Source-reported credible interval"
     },
     {
       "id": "plato-web-clone-bench:1",
@@ -2322,6 +2973,74 @@
       ]
     },
     {
+      "id": "contra-frontier-design",
+      "title": "Real client briefs split web-design models into two groups",
+      "sourceName": "Contra Labs",
+      "url": "https://contralabs.com/research/frontier-design-benchmark",
+      "category": "design",
+      "evidenceType": "human-preference",
+      "modelNames": [
+        "Claude Fable 5.2",
+        "Claude Opus 5.5",
+        "GPT-6.1 Sol",
+        "Claude Sonnet 5.5",
+        "Kimi K3.1 Pro",
+        "GPT-6 Astra",
+        "Qwen3.8 Max Prime",
+        "Kimi K3",
+        "GLM-5.3 Prime",
+        "Gemini 4 Carbon",
+        "Muse Spark 1.3",
+        "Muse Wonder",
+        "Grok 4.7",
+        "Gemini 4 Argon",
+        "DeepSeek V4 Pro"
+      ],
+      "configuration": "BenchFlow SDK with models through OpenRouter; each lab's own agent harness where possible. Effort not stated, except GPT-6 Astra labelled ultra in the pattern analysis.",
+      "summary": "Professional designers compared sites built from 33 real client briefs. Gestalt, an unreleased stealth model, rated highest and above the human reference designs; Claude Fable 5.2 led the released models. Three Claude models, two GPT models and Kimi K3.1 Pro formed a top group well ahead of the other nine.",
+      "limitation": "Run in partnership with BenchFlow; Contra says it works with frontier labs and with Gestalt's team on evaluation and feedback. Gestalt's provider is not disclosed. Ratings are given in chart images; run cost is plotted without stated values.",
+      "publishedAt": "2026-11-18",
+      "metrics": [
+        {
+          "label": "Expert votes",
+          "value": 4311,
+          "unit": "votes"
+        },
+        {
+          "label": "Gestalt rating",
+          "value": 1928,
+          "unit": "Bradley–Terry Elo"
+        },
+        {
+          "label": "Claude Fable 5.2 rating",
+          "value": 1714,
+          "unit": "Bradley–Terry Elo"
+        },
+        {
+          "label": "Human reference designs rating",
+          "value": 1736,
+          "unit": "Bradley–Terry Elo"
+        }
+      ],
+      "modelIds": [
+        "claude-fable-5-2",
+        "claude-opus-5-5",
+        "gpt-6.1-sol",
+        "claude-sonnet-5-5",
+        "kimi-k3-1-pro",
+        "gpt-6-astra",
+        "qwen3-8-max-prime",
+        "kimi-k3",
+        "glm-5-3-prime",
+        "gemini-4-carbon",
+        "muse-spark-1-3",
+        "muse-wonder",
+        "grok-4.7",
+        "gemini-4-argon",
+        "deepseek-v4-pro"
+      ]
+    },
+    {
       "id": "plato-sol-cloning",
       "title": "Sol and Astra: published web-app cloning costs",
       "sourceName": "Plato",
@@ -2630,7 +3349,7 @@
       "kind": "Official pricing",
       "coverage": "Grok standard, long-context and regional token rates.",
       "access": "Public documentation",
-      "limitations": "Pricing table uses ≥200K for long context while individual model prose says exceed 200K; this dataset conservatively follows the pricing table."
+      "limitations": "Pricing table and model pages apply long-context rates once the prompt reaches 200K (≥200K); release notes and regional text say above 200K. This dataset follows the pricing table. Grok Build 0.1 was no longer listed on 21 Nov 2026."
     },
     {
       "id": "terminal-bench",
@@ -2739,6 +3458,15 @@
       "coverage": "Editorial photography and client readiness",
       "access": "Public methods and results",
       "limitations": "Commissioned anchor comparison; not a complete field ranking."
+    },
+    {
+      "id": "contra-labs-frontier-design",
+      "name": "Contra Labs Frontier Design",
+      "url": "https://contralabs.com/research/frontier-design-benchmark",
+      "kind": "human preference",
+      "coverage": "Web design from real client briefs: expert votes, design rubric and AI-pattern detector",
+      "access": "Public report; results in chart images",
+      "limitations": "33 tasks; includes an unreleased stealth model; costs plotted, not stated."
     },
     {
       "id": "contra-labs-methodology",

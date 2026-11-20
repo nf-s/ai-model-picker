@@ -31,8 +31,9 @@ from hn_local.sources import (
 )
 from hn_local.state import Counters, State
 from hn_pipeline import (
-    REWALK_DAYS, arguments, consume_partition, expand_stories, extend_window, mirror_pages, process_block,
-    read_ancestors, reconcile_pages, resolve_context, review_batches, review_comments, scan_key_for, thread_root,
+    REWALK_DAYS, arguments, classifier_key_for, consume_partition, expand_stories, extend_window, mirror_pages,
+    process_block, read_ancestors, reconcile_pages, resolve_context, retarget, review_batches, review_comments,
+    scan_key_for, thread_root,
 )
 
 MODEL_FIXTURES = [
@@ -888,6 +889,99 @@ class TestPhases(unittest.TestCase):
         self.expand(Firebase(items), judge)
         self.assertEqual(judge.titles, ['Claude keeps rewriting my tests'])
         self.assertEqual(self.state.story(300)['state'], 'rejected')
+
+    def retargeted_run(self):
+        """A finished run whose reviews were made under MODEL_FIXTURES, keyed as `run` keys them."""
+        key = classifier_key_for('fixture', 'fixture-model', self.targets)
+        self.state.connection.execute(
+            "UPDATE run SET source = 'archive-and-tail', classifier = 'fixture', classifier_key = ?, scan_key = ?",
+            (key, scan_key_for(self.targets)),
+        )
+        items = [
+            story(300, 'GPT-6 Astra launch', kids=(301,)),
+            comment(301, 300, 'Fast.'),
+            comment(302, 1, 'Claude Opus 4 and Example New 9 both did well.'),
+            comment(303, 1, 'Claude Opus 4 is slow.'),
+            story(310, 'Example New 9 launch', kids=(311,)),
+            comment(311, 310, 'Nice.'),
+            story(320, 'GPT-6 Astra or Example New 9?', kids=(321,)),
+            comment(321, 320, 'Hmm.'),
+            story(330, 'Claude and Example New 9 rewrite my tests', kids=(331,)),
+            comment(331, 330, 'Mine too.'),
+        ]
+        scanned = [items[index] for index in (0, 2, 3, 4, 6, 8)]
+        process_block(self.state, self.partition, 0, scanned, self.targets, key)
+        expand_stories(self.state, Firebase(items), self.targets, Reviewer(), key, lambda: False)
+        with ThreadPoolExecutor() as executor:
+            review_comments(
+                self.state, Firebase(items), self.targets, Reviewer(), key, executor, [10, 100], lambda: False,
+            )
+        self.state.connection.execute("UPDATE partition SET state = 'complete', position = 1000")
+        self.state.set_run('complete')
+        return items, scanned
+
+    def assessed(self):
+        return {
+            (row['item_id'], row['target'])
+            for row in self.state.connection.execute('SELECT item_id, target FROM assessment')
+        }
+
+    def test_retarget_keeps_reviews_and_reviews_again_only_what_names_a_new_target(self):
+        items, scanned = self.retargeted_run()
+        self.assertEqual(self.state.story(330)['state'], 'rejected')
+        self.assertEqual(self.state.queued(10), [])
+        before = self.assessed()
+        renamed = Targets([*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}])
+        key = classifier_key_for('fixture', 'fixture-model', renamed)
+        with patch('hn_pipeline.current_targets', return_value=renamed):
+            retarget(self.state, MODEL_FIXTURES, 'fixture', 'fixture-model')
+        job = self.state.job()
+        self.assertEqual((job['classifier_key'], job['scan_key'], job['state']), (key, scan_key_for(renamed), 'paused'))
+        # Every review is kept under the new key.
+        self.assertEqual(self.assessed(), before)
+        self.assertEqual(
+            {row[0] for row in self.state.connection.execute('SELECT DISTINCT classifier_key FROM comment')}, {key},
+        )
+        self.assertEqual(self.state.added_targets(), {('model', 'example-new')})
+        self.assertEqual(self.state.next_partition(), (self.partition, 0))
+        # The walked thread whose title names the new model is reviewed again; the rejected story is walked.
+        self.assertEqual([row['item_id'] for row in self.state.queued(10)], [321])
+        self.assertIn(['model', 'example-new'], json.loads(self.state.story(320)['targets']))
+        self.assertEqual([row['item_id'] for row in self.state.pending_stories()], [330])
+
+        # The scan again: a reviewed comment that names the new model is queued, the others are not.
+        process_block(self.state, self.partition, 0, scanned, renamed, key)
+        reviewer = Reviewer()
+        expand_stories(self.state, Firebase(items), renamed, reviewer, key, lambda: False)
+        self.assertEqual(reviewer.titles, [])
+        self.assertEqual({row['item_id'] for row in self.state.queued(10)}, {302, 311, 321, 331})
+        self.state.finish_retarget()
+        with ThreadPoolExecutor() as executor:
+            review_comments(self.state, Firebase(items), renamed, reviewer, key, executor, [10, 100], lambda: False)
+        self.assertEqual(self.state.queued(10), [])
+        after = self.assessed()
+        self.assertTrue(before < after)
+        self.assertTrue({(302, 'example-new'), (311, 'example-new'), (321, 'example-new')} <= after)
+        self.assertEqual(len(reviewer.subjects), 4)
+        # The run can be extended again with the new list.
+        with patch('hn_pipeline.get_maxitem', return_value=1010):
+            extend_window(self.state, scan_key_for(renamed), TIME + 20)
+
+    def test_retarget_refuses_another_run_an_unchanged_list_and_a_removed_target_with_reviews(self):
+        self.retargeted_run()
+        renamed = Targets([*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}])
+        without = Targets([model for model in MODEL_FIXTURES if model['id'] != 'claude-opus-4'])
+        before = self.state.job()
+        for previous, current, model, reason in (
+            (MODEL_FIXTURES, renamed, 'another-model', 'checkpoint-configuration-mismatch'),
+            ([*MODEL_FIXTURES[:2]], renamed, 'fixture-model', 'checkpoint-configuration-mismatch'),
+            (MODEL_FIXTURES, self.targets, 'fixture-model', 'targets-unchanged'),
+            (MODEL_FIXTURES, without, 'fixture-model', 'removed-target-has-reviews'),
+        ):
+            with self.subTest(reason=reason, model=model), patch('hn_pipeline.current_targets', return_value=current):
+                with self.assertRaisesRegex(PipelineError, reason):
+                    retarget(self.state, previous, 'fixture', model)
+                self.assertEqual(tuple(self.state.job()), tuple(before))
 
     def test_collecting_without_the_model_leaves_uncertain_titles_pending(self):
         items = [

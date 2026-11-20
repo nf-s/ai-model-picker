@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-16",
+  "checkedAt": "2026-11-21",
   "benchmarks": [
     {
       "id": "terminal-bench-4-1",
@@ -12,8 +12,29 @@
       "costMethod": "Derived mean per trial: reported total evaluation cost divided by reported trial count. Raw totals retained; not a per-success cost.",
       "timeMethod": "Source-reported average trial duration in seconds.",
       "selectionMethod": "Primary is the first source-ranked configuration for each model; alternate runs remain separate.",
-      "publishedDataUpdatedAt": "2026-11-14T06:10:26.015148+00:00",
+      "publishedDataUpdatedAt": "2026-11-20T00:57:53.314015+00:00",
       "results": [
+        {
+          "modelName": "Copilot Fusion",
+          "sourceModelName": "Copilot Fusion",
+          "provider": "GitHub",
+          "score": 71.21,
+          "configuration": "GitHub Copilot · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://docs.github.com/en/copilot/concepts/models/copilot-fusion",
+          "agentUrl": "https://github.com/github/copilot-cli",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.88
+          },
+          "trials": 330,
+          "totalCostUsd": 1987.33,
+          "costUsd": 6.022212,
+          "releaseDate": "2026-11-17",
+          "timeSeconds": 4233.6,
+          "passAt5": 83.33
+        },
         {
           "modelName": "Claude Opus 5.5",
           "sourceModelName": "Opus 5.5",
@@ -97,6 +118,48 @@
           "releaseDate": "2026-09-28",
           "timeSeconds": 7431.6,
           "passAt5": 80.3
+        },
+        {
+          "modelName": "GPT-6.2 Astra",
+          "sourceModelName": "GPT-6.2 Astra",
+          "provider": "OpenAI",
+          "score": 62.12,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-astra",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.3
+          },
+          "trials": 330,
+          "totalCostUsd": 1409.14,
+          "costUsd": 4.270121,
+          "releaseDate": "2026-11-17",
+          "timeSeconds": 1349.5,
+          "passAt5": 72.73
+        },
+        {
+          "modelName": "GPT-6.2 Sol",
+          "sourceModelName": "GPT-6.2 Sol",
+          "provider": "OpenAI",
+          "score": 61.52,
+          "configuration": "Codex · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-sol",
+          "agentUrl": "https://openai.com/codex/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.75
+          },
+          "trials": 330,
+          "totalCostUsd": 349.16,
+          "costUsd": 1.058061,
+          "releaseDate": "2026-11-17",
+          "timeSeconds": 1214.3,
+          "passAt5": 72.73
         },
         {
           "modelName": "GPT-6.1 Sol",
@@ -876,6 +939,27 @@
           "passAt5": 53.03
         },
         {
+          "modelName": "Ember-1",
+          "sourceModelName": "Ember-1",
+          "provider": "Fireworks",
+          "score": 21.82,
+          "configuration": "mini-swe-agent · none effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/fireworks/ember-1",
+          "agentUrl": "https://mini-swe-agent.com/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.46
+          },
+          "trials": 330,
+          "totalCostUsd": 4718.49,
+          "costUsd": 14.298455,
+          "releaseDate": "2026-09-24",
+          "timeSeconds": 4959.5,
+          "passAt5": 42.42
+        },
+        {
           "modelName": "GPT-5.6 Terra",
           "sourceModelName": "GPT-5.6 Terra",
           "provider": "OpenAI",
@@ -916,6 +1000,27 @@
           "releaseDate": "2026-08-12",
           "timeSeconds": 2351.5,
           "passAt5": 39.39
+        },
+        {
+          "modelName": "Hy4 Preview",
+          "sourceModelName": "Hy4 Preview",
+          "provider": "Tencent",
+          "score": 19.09,
+          "configuration": "Claude Code · max effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/tencent/hy4-preview",
+          "agentUrl": "https://claude.com/product/claude-code",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 3.09
+          },
+          "trials": 330,
+          "totalCostUsd": 658.09,
+          "costUsd": 1.994212,
+          "releaseDate": "2026-08-28",
+          "timeSeconds": 6967,
+          "passAt5": 37.88
         },
         {
           "modelName": "Gemini 3.8 Flash",
@@ -1107,6 +1212,27 @@
           "passAt5": 33.33
         },
         {
+          "modelName": "Hy4 Flash",
+          "sourceModelName": "Hy4 Flash",
+          "provider": "Tencent",
+          "score": 11.82,
+          "configuration": "mini-swe-agent · none effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://openrouter.ai/tencent/hy4-flash",
+          "agentUrl": "https://mini-swe-agent.com/",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 2.85
+          },
+          "trials": 330,
+          "totalCostUsd": 15.47,
+          "costUsd": 0.046879,
+          "releaseDate": "2026-11-16",
+          "timeSeconds": 1837.1,
+          "passAt5": 27.27
+        },
+        {
           "modelName": "MiniMax M3",
           "sourceModelName": "MiniMax M3",
           "provider": "MiniMax",
@@ -1167,6 +1293,27 @@
           "costUsd": 0.669576,
           "releaseDate": "2026-10-16",
           "timeSeconds": 178.6,
+          "passAt5": 10.61
+        },
+        {
+          "modelName": "Gemini 3.1 Pro Preview",
+          "sourceModelName": "Gemini 3.1 Pro",
+          "provider": "Google",
+          "score": 2.73,
+          "configuration": "Antigravity CLI · high effort",
+          "primary": true,
+          "sourceUrl": "https://www.tbench.ai/",
+          "modelUrl": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-pro/",
+          "agentUrl": "https://antigravity.google/cli",
+          "interval": {
+            "kind": "95% confidence interval",
+            "halfWidth": 1.68
+          },
+          "trials": 330,
+          "totalCostUsd": 3651.15,
+          "costUsd": 11.064091,
+          "releaseDate": "2026-02-19",
+          "timeSeconds": 4583.2,
           "passAt5": 10.61
         },
         {
@@ -1493,46 +1640,60 @@
       "attribution": "Epoch AI, CC-BY 4.0",
       "costMethod": "No task costs are reported in this dataset.",
       "timeMethod": "No task durations are reported in this dataset.",
-      "selectionMethod": "25 models.",
+      "selectionMethod": "64 models: every model in the CSV released on or after 1 June 2026, and earlier models the app already lists. The CSV row named DeepSeek V4.1 Flash (released 9 September 2026) is left out because that name is the app identity for the later 1017 release.",
       "results": [
         {
           "modelName": "Claude Fable 5.2",
           "provider": "Anthropic",
-          "score": 173.44,
+          "score": 173.4,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 169.93,
-            "upper": 177.49
+            "lower": 170.04,
+            "upper": 177.22
           },
           "releaseDate": "2026-11-09",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         },
         {
-          "modelName": "Gemini 4 Carbon",
-          "provider": "Google DeepMind",
-          "score": 169.76,
+          "modelName": "GPT-6.2 Astra",
+          "provider": "OpenAI",
+          "score": 172.82,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 166.48,
-            "upper": 173.5
+            "lower": 169.37,
+            "upper": 176.94
           },
-          "releaseDate": "2026-10-28",
+          "releaseDate": "2026-11-17",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Gemini 4 Carbon",
+          "provider": "Google DeepMind",
+          "score": 169.68,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 166.58,
+            "upper": 173.14
+          },
+          "releaseDate": "2026-11-10",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         },
         {
           "modelName": "GPT-6 Astra",
           "provider": "OpenAI",
-          "score": 169.0,
+          "score": 169.21,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 166.08,
-            "upper": 172.26
+            "lower": 166.41,
+            "upper": 172.49
           },
           "releaseDate": "2026-09-03",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1540,13 +1701,13 @@
         {
           "modelName": "Claude Opus 5.5",
           "provider": "Anthropic",
-          "score": 168.54,
+          "score": 168.67,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 165.63,
-            "upper": 171.83
+            "lower": 165.92,
+            "upper": 171.96
           },
           "releaseDate": "2026-09-22",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1554,13 +1715,13 @@
         {
           "modelName": "GPT-6.1 Sol",
           "provider": "OpenAI",
-          "score": 168.48,
+          "score": 168.61,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 165.49,
-            "upper": 171.8
+            "lower": 165.69,
+            "upper": 171.91
           },
           "releaseDate": "2026-09-29",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1568,13 +1729,13 @@
         {
           "modelName": "GPT-6.1 Terra",
           "provider": "OpenAI",
-          "score": 167.67,
+          "score": 167.71,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 164.73,
-            "upper": 170.98
+            "lower": 164.86,
+            "upper": 171.04
           },
           "releaseDate": "2026-10-26",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1582,27 +1743,41 @@
         {
           "modelName": "Claude Fable 5.1",
           "provider": "Anthropic",
-          "score": 166.99,
+          "score": 167.06,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 164.23,
-            "upper": 170.11
+            "lower": 164.41,
+            "upper": 170.13
           },
           "releaseDate": "2026-09-01",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         },
         {
-          "modelName": "Claude Sonnet 5.5",
-          "provider": "Anthropic",
-          "score": 166.56,
+          "modelName": "Gemini 4 Hydrogen",
+          "provider": "Google DeepMind",
+          "score": 166.81,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 163.76,
-            "upper": 169.58
+            "lower": 163.99,
+            "upper": 170.1
+          },
+          "releaseDate": "2026-11-12",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Sonnet 5.5",
+          "provider": "Anthropic",
+          "score": 166.6,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 163.92,
+            "upper": 169.61
           },
           "releaseDate": "2026-09-28",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1610,27 +1785,27 @@
         {
           "modelName": "Gemini 4 Argon",
           "provider": "Google DeepMind",
-          "score": 166.48,
+          "score": 166.53,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 163.77,
-            "upper": 169.46
+            "lower": 163.94,
+            "upper": 169.47
           },
-          "releaseDate": "2026-09-30",
+          "releaseDate": "2026-10-13",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         },
         {
           "modelName": "Claude Opus 5",
           "provider": "Anthropic",
-          "score": 164.68,
+          "score": 164.72,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 162.14,
-            "upper": 167.49
+            "lower": 162.27,
+            "upper": 167.48
           },
           "releaseDate": "2026-07-24",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1638,13 +1813,13 @@
         {
           "modelName": "Claude Fable 5",
           "provider": "Anthropic",
-          "score": 164.13,
+          "score": 164.18,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 161.68,
-            "upper": 166.83
+            "lower": 161.82,
+            "upper": 166.91
           },
           "releaseDate": "2026-06-09",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1652,13 +1827,13 @@
         {
           "modelName": "GPT-6 Sol",
           "provider": "OpenAI",
-          "score": 163.75,
+          "score": 163.83,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 161.33,
-            "upper": 166.42
+            "lower": 161.39,
+            "upper": 166.55
           },
           "releaseDate": "2026-09-22",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1666,13 +1841,13 @@
         {
           "modelName": "GPT-5.6 Sol",
           "provider": "OpenAI",
-          "score": 162.99,
+          "score": 163.02,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 160.68,
-            "upper": 165.49
+            "lower": 160.72,
+            "upper": 165.58
           },
           "releaseDate": "2026-07-09",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1680,13 +1855,13 @@
         {
           "modelName": "GPT-5.5 Pro",
           "provider": "OpenAI",
-          "score": 162.7,
+          "score": 162.78,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 159.98,
-            "upper": 165.86
+            "lower": 160.07,
+            "upper": 165.88
           },
           "releaseDate": "2026-04-23",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1694,13 +1869,13 @@
         {
           "modelName": "Muse Wonder",
           "provider": "Meta AI",
-          "score": 161.68,
+          "score": 161.74,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 159.36,
-            "upper": 164.34
+            "lower": 159.37,
+            "upper": 164.29
           },
           "releaseDate": "2026-10-12",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1708,13 +1883,13 @@
         {
           "modelName": "Kimi K3.1 Pro",
           "provider": "Moonshot",
-          "score": 161.37,
+          "score": 161.2,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 158.99,
-            "upper": 164.0
+            "lower": 158.95,
+            "upper": 163.74
           },
           "releaseDate": "2026-10-23",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1722,13 +1897,13 @@
         {
           "modelName": "GPT-5.6 Terra",
           "provider": "OpenAI",
-          "score": 160.73,
+          "score": 160.8,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 158.47,
-            "upper": 163.25
+            "lower": 158.49,
+            "upper": 163.29
           },
           "releaseDate": "2026-07-09",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1736,13 +1911,13 @@
         {
           "modelName": "Claude Haiku 5.5",
           "provider": "Anthropic",
-          "score": 160.43,
+          "score": 160.33,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 158.27,
-            "upper": 162.87
+            "lower": 158.18,
+            "upper": 162.69
           },
           "releaseDate": "2026-10-07",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1750,15 +1925,29 @@
         {
           "modelName": "GPT-5.4 Pro",
           "provider": "OpenAI",
-          "score": 160.24,
+          "score": 160.31,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 157.75,
-            "upper": 163.04
+            "lower": 157.93,
+            "upper": 163.02
           },
           "releaseDate": "2026-03-05",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Opus 4.8",
+          "provider": "Anthropic",
+          "score": 159.9,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 157.83,
+            "upper": 162.21
+          },
+          "releaseDate": "2026-05-28",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         },
         {
@@ -1769,8 +1958,8 @@
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 157.01,
-            "upper": 162.0
+            "lower": 157.13,
+            "upper": 161.91
           },
           "releaseDate": "2026-10-17",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1778,15 +1967,85 @@
         {
           "modelName": "Gemini 3.8 Flash",
           "provider": "Google DeepMind",
-          "score": 158.79,
+          "score": 158.81,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 156.77,
-            "upper": 160.94
+            "lower": 156.82,
+            "upper": 161.01
           },
           "releaseDate": "2026-09-02",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Kimi K3",
+          "provider": "Moonshot",
+          "score": 158.61,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 156.66,
+            "upper": 160.8
+          },
+          "releaseDate": "2026-07-16",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Gemini 3.7 Flash",
+          "provider": "Google DeepMind",
+          "score": 158.4,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 156.47,
+            "upper": 160.58
+          },
+          "releaseDate": "2026-08-13",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Muse Spark 1.3",
+          "provider": "Meta AI",
+          "score": 158.24,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 156.16,
+            "upper": 160.48
+          },
+          "releaseDate": "2026-09-02",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Grok 4.6",
+          "provider": "xAI",
+          "score": 157.82,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 155.9,
+            "upper": 159.99
+          },
+          "releaseDate": "2026-08-12",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Qwen 3.8 Max",
+          "provider": "Alibaba",
+          "score": 157.55,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 155.52,
+            "upper": 159.85
+          },
+          "releaseDate": "2026-08-02",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         },
         {
@@ -1797,22 +2056,50 @@
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 154.94,
-            "upper": 159.53
+            "lower": 155.01,
+            "upper": 159.42
           },
           "releaseDate": "2026-08-14",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         },
         {
-          "modelName": "GPT-6 Luna",
-          "provider": "OpenAI",
-          "score": 156.41,
+          "modelName": "Claude Sonnet 5",
+          "provider": "Anthropic",
+          "score": 156.9,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 154.45,
-            "upper": 158.5
+            "lower": 154.92,
+            "upper": 159.06
+          },
+          "releaseDate": "2026-06-30",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-5.6 Luna",
+          "provider": "OpenAI",
+          "score": 156.72,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 154.87,
+            "upper": 158.77
+          },
+          "releaseDate": "2026-07-09",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-6 Luna",
+          "provider": "OpenAI",
+          "score": 156.45,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 154.58,
+            "upper": 158.48
           },
           "releaseDate": "2026-09-22",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
@@ -1820,29 +2107,435 @@
         {
           "modelName": "Grok 4.7",
           "provider": "xAI",
-          "score": 156.18,
+          "score": 156.43,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 154.23,
-            "upper": 158.27
+            "lower": 154.51,
+            "upper": 158.52
           },
           "releaseDate": "2026-09-21",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         },
         {
-          "modelName": "Qwen3.8 Max (0902)",
-          "provider": "Alibaba",
-          "score": 155.97,
+          "modelName": "Gemini 3.1 Pro",
+          "provider": "Google DeepMind",
+          "score": 156.25,
           "configuration": "Epoch combined estimate; underlying evaluation settings vary",
           "primary": true,
           "interval": {
             "kind": "Source-reported credible interval",
-            "lower": 153.85,
-            "upper": 158.27
+            "lower": 154.53,
+            "upper": 158.16
+          },
+          "releaseDate": "2026-02-19",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Qwen3.8 Max (0902)",
+          "provider": "Alibaba",
+          "score": 155.99,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 153.89,
+            "upper": 158.32
           },
           "releaseDate": "2026-09-01",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "DeepSeek V4 Pro 0813",
+          "provider": "DeepSeek",
+          "score": 155.96,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 154.05,
+            "upper": 158.06
+          },
+          "releaseDate": "2026-08-13",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Muse Spark Open",
+          "provider": "Meta AI",
+          "score": 155.47,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 153.34,
+            "upper": 157.75
+          },
+          "releaseDate": "2026-10-15",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Gemini 3.6 Flash",
+          "provider": "Google DeepMind",
+          "score": 155.24,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 153.42,
+            "upper": 157.26
+          },
+          "releaseDate": "2026-07-21",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Muse Spark 1.2",
+          "provider": "Meta AI",
+          "score": 155.02,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 152.68,
+            "upper": 157.54
+          },
+          "releaseDate": "2026-08-05",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Grok 4.5",
+          "provider": "xAI",
+          "score": 154.98,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 153.13,
+            "upper": 156.87
+          },
+          "releaseDate": "2026-07-08",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Muse Spark 1.1",
+          "provider": "Meta AI",
+          "score": 154.94,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 152.38,
+            "upper": 157.72
+          },
+          "releaseDate": "2026-07-09",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Mistral Large 4",
+          "provider": "Mistral AI",
+          "score": 154.57,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 151.81,
+            "upper": 157.43
+          },
+          "releaseDate": "2026-10-29",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "DeepSeek V4 Flash 0731",
+          "provider": "DeepSeek",
+          "score": 154.43,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 152.61,
+            "upper": 156.4
+          },
+          "releaseDate": "2026-07-31",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GLM-5.3-Flash",
+          "provider": "Z.ai (Zhipu AI)",
+          "score": 153.77,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 151.95,
+            "upper": 155.78
+          },
+          "releaseDate": "2026-08-20",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GLM-5.2",
+          "provider": "Z.ai (Zhipu AI)",
+          "score": 153.07,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 151.34,
+            "upper": 154.91
+          },
+          "releaseDate": "2026-06-16",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Mistral Large 4 Preview",
+          "provider": "Mistral AI",
+          "score": 152.74,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 150.84,
+            "upper": 154.68
+          },
+          "releaseDate": "2026-10-06",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Qwen 3.8 27B",
+          "provider": "Alibaba",
+          "score": 152.63,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 150.65,
+            "upper": 154.67
+          },
+          "releaseDate": "2026-08-14",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Kimi K2.7 Code",
+          "provider": "Moonshot",
+          "score": 151.17,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 149.18,
+            "upper": 153.25
+          },
+          "releaseDate": "2026-06-12",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Beam 1.0",
+          "provider": "Reflection",
+          "score": 150.84,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 148.56,
+            "upper": 153.14
+          },
+          "releaseDate": "2026-10-05",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Inkling-Small",
+          "provider": "Thinking Machines",
+          "score": 150.77,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 149.02,
+            "upper": 152.54
+          },
+          "releaseDate": "2026-07-15",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "DeepSeek-V4-Pro",
+          "provider": "DeepSeek",
+          "score": 150.19,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 148.42,
+            "upper": 151.99
+          },
+          "releaseDate": "2026-04-24",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "GPT-5.4 Mini",
+          "provider": "OpenAI",
+          "score": 149.37,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 147.71,
+            "upper": 151.13
+          },
+          "releaseDate": "2026-03-17",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Inkling",
+          "provider": "Thinking Machines",
+          "score": 148.39,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 146.76,
+            "upper": 150.08
+          },
+          "releaseDate": "2026-07-15",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Qwen3.7-Plus",
+          "provider": "Alibaba",
+          "score": 147.92,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 145.96,
+            "upper": 150.02
+          },
+          "releaseDate": "2026-06-02",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "MiniMax-M3",
+          "provider": "MiniMax",
+          "score": 147.84,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 145.68,
+            "upper": 149.96
+          },
+          "releaseDate": "2026-06-01",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Nemotron 3 Ultra",
+          "provider": "Nvidia",
+          "score": 147.02,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 144.86,
+            "upper": 149.16
+          },
+          "releaseDate": "2026-06-04",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Qwen3.6 27B",
+          "provider": "Alibaba",
+          "score": 146.72,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 144.63,
+            "upper": 148.91
+          },
+          "releaseDate": "2026-04-22",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Gemini 3.5 Flash-Lite",
+          "provider": "Google DeepMind",
+          "score": 145.63,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 144.02,
+            "upper": 147.23
+          },
+          "releaseDate": "2026-07-21",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Gemini 3.1 Flash-Lite",
+          "provider": "Google",
+          "score": 144.97,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 142.78,
+            "upper": 147.09
+          },
+          "releaseDate": "2026-03-03",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Qwen 3.6 35B-A3B",
+          "provider": "Alibaba",
+          "score": 144.07,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 142.18,
+            "upper": 145.89
+          },
+          "releaseDate": "2026-04-14",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Qwen3.5-35B-A3B",
+          "provider": "Alibaba",
+          "score": 144.05,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 141.51,
+            "upper": 146.63
+          },
+          "releaseDate": "2026-02-24",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Opus 4",
+          "provider": "Anthropic",
+          "score": 142.85,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 141.26,
+            "upper": 144.43
+          },
+          "releaseDate": "2025-05-22",
+          "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
+        },
+        {
+          "modelName": "Claude Sonnet 4",
+          "provider": "Anthropic",
+          "score": 141.84,
+          "configuration": "Epoch combined estimate; underlying evaluation settings vary",
+          "primary": true,
+          "interval": {
+            "kind": "Source-reported credible interval",
+            "lower": 140.33,
+            "upper": 143.29
+          },
+          "releaseDate": "2025-05-22",
           "sourceUrl": "https://epoch.ai/data/eci_scores.csv"
         }
       ]

@@ -28,8 +28,8 @@ function close(actual: number | undefined, expected: number) {
 test('snapshot validates every record, source URL, unique identifier and relationship', () => {
   assert.equal(snapshot.benchmarks.length, 4);
   // Benchmarks that cannot be republished are kept outside Git.
-  assert.equal(snapshot.results.length, 107);
-  assert.equal(snapshot.models.filter((entry) => entry.pricing).length, 20);
+  assert.equal(snapshot.results.length, 153);
+  assert.equal(snapshot.models.filter((entry) => entry.pricing).length, 23);
   assert.ok(snapshot.reports.length >= 14);
   assert.ok(snapshot.sources.length >= 25);
   assert.equal(
@@ -92,7 +92,7 @@ test('Terminal-Bench mean costs retain correct trial denominators', () => {
   const rows = snapshot.results.filter(
     (entry) => entry.benchmarkId === 'terminal-bench-4-1',
   );
-  assert.equal(rows.length, 59);
+  assert.equal(rows.length, 66);
   for (const row of rows) {
     assert.ok(row.totalCostUsd !== undefined && row.trials !== undefined);
     close(row.costUsd, row.totalCostUsd / row.trials);

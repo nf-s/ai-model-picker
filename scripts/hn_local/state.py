@@ -119,6 +119,11 @@ CREATE TABLE IF NOT EXISTS archive_bitmap (
 CREATE TABLE IF NOT EXISTS archive_gap (
     item_id INTEGER PRIMARY KEY
 );
+CREATE TABLE IF NOT EXISTS added_target (
+    kind TEXT NOT NULL,
+    label TEXT NOT NULL,
+    PRIMARY KEY (kind, label)
+);
 CREATE TABLE IF NOT EXISTS batch (
     id TEXT PRIMARY KEY,
     classifier_key TEXT NOT NULL,
@@ -141,6 +146,8 @@ class Found:
 
     comments: list = field(default_factory=list)
     stories: list = field(default_factory=list)
+    # Reviewed comments to review again, because their text names a target added by `retarget`.
+    renamed: list = field(default_factory=list)
 
 
 @dataclass
@@ -446,8 +453,11 @@ class State:
             self.connection.execute("UPDATE story SET state = 'rejected' WHERE item_id = ?", (item_id,))
             self.connection.execute('UPDATE run SET updated = ?', (int(time.time()),))
 
-    def expand_story(self, classifier_key, item_id, comments):
-        """Queue every comment of a story about a target. Comments are (id, created, parent)."""
+    def expand_story(self, classifier_key, item_id, comments, requeue=False):
+        """Queue every comment of a story about a target. Comments are (id, created, parent).
+
+        With requeue, comments of the thread that were reviewed already are reviewed again.
+        """
         with self.connection:
             self.connection.executemany(
                 """INSERT INTO comment (item_id, classifier_key, digest, created, priority, parent, root, mention)
@@ -456,10 +466,78 @@ class State:
                        parent = excluded.parent, root = excluded.root""",
                 [(comment, classifier_key, created, parent, item_id) for comment, created, parent in comments],
             )
+            if requeue:
+                self.requeue_thread(classifier_key, item_id)
             self.connection.execute(
                 "UPDATE story SET state = 'expanded', comments = ? WHERE item_id = ?", (len(comments), item_id)
             )
             self.connection.execute('UPDATE run SET updated = ?', (int(time.time()),))
+
+    def requeue_thread(self, classifier_key, item_id):
+        self.connection.execute(
+            'UPDATE comment SET failed_groups = NULL WHERE classifier_key = ? AND root = ? AND failed_groups = 0',
+            (classifier_key, item_id),
+        )
+
+    def added_targets(self):
+        """The (kind, label) of each target added by `retarget` whose scan or thread walks are not done."""
+        return {(row['kind'], row['label']) for row in self.connection.execute('SELECT kind, label FROM added_target')}
+
+    def finish_retarget(self):
+        with self.connection:
+            self.connection.execute('DELETE FROM added_target')
+
+    def assessed_targets(self):
+        """The (kind, label) of every target with a stored assessment or stated preference."""
+        return {
+            (row[0], row[1]) for row in self.connection.execute(
+                """SELECT kind, target FROM assessment
+                   UNION SELECT winner_kind, winner FROM preference
+                   UNION SELECT loser_kind, loser FROM preference"""
+            )
+        }
+
+    def retarget(self, classifier_key, scan_key, added, stories):
+        """Keep every review under a changed target list, and set the saved window to be scanned again.
+
+        added holds the (kind, label) of each new target. stories maps the ID of each recorded story whose
+        title names a new target to its targets and certainty under the new list. A walked one keeps its
+        thread and has its comments reviewed again; any other is judged and walked again.
+        """
+        job = self.job()
+        if job is None or self.scan_window(job) is None or job['source'] != 'archive-and-tail' or self.batched():
+            raise PipelineError('checkpoint-configuration-mismatch')
+        previous = job['classifier_key']
+        # The reviews move to the new key together, so the foreign keys hold only at the commit.
+        self.connection.execute('PRAGMA defer_foreign_keys = ON')
+        with self.connection:
+            for table in ('comment', 'assessment', 'preference'):
+                self.connection.execute(
+                    f'UPDATE {table} SET classifier_key = ? WHERE classifier_key = ?', (classifier_key, previous),
+                )
+            self.connection.execute('DELETE FROM added_target')
+            self.connection.executemany('INSERT INTO added_target VALUES (?, ?)', sorted(added))
+            for item_id, (targets, certain) in stories.items():
+                if self.story(item_id)['state'] == 'expanded':
+                    self.requeue_thread(classifier_key, item_id)
+                    self.connection.execute(
+                        'UPDATE story SET targets = ?, certain = ? WHERE item_id = ?', (targets, certain, item_id),
+                    )
+                else:
+                    self.connection.execute(
+                        "UPDATE story SET targets = ?, certain = ?, state = 'pending' WHERE item_id = ?",
+                        (targets, certain, item_id),
+                    )
+            self.connection.execute(
+                """UPDATE partition SET state = 'pending', position = 0, comments = 0, eligible = 0,
+                   candidates = 0, unavailable = 0, invalid = 0, failures = 0,
+                   first_comment = NULL, last_comment = NULL"""
+            )
+            self.connection.execute(
+                """UPDATE run SET classifier_key = ?, scan_key = ?, state = 'paused', reason = NULL,
+                   updated = ?""",
+                (classifier_key, scan_key, int(time.time())),
+            )
 
     def remember_story(self, item_id, created, title):
         """Keep the title of a thread that holds a queued comment, for context and display."""
@@ -618,6 +696,10 @@ class State:
                 (item_id, created, title, json.dumps([[t.kind, t.label] for t in targets]), int(certain))
                 for item_id, created, title, targets, certain in found.stories
             ],
+        )
+        self.connection.executemany(
+            'UPDATE comment SET failed_groups = NULL WHERE item_id = ? AND classifier_key = ? AND failed_groups = 0',
+            [(item_id, classifier_key) for item_id in found.renamed],
         )
 
     def checkpoint(self, partition, position, counters, classifier_key, found=None, archive_ids=()):

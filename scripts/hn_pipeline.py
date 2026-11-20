@@ -59,13 +59,17 @@ def process_block(state, partition, position, items, targets, classifier_key):
     found = Found()
     archive_ids = []
     window = state.scan_window()
+    added = state.added_targets()
     for item in items:
         in_scope = window is None or window.contains(item.created)
         queued = False
         if in_scope and item.kind == 'comment' and item.body:
-            queued = bool(targets.mentions(sanitize_html(item.body)))
+            named = targets.mentions(sanitize_html(item.body))
+            queued = bool(named)
             if queued:
                 found.comments.append((item.id, item.created, item.parent))
+            if any((target.kind, target.label) in added for target in named):
+                found.renamed.append(item.id)
         elif in_scope and item.kind in STORY_KINDS and item.title:
             named, certain = targets.title_targets(item.title)
             if named:
@@ -174,6 +178,7 @@ def expand_stories(state, firebase, targets, classifier, classifier_key, stopped
     story that has comments was walked before the window was extended, so its title was accepted then.
     """
     window = state.scan_window()
+    added = state.added_targets()
     progress = Progress(state)
     for story in state.pending_stories():
         if stopped():
@@ -185,7 +190,11 @@ def expand_stories(state, firebase, targets, classifier, classifier_key, stopped
         if not named or not (accepted or classifier.about_story(story['title'], named)):
             state.reject_story(story['item_id'])
         else:
-            state.expand_story(classifier_key, story['item_id'], walk_thread(firebase, story['item_id'], window))
+            # Comments reviewed before a target was added did not have it as their story's subject.
+            requeue = any((target.kind, target.label) in added for target in named)
+            state.expand_story(
+                classifier_key, story['item_id'], walk_thread(firebase, story['item_id'], window), requeue,
+            )
         progress.tick()
 
 
@@ -464,6 +473,40 @@ def extend_window(state, scan_key, now=None):
     state.extend(end, last, partitions, window.end - REWALK_DAYS * 86_400)
 
 
+def classifier_key_for(classifier_id, model, targets):
+    return hashlib.sha256(f'{PIPELINE_VERSION}/{classifier_id}/{model}/{targets.registry_id}'.encode()).hexdigest()
+
+
+def retarget(state, previous_models, classifier_id, model):
+    """Keep a run's reviews after the model list changes, and set its window to be scanned again.
+
+    The next `run` scans the saved window for the new names, walks threads whose title names one and
+    reviews only the comments that are new or that name a new target. Every other review is kept.
+    """
+    job = state.job()
+    if job is None:
+        raise PipelineError('no-checkpoint')
+    previous = Targets(previous_models)
+    if (
+        job['classifier'] != classifier_id
+        or job['scan_key'] != scan_key_for(previous)
+        or job['classifier_key'] != classifier_key_for(classifier_id, model, previous)
+    ):
+        raise PipelineError('checkpoint-configuration-mismatch')
+    targets = current_targets()
+    if targets.registry_id == previous.registry_id:
+        raise PipelineError('targets-unchanged')
+    if state.assessed_targets() - set(targets.by_label):
+        raise PipelineError('removed-target-has-reviews')
+    added = set(targets.by_label) - set(previous.by_label)
+    stories = {}
+    for story in state.connection.execute('SELECT item_id, title FROM story'):
+        named, certain = targets.title_targets(story['title'])
+        if any((target.kind, target.label) in added for target in named):
+            stories[story['item_id']] = (json.dumps([[target.kind, target.label] for target in named]), int(certain))
+    state.retarget(classifier_key_for(classifier_id, model, targets), scan_key_for(targets), added, stories)
+
+
 def build_classifier(args):
     if args.backend == 'anthropic':
         # Imported here so that the other commands and the local backend do not load the SDK.
@@ -474,8 +517,7 @@ def build_classifier(args):
 
 def run(args, state):
     targets = current_targets()
-    identity = f'{PIPELINE_VERSION}/{args.classifier_id}/{args.model}/{targets.registry_id}'
-    classifier_key = hashlib.sha256(identity.encode()).hexdigest()
+    classifier_key = classifier_key_for(args.classifier_id, args.model, targets)
     scan_key = scan_key_for(targets)
     classifier = build_classifier(args)
     job = state.job()
@@ -527,6 +569,8 @@ def run(args, state):
                     expand_stories(
                         state, firebase, targets, classifier, classifier_key, lambda: stop, args.collect_only,
                     )
+                    if not stop and not state.pending_stories():
+                        state.finish_retarget()
                     for failed in () if args.collect_only else (False, True):
                         if args.backend == 'anthropic':
                             review_batches(
@@ -619,7 +663,10 @@ def arguments():
     extend = commands.add_parser(
         'extend', help='Move the end of the saved window to now, for the next run to collect and review',
     )
-    for command in (scan, status, export, migrate, backfill, extend):
+    renamed = commands.add_parser(
+        'retarget', help='Keep the reviews after the model list changes, for the next run to scan again',
+    )
+    for command in (scan, status, export, migrate, backfill, extend, renamed):
         command.add_argument('--state-dir', type=Path, default=STATE_DIR)
     for command in (scan, backfill):
         command.add_argument('--workers', type=int, choices=range(1, 65), default=16, metavar='1..64')
@@ -627,13 +674,18 @@ def arguments():
             '--max-firebase-requests', type=positive_integer, help='Cap item HTTP requests, including retries',
         )
     scan.add_argument('--source', choices=('archive-and-tail', 'firebase'), default='archive-and-tail')
-    scan.add_argument(
-        '--backend', choices=tuple(BACKENDS), default='local',
-        help='local: a loopback model server. anthropic: the Anthropic API, which receives scrubbed comment text',
+    for command in (scan, renamed):
+        command.add_argument(
+            '--backend', choices=tuple(BACKENDS), default='local',
+            help='local: a loopback model server. anthropic: the Anthropic API, which receives scrubbed comment text',
+        )
+        command.add_argument('--model', help='Model name; the default depends on the backend')
+        command.add_argument('--classifier-id', help='Classifier ID; the default depends on the backend')
+    renamed.add_argument(
+        '--previous-models', type=Path, required=True,
+        help='The src/lib/snapshot.json that the run was scanned with, such as one written by git show',
     )
     scan.add_argument('--endpoint', default=DEFAULT_ENDPOINT, help='Loopback model server, for the local backend')
-    scan.add_argument('--model', help='Model name; the default depends on the backend')
-    scan.add_argument('--classifier-id', help='Classifier ID; the default depends on the backend')
     scan.add_argument('--classifier-workers', type=int, choices=range(1, 33), default=8, metavar='1..32')
     scan.add_argument('--first-item', type=positive_integer, help='First Firebase item for a diagnostic range')
     scan.add_argument('--last-item', type=positive_integer, help='Last Firebase item for a diagnostic range')
@@ -641,10 +693,11 @@ def arguments():
     scan.add_argument('--max-classifications', type=positive_integer, help='Pause after this many comment reviews')
     scan.add_argument('--collect-only', action='store_true', help='Scan and list threads without calling the model')
     args = parser.parse_args()
-    if args.command == 'run':
+    if args.command in ('run', 'retarget'):
         model, classifier_id = BACKENDS[args.backend]
         args.model = args.model or model
         args.classifier_id = args.classifier_id or classifier_id
+    if args.command == 'run':
         if args.source == 'firebase' and (args.first_item is None or args.last_item is None):
             parser.error('--source firebase requires --first-item and --last-item')
         if args.source != 'firebase' and (args.first_item is not None or args.last_item is not None):
@@ -676,6 +729,11 @@ def main():
                 return 0
             if args.command == 'extend':
                 extend_window(state, scan_key_for(current_targets()))
+                export_progress(state)
+                return 0
+            if args.command == 'retarget':
+                previous = json.loads(args.previous_models.read_text(encoding='utf-8'))['models']
+                retarget(state, previous, args.classifier_id, args.model)
                 export_progress(state)
                 return 0
             if args.command == 'context':

@@ -54,7 +54,14 @@ The same command without the limits resumes that directory's entire run. `Ctrl+C
 .local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads --backend anthropic
 ```
 
-While the extended run is unfinished, the app and the export use the previous analysis, as for any unfinished run (see [Runs, models and files](#runs-models-and-files)). The full update procedure, with the copy made first, the expected output and what to do on each error, is in [Updating the data](updating.md#hacker-news-comments).
+`retarget` keeps a run when the model list changes, instead of reviewing every comment again. The list is the `models` array in `src/lib/snapshot.json` together with the name tables in `scripts/hn_local/classify.py`; `--previous-models` names a copy of the snapshot that the run was scanned with. The command checks that copy against the run, and that the run's classifier and model match `--backend`, `--model` and `--classifier-id`, then moves every stored review to the new list and sets the whole window to be scanned again. It refuses a list that removes a target some review refers to (`removed-target-has-reviews`), an unchanged list (`targets-unchanged`) and a run with batches still out. Threads already walked whose stored title names a new target have their comments queued to be reviewed again, with the new target as the story's subject; other stories whose title names one are judged and walked again. The next `run` scans the window, which calls no model, and queues comments that are new to the run and reviewed comments whose text names a new target. Threads it walks that are about a new target have their reviewed comments queued too. Every other review is kept. `run --collect-only` stops after the scan and the thread walks that need no title check, so the queue can be counted before anything is sent to a model.
+
+```sh
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py retarget --state-dir .local/hn/threads --backend anthropic --previous-models .local/hn/previous-models.json
+.local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads --backend anthropic --collect-only
+```
+
+While an extended or retargeted run is unfinished, the app and the export use the previous analysis, as for any unfinished run (see [Runs, models and files](#runs-models-and-files)). The full update procedure, with the copy made first, the expected output and what to do on each error, is in [Updating the data](updating.md#hacker-news-comments).
 
 ## Review through the Anthropic API
 

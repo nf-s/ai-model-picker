@@ -1,23 +1,23 @@
 # Data provenance
 
-Snapshot checked 16 November 2026. Publication/evaluation dates differ and are retained where reported. This app links published findings; it has not independently rerun the evaluations.
+Snapshot checked 21 November 2026. Publication/evaluation dates differ and are retained where reported. This app links published findings; it has not independently rerun the evaluations.
 
 Source terms were checked on 18 November 2026. Benchmarks whose terms do not permit republishing are kept outside Git in `.local/restricted/research.json`, with their sources, guide evidence and credits. `npm run data:build` requires that file, writes those records to `.local/restricted/payload.json` instead of `src/lib/snapshot.json`, and keeps model identities in their original order. The published site shows them only to approved accounts and the JSON download leaves them out.
 
 | Dataset                  | Imported results | Meaning and limitations                                                                                                                                                    |
 | ------------------------ | ---------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Terminal-Bench 4.1       |               59 | Exact model/agent/effort runs. Mean trial cost is explicitly derived from total evaluation spend divided by trial count. Confidence intervals and raw totals are retained. |
+| Terminal-Bench 4.1       |               66 | Exact model/agent/effort runs. Mean trial cost is explicitly derived from total evaluation spend divided by trial count. Confidence intervals and raw totals are retained. |
 | SWE-rebench              |               13 | Model-only entries for 15 May–1 July 2026. Historical versions are not relabelled as current versions.                                                                     |
-| Epoch Capabilities Index |               25 | Unbounded index with credible intervals, not a percentage. Attribution: Epoch AI, CC-BY 4.0.                                                                               |
+| Epoch Capabilities Index |               64 | Unbounded index with credible intervals, not a percentage. Attribution: Epoch AI, CC-BY 4.0.                                                                               |
 | Plato Web Clone Bench    |               10 | Best reported effort per model across nine cloning tasks. Mean run cost and duration, unequal budgets and vendor harnesses.                                                |
 
-The public source catalog contains 27 distinct URLs. The 14 reports include professional creative critiques, repeated coding experiments and multi-agent research. A report may cover several models and is counted once. TokenSave's subscription experiments express API-equivalent usage cost, not additional subscription charges; each record retains that context and its CC BY 4.0 attribution is linked through the source catalog.
+The public source catalog contains 28 distinct URLs. The 15 reports include professional creative critiques, repeated coding experiments and multi-agent research. A report may cover several models and is counted once. TokenSave's subscription experiments express API-equivalent usage cost, not additional subscription charges; each record retains that context and its CC BY 4.0 attribution is linked through the source catalog.
 
 ## Pricing
 
-20 models have official standard API token rates: five OpenAI, five Anthropic, five Google, two DeepSeek and three xAI. Rates are USD per million tokens; they do not imply a per-project cost. Long-context tiers and DeepSeek peak/off-peak conditions are recorded. Gemini Carbon/Argon promotional rates and the announced 1 December change are retained.
+23 models have official standard API token rates: seven OpenAI, five Anthropic, six Google, two DeepSeek and three xAI. Rates are USD per million tokens; they do not imply a per-project cost. Long-context tiers and DeepSeek peak/off-peak conditions are recorded. Gemini Carbon/Argon promotional rates and the announced 1 December change are retained.
 
-76 model identities cover these price records plus benchmark-only and report-only models, including older releases and image models. The remaining identities have no verified price record in this snapshot. Missing values are never filled by analogy. Provider positioning is labelled as a provider description.
+98 model identities cover these price records plus benchmark-only and report-only models, including older releases and image models. The remaining identities have no verified price record in this snapshot. Missing values are never filled by analogy. Provider positioning is labelled as a provider description.
 
 ## Identity and normalization
 

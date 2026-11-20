@@ -1,9 +1,53 @@
 {
-  "checkedAt": "2026-11-16",
+  "checkedAt": "2026-11-21",
   "currency": "USD",
   "priceUnit": "per 1 million tokens",
   "scope": "Standard public provider API text-token pricing at short context; DeepSeek peak rates. Not subscription pricing or measured task cost.",
   "models": [
+    {
+      "id": "gpt-6.2-astra",
+      "name": "GPT-6.2 Astra",
+      "provider": "OpenAI",
+      "apiId": "gpt-6.2-astra",
+      "inputUsdPerMillion": 8,
+      "outputUsdPerMillion": 40,
+      "cachedInputUsdPerMillion": 0.4,
+      "contextTokens": 1050000,
+      "priceUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-astra",
+      "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-astra",
+      "pricingNotes": "Standard API, up to 272K input tokens. Longer prompts: 2× input/cache, 1.5× output. Cache writes and tools cost extra. No Flex processing.",
+      "description": "Provider positions 6.2 Astra as its most capable model, for software, computer use and documents.",
+      "status": "current",
+      "longContextPricing": {
+        "thresholdTokens": 272000,
+        "thresholdOperator": ">",
+        "inputUsdPerMillion": 16,
+        "outputUsdPerMillion": 60,
+        "cachedInputUsdPerMillion": 0.8
+      }
+    },
+    {
+      "id": "gpt-6.2-sol",
+      "name": "GPT-6.2 Sol",
+      "provider": "OpenAI",
+      "apiId": "gpt-6.2-sol",
+      "inputUsdPerMillion": 2,
+      "outputUsdPerMillion": 10,
+      "cachedInputUsdPerMillion": 0.1,
+      "contextTokens": 1050000,
+      "priceUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-sol",
+      "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.2-sol",
+      "pricingNotes": "Standard API, up to 272K input tokens. Longer prompts: 2× input/cache, 1.5× output. Cache writes and tools cost extra. No Flex processing.",
+      "description": "Provider positions 6.2 Sol for everyday coding and agent workflows.",
+      "status": "current",
+      "longContextPricing": {
+        "thresholdTokens": 272000,
+        "thresholdOperator": ">",
+        "inputUsdPerMillion": 4,
+        "outputUsdPerMillion": 15,
+        "cachedInputUsdPerMillion": 0.2
+      }
+    },
     {
       "id": "gpt-6-astra",
       "name": "GPT-6 Astra",
@@ -241,6 +285,22 @@
       }
     },
     {
+      "id": "gemini-4-neon",
+      "name": "Gemini 4 Neon",
+      "provider": "Google",
+      "apiId": "gemini-4-neon",
+      "inputUsdPerMillion": 3,
+      "outputUsdPerMillion": 15,
+      "cachedInputUsdPerMillion": 0.15,
+      "contextTokens": 1048576,
+      "priceUrl": "https://aistudio.google.com/docs/pricing#gemini-4-neon",
+      "modelUrl": "https://aistudio.google.com/docs/models/gemini-4-neon",
+      "pricingNotes": "Standard paid API; no free tier. Thinking counts as output; only implicit caching. Grounding tools add charges.",
+      "description": "Provider positions Neon for fast task completion in software engineering, knowledge work and science.",
+      "status": "current",
+      "contextType": "unified"
+    },
+    {
       "id": "gemini-4-hydrogen",
       "name": "Gemini 4 Hydrogen",
       "provider": "Google",
@@ -394,8 +454,8 @@
       "contextTokens": 256000,
       "priceUrl": "https://docs.x.ai/developers/pricing",
       "modelUrl": "https://docs.x.ai/developers/models/grok-build-0.1",
-      "pricingNotes": "Global API rates below 200K input tokens. Pricing table doubles all token rates at ≥200K. Regional endpoints and tools cost extra.",
-      "description": "Coding model; older grok-code-fast aliases resolve to this model.",
+      "pricingNotes": "Rates as listed on 16 Nov 2026. On 21 Nov 2026 the xAI pricing table no longer listed this model and its model page redirected to the model list.",
+      "description": "Coding model for agentic coding workflows, released in early access.",
       "status": "current",
       "longContextPricing": {
         "thresholdTokens": 200000,
@@ -461,7 +521,7 @@
       "kind": "Official pricing",
       "coverage": "Grok standard, long-context and regional token rates.",
       "access": "Public documentation",
-      "limitations": "Pricing table uses ≥200K for long context while individual model prose says exceed 200K; this dataset conservatively follows the pricing table."
+      "limitations": "Pricing table and model pages apply long-context rates once the prompt reaches 200K (≥200K); release notes and regional text say above 200K. This dataset follows the pricing table. Grok Build 0.1 was no longer listed on 21 Nov 2026."
     }
   ]
 }

@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-11-16",
+  "checkedAt": "2026-11-21",
   "plans": [
     {
       "id": "chatgpt",
       "name": "ChatGPT Pro 500",
-      "usage": "GPT-6 Pro in Chat has a weekly limit. Work and Codex share a separate allowance. Ultrafast is available for Astra and 6.1 Sol in Work and Codex.",
-      "sourceIds": ["chatgpt-pro", "openai-work-codex"]
+      "usage": "GPT-6 Pro in Chat has a weekly limit. Work and Codex share a separate allowance with no five-hour limit. Ultrafast is available for GPT-6.2 Astra, GPT-6.2 Sol, GPT-6 Astra and GPT-6.1 Sol in Work and Codex.",
+      "sourceIds": ["chatgpt-pro", "openai-work-codex", "openai-work-limits"]
     },
     {
       "id": "claude",
@@ -86,6 +86,20 @@
       "sourceIds": ["openai-chat"]
     },
     {
+      "id": "work-62-sol",
+      "planId": "chatgpt",
+      "name": "GPT-6.2 Sol",
+      "surface": "ChatGPT Work",
+      "setting": "Light",
+      "modelId": "gpt-6.2-sol",
+      "summary": "New Work chats on supported consumer plans start here. OpenAI suggests it for drafting reports and plans from several sources.",
+      "sourceIds": [
+        "openai-work-codex",
+        "openai-work-models",
+        "openai-release-notes"
+      ]
+    },
+    {
       "id": "work-terra",
       "planId": "chatgpt",
       "name": "GPT-6.1 Terra",
@@ -100,9 +114,29 @@
       "planId": "chatgpt",
       "name": "GPT-6 Luna",
       "surface": "ChatGPT Work / Codex",
-      "setting": "Default effort",
+      "setting": "High",
       "modelId": "gpt-6-luna",
-      "summary": "Use for focused work such as extraction, summaries or repetitive edits.",
+      "summary": "Use for focused work such as extraction, summaries or repetitive edits. OpenAI suggests starting Luna at High.",
+      "sourceIds": ["openai-work-codex", "openai-work-models"]
+    },
+    {
+      "id": "codex-62-sol",
+      "planId": "chatgpt",
+      "name": "GPT-6.2 Sol",
+      "surface": "Codex",
+      "setting": "Default effort",
+      "modelId": "gpt-6.2-sol",
+      "summary": "OpenAI suggests it for everyday code edits. Listed for the Codex app and CLI 0.166.0 or later.",
+      "sourceIds": ["openai-work-codex", "openai-work-models"]
+    },
+    {
+      "id": "codex-62-astra",
+      "planId": "chatgpt",
+      "name": "GPT-6.2 Astra",
+      "surface": "ChatGPT Work / Codex",
+      "setting": "Default effort",
+      "modelId": "gpt-6.2-astra",
+      "summary": "OpenAI suggests it for demanding work across code, apps and research, such as tracing a bug across services.",
       "sourceIds": ["openai-work-codex", "openai-work-models"]
     },
     {
@@ -112,7 +146,7 @@
       "surface": "Codex",
       "setting": "Medium",
       "modelId": "gpt-6.1-sol",
-      "summary": "A starting point for scoped repo edits and reproducible bugs.",
+      "summary": "Close to GPT-6 Astra on complex work at lower cost. Also listed for the Codex IDE extension.",
       "sourceIds": [
         "openai-work-codex",
         "openai-work-models",
@@ -126,27 +160,31 @@
       "surface": "Codex",
       "setting": "High",
       "modelId": "gpt-6.1-sol",
-      "summary": "Allow more time for planning and multi-file work.",
+      "summary": "OpenAI suggests 6.1 Sol for repeated, long-running work across code and apps. Allow more time for multi-file work.",
       "sourceIds": ["openai-work-models"]
     },
     {
-      "id": "codex-astra-high",
+      "id": "codex-astra-light",
       "planId": "chatgpt",
       "name": "GPT-6 Astra",
       "surface": "Codex",
-      "setting": "High",
+      "setting": "Light",
       "modelId": "gpt-6-astra",
-      "summary": "OpenAI positions Astra for demanding coding, research and analysis. Ultrafast is a separate speed setting.",
-      "sourceIds": ["openai-work-codex", "openai-work-models"]
+      "summary": "OpenAI suggests starting GPT-6 Astra at Light (low in the CLI). Ultrafast is a separate speed setting.",
+      "sourceIds": [
+        "openai-work-codex",
+        "openai-work-models",
+        "openai-work-limits"
+      ]
     },
     {
       "id": "codex-sol-agents",
       "planId": "chatgpt",
-      "name": "GPT-6.1 Sol",
+      "name": "GPT-6.2 Sol",
       "surface": "Codex",
-      "setting": "Medium with Sol workers",
-      "modelId": "gpt-6.1-sol",
-      "summary": "Give workers independent tasks and specify their model and effort. The main agent integrates and checks the findings.",
+      "setting": "Default effort, workers on the same model",
+      "modelId": "gpt-6.2-sol",
+      "summary": "Ask Codex to delegate independent tasks. Workers inherit the main agent's model and effort unless you set another, such as GPT-6 Luna for fast scans.",
       "sourceIds": ["openai-subagents"]
     },
     {
@@ -163,8 +201,8 @@
       "planId": "chatgpt",
       "name": "ChatGPT Images 2.6",
       "surface": "ChatGPT",
-      "setting": "More → Images",
-      "summary": "Generate or edit raster images, including illustrations, photos and poster artwork.",
+      "setting": "Explore → Images",
+      "summary": "Generate or edit raster images, including illustrations, photos and poster artwork. Templates include posters and logos.",
       "sourceIds": ["openai-images"]
     },
     {
@@ -263,7 +301,7 @@
       "name": "Research",
       "surface": "Claude",
       "setting": "+ → Research, web search on",
-      "summary": "Runs a series of searches across the web and enabled connectors.",
+      "summary": "Runs a series of searches across the web and enabled connectors. It uses Opus 5.5 whichever model is selected.",
       "sourceIds": ["claude-research"]
     },
     {
@@ -320,6 +358,11 @@
           "choiceId": "work-terra",
           "when": "You want a concise draft from notes, files or a reference.",
           "tradeoff": "Suited to direct drafting and revision from supplied material."
+        },
+        {
+          "choiceId": "work-62-sol",
+          "when": "You want a report or plan drafted from several sources in Work.",
+          "tradeoff": "Check names and figures against the sources."
         }
       ],
       "evidence": []
@@ -335,12 +378,12 @@
         {
           "choiceId": "claude-research",
           "when": "The question depends on material in connectors you already use in Claude.",
-          "tradeoff": "Searches enabled sources and follows leads across several searches."
+          "tradeoff": "Searches enabled sources and follows leads across several searches. Start it on web or desktop: on mobile it searches only the web."
         },
         {
           "choiceId": "chat-instant",
           "when": "One or two current sources can answer the question.",
-          "tradeoff": "Select Search from the tools menu for a quick lookup with sources."
+          "tradeoff": "Select View all tools, then Search, for a quick lookup with sources."
         }
       ],
       "evidence": []
@@ -373,7 +416,7 @@
         {
           "kind": "result",
           "id": "plato-web-clone-bench:1",
-          "note": "Fable 5.2 Low scored 62% on nine app clones. The runs used differing budgets and provider tools."
+          "note": "Fable 5.2 Low scored 62% on nine app clones, about six hours per run. Each model ran in its own provider's coding harness."
         }
       ],
       "codingDefault": {
@@ -400,9 +443,9 @@
           "tradeoff": "Suited to tight reproduce, edit and test loops."
         },
         {
-          "choiceId": "codex-astra-high",
-          "when": "The bug is intermittent, crosses subsystems or survives the first pass.",
-          "tradeoff": "Allow more reasoning for diagnosis and verify the result against the repro."
+          "choiceId": "codex-62-astra",
+          "when": "The bug is intermittent, crosses services or survives the first pass.",
+          "tradeoff": "OpenAI suggests Astra for tracing a bug across services. It uses more credits per token than GPT-6.2 Sol."
         }
       ],
       "evidence": [
@@ -418,7 +461,7 @@
         }
       ],
       "codingDefault": {
-        "choiceId": "codex-sol-medium",
+        "choiceId": "codex-62-sol",
         "why": "Start here when you can reproduce the issue and check a focused fix."
       }
     },
@@ -478,7 +521,7 @@
           "tradeoff": "Haiku workers can gather facts while Opus keeps responsibility for the final result."
         },
         {
-          "choiceId": "codex-sol-medium",
+          "choiceId": "codex-62-sol",
           "when": "The next step depends on the preceding one or edits overlap.",
           "tradeoff": "A single agent can follow the sequence with less coordination."
         }
@@ -518,6 +561,11 @@
       "url": "https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex"
     },
     {
+      "id": "openai-work-limits",
+      "name": "OpenAI · Work and Codex usage",
+      "url": "https://help.openai.com/en/articles/20001516-managing-usage-with-gpt-6-astra-in-work-and-codex"
+    },
+    {
       "id": "openai-work-models",
       "name": "OpenAI · Work and Codex models",
       "url": "https://learn.chatgpt.com/docs/models"
@@ -534,8 +582,8 @@
     },
     {
       "id": "openai-search",
-      "name": "OpenAI · ChatGPT web search",
-      "url": "https://help.openai.com/en/articles/9237897-chatgpt-search"
+      "name": "OpenAI · Searching the web with ChatGPT",
+      "url": "https://help.openai.com/en/articles/9237897-searching-the-web-with-chatgpt"
     },
     {
       "id": "openai-images",

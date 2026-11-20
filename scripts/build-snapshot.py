@@ -63,11 +63,17 @@ aliases = {
     'MiMo V2.6 Pro': 'MiMo-V2.6-Pro',
     'Inkling Small 2': 'Inkling 2 Small',
     'Hy4': 'Tencent Hy4',
+    'Inkling-Small': 'Inkling Small',
+    'MiniMax-M3': 'MiniMax M3',
+    'DeepSeek-V4-Pro': 'DeepSeek-V4 Pro',
+    'Qwen3.6 27B': 'Qwen3.6-27B',
+    'Qwen 3.6 35B-A3B': 'Qwen3.6-35B-A3B',
+    'Gemini 3.1 Pro': 'Gemini 3.1 Pro Preview',
 }
 
 def provider_for(name, reported=None):
     if reported:
-        return {'Google DeepMind': 'Google', 'SpaceXAI': 'xAI', 'Kimi': 'Moonshot AI', 'Z AI': 'Z.ai', 'Thinking Machines': 'Thinking Machines Lab'}.get(reported, reported)
+        return {'Google DeepMind': 'Google', 'SpaceXAI': 'xAI', 'Kimi': 'Moonshot AI', 'Moonshot': 'Moonshot AI', 'Z AI': 'Z.ai', 'Z.ai (Zhipu AI)': 'Z.ai', 'Thinking Machines': 'Thinking Machines Lab', 'Meta AI': 'Meta', 'Nvidia': 'NVIDIA'}.get(reported, reported)
     for prefix, provider in [('GPT-', 'OpenAI'), ('ChatGPT ', 'OpenAI'), ('Claude ', 'Anthropic'), ('Gemini ', 'Google'), ('Nano Banana', 'Google'), ('DeepSeek', 'DeepSeek'), ('Grok', 'xAI'), ('Muse ', 'Meta'), ('Kimi ', 'Moonshot AI'), ('Qwen', 'Alibaba'), ('GLM', 'Z.ai'), ('MiMo', 'Xiaomi'), ('MiniMax', 'MiniMax'), ('Mistral ', 'Mistral'), ('Inkling', 'Thinking Machines Lab'), ('Tencent', 'Tencent'), ('Nemotron', 'NVIDIA')]:
         if name.startswith(prefix):
             return provider

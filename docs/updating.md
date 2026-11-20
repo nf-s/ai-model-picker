@@ -176,13 +176,17 @@ No command fetches this data. Someone reads each source again and edits the revi
 
 1. Open each URL in the `sources` list of the file you are refreshing and compare it with the file. Edit the JSON to match the source. Keep each value's unit, uncertainty, cost basis and exact configuration. Leave out what the source does not state; never estimate a value or copy one from a similar model. Keep a dated model version as its own model.
 2. Set `checkedAt` at the top of each file you compared to today's date, also when nothing in it changed.
-3. Build and read the summary line:
+3. Keep a copy of the current model list, which the Hacker News run needs if the list changes, then build and read the summary line:
+
+   ```sh
+   cp src/lib/snapshot.json .local/hn/previous-models.json
+   ```
 
    ```sh
    npm run data:build
    ```
 
-   Expected, with other numbers: `Saved 76 model identities, 4 benchmarks, 107 results, 14 reports, 27 sources; …`. It writes `src/lib/snapshot.json` and `.local/restricted/payload.json`. If the number of model identities changed, or you renamed a model, read [When the model list changes](#when-the-model-list-changes) before going on.
+   Expected, with other numbers: `Saved 98 model identities, 4 benchmarks, 153 results, 15 reports, 28 sources; …`. It writes `src/lib/snapshot.json` and `.local/restricted/payload.json`. Check the new model names for duplicates of existing ones under another spelling; add each such spelling to the `aliases` table in `scripts/build-snapshot.py` and build again. If the number of model identities changed, or you renamed a model, follow [When the model list changes](#when-the-model-list-changes) after the remaining steps.
 
 4. Run the tests:
 
@@ -213,10 +217,41 @@ The names of the benchmarks in `.local/restricted/` must not appear in a tracked
 The model list is the `models` array in `src/lib/snapshot.json`. It changes when a model is added to or removed from `research/pricing.json`, when a benchmark or report row names a model that was not in the list, when a model's `id`, `name`, `apiId` or `version` changes, and when the name tables in `scripts/hn_local/classify.py` change.
 
 - **arXiv:** the next `npm run arxiv:run` matches every stored paper again. Nothing else is needed.
-- **Hacker News, serving:** the reviewed run keeps being served and can still be published, as long as no model `id` it refers to was removed. If one was, `npm run build:pages` stops with "Could not export the current Hacker News checkpoint."
-- **Hacker News, updating:** the reviewed run can no longer be extended. `extend` stops with `checkpoint-configuration-mismatch` and changes nothing, because the run was scanned for the old names. A model added to the list has no comments under its own name until there is a new full run.
+- **Hacker News:** the reviewed run keeps being served, but `extend` refuses it with `checkpoint-configuration-mismatch` until it is retargeted, because it was scanned for the old names. Retargeting keeps every review, scans the six months again for the new names (free) and reviews only the comments that are new or that name a new model (paid). It does not work if a model `id` that some comment was reviewed for was removed: keep such models in the list.
 
-A new full run reads six months of items again and reviews every comment again. Through the Anthropic API the first one cost about US$7 and took about two hours. Start one only when the owner asks. The steps are in the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api): move the reviewed run out of `.local/hn/threads/` first and keep it. Until the new run finishes, the local app shows the older analysis in `.local/hn/` and the site cannot be built for publishing.
+To retarget the Hacker News run, first make sure it is finished (step 1 of [Hacker News comments](#hacker-news-comments)) and copy the checkpoint (step 2). Then:
+
+1. Retarget it:
+
+   ```sh
+   .local/hn/venv/bin/python -B scripts/hn_pipeline.py retarget --state-dir .local/hn/threads --backend anthropic --previous-models .local/hn/previous-models.json
+   ```
+
+   Expected: exit code 0 and one line of JSON with `"state": "paused"` and `partitionsComplete` 0. `.local/hn/previous-models.json` is the copy made before `npm run data:build`. If it is missing or the command stops with `checkpoint-configuration-mismatch`, write the last committed model list there and repeat the command; the command checks the file against the run and changes nothing when it does not match:
+
+   ```sh
+   git show HEAD:src/lib/snapshot.json > .local/hn/previous-models.json
+   ```
+
+   | Output                       | Meaning                                                            | What to do                                                     |
+   | ---------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
+   | `targets-unchanged`          | The model list is the one the run was scanned with.                | Nothing to do: use `extend`.                                   |
+   | `removed-target-has-reviews` | The new list removes a model or family that some review refers to. | Put the model back in the research files, rebuild, and repeat. |
+   | `already-running`            | Another command is using the directory.                            | Wait for it to end.                                            |
+
+2. Scan again without the model. This is free and takes hours, because it reads all six months of items again; start it in the background as in step 4 of the Hacker News procedure:
+
+   ```sh
+   .local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads --backend anthropic --collect-only >> .local/hn/update.log 2>&1; echo "exit $?"
+   ```
+
+   Expected: exit code 0 and a last log line with `"state": "paused", "reason": "collect-only"` and `partitionsComplete` equal to `partitionsTotal`. Read `commentsQueued` there: at about 5 US cents per 1,000 comments, that is the cost of the next step. Report it to the owner and wait for their go-ahead if it is above US$1.
+
+3. Review: run step 4 of [Hacker News comments](#hacker-news-comments), then step 5. `candidates` and `classified` grow; `commentsAboutTargets` can grow or fall a little, because some comments are reviewed again.
+
+Until step 3 finishes, the local app shows the older analysis kept in `.local/hn/` and `npm run build:pages` stops with "Could not export the current Hacker News checkpoint." Do not publish in between.
+
+A new full run, which reviews every comment again, is needed only after a change to the review itself, such as its prompt or classifier. Through the Anthropic API the first one cost about US$7 and took about two hours. Start one only when the owner asks; the steps are in the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api).
 
 ## Publish
 

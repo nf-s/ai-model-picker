@@ -24,7 +24,7 @@ export const attributions: Attribution[] = [
     url: 'https://epoch.ai/eci',
     licence: ccBy,
     credit:
-      "Epoch AI, 'Epoch Capabilities Index'. Published online at epoch.ai. Retrieved from https://epoch.ai/eci. Accessed 16 November 2026.",
+      "Epoch AI, 'Epoch Capabilities Index'. Published online at epoch.ai. Retrieved from https://epoch.ai/eci. Accessed 21 November 2026.",
     changes:
       'A subset of models, with names matched to this site’s model list and scores reformatted.',
   },

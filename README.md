@@ -11,7 +11,7 @@ A reference for choosing an AI model. It joins published benchmark results with 
 - **Data**: HN collection status and controls, every source with its coverage and limits, and the snapshot download.
 - **Model filter** (header, on every view): limits the whole site to chosen providers, such as ChatGPT and Claude, or to individual models. Ranks stay overall ranks. The selection is remembered in the browser and cleared in one click.
 
-Benchmarks, prices and the app guide were checked against their sources on **16 November 2026**. App labels are kept separate from API identities. HN labels are automatic and can be wrong; the app guide's recommendations are sourced starting points. Neither is a representative survey or a universal ranking.
+Benchmarks, prices and the app guide were checked against their sources on **21 November 2026**. App labels are kept separate from API identities. HN labels are automatic and can be wrong; the app guide's recommendations are sourced starting points. Neither is a representative survey or a universal ranking.
 
 ## Run
 
@@ -59,7 +59,7 @@ Nothing updates on its own. [Updating the data](docs/updating.md) has a step-by-
 
 ## Data in the app
 
-The public benchmark snapshot holds 107 published results across four benchmarks, 76 model/version identities, official API rates for 20 models and 14 reports. Scores keep each benchmark's own scale. A model's Board and tile score is its best published configuration; the benchmark page lists every configuration. Missing prices and results are not estimated.
+The public benchmark snapshot holds 153 published results across four benchmarks, 98 model/version identities, official API rates for 23 models and 15 reports. Scores keep each benchmark's own scale. A model's Board and tile score is its best published configuration; the benchmark page lists every configuration. Missing prices and results are not estimated.
 
 The HN views aggregate the full comment index in the browser: weekly sentiment, sentiment by theme and task, stated preferences and co-mentions. Positive share is positive ÷ (positive + critical) and is hidden below a stated minimum. "What people say" on a model page lists the classifier's themes for that model, and each theme opens into the one-sentence claims it wrote for those comments. With an analysis that has no themes or claims, the section comes from an AI-reviewed sample of recent comments for six models, [research/hn-themes-sample.json](research/hn-themes-sample.json), and other models show only topic tags.
 

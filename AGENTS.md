@@ -8,7 +8,7 @@ To update any data or to publish the site, follow [docs/updating.md](docs/updati
 
 - Publish only when the owner asks for it in the current request. A request to update data is not a request to publish.
 - Do not start a local model unless the owner asks. That covers `npm run hn:setup`, the scan controls on the Data page, `mlx_lm.server`, `npm run arxiv:assess` and `scripts/hn_pipeline.py run` without `--backend anthropic`. They use tens of gigabytes of memory for hours or days.
-- The Hacker News update in docs/updating.md is paid and usually costs cents. A new full Hacker News review costs about US$7: ask before starting one.
+- The Hacker News update in docs/updating.md is paid and usually costs cents. After a model-list change, report the queue that `--collect-only` leaves and ask before reviewing it if it would cost more than US$1. A new full Hacker News review costs about US$7: ask before starting one.
 - Never commit, print or paste anything under `.local/`, `wrangler.jsonc`, `.dev.vars*`, credentials, account identifiers or email addresses. The names of the benchmarks in `.local/restricted/` stay out of tracked files, commit messages and logs.
 - Do not read credential stores such as `~/.config/anthropic/` or the keychain. Do not run commands that print credentials or account details: `ant auth print-credentials`, `ant auth status`, `wrangler whoami`. The owner signs in, in a terminal.
 - Do not delete or overwrite anything under `.local/`. Restoring a copy over a checkpoint needs the owner's word.
