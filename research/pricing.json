@@ -61,7 +61,7 @@
       "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6-astra",
       "pricingNotes": "Standard API, up to 272K input tokens. Longer prompts: 2× input/cache, 1.5× output. Cache writes and tools cost extra.",
       "description": "Provider positions Astra for demanding reasoning, coding and research.",
-      "status": "current",
+      "status": "previous",
       "longContextPricing": {
         "thresholdTokens": 272000,
         "thresholdOperator": ">",
@@ -83,7 +83,7 @@
       "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
       "pricingNotes": "Standard API, up to 272K input tokens. Longer prompts: 2× input/cache, 1.5× output. Cache writes and tools cost extra.",
       "description": "Provider positions Sol for complex coding and computer use.",
-      "status": "current",
+      "status": "previous",
       "longContextPricing": {
         "thresholdTokens": 272000,
         "thresholdOperator": ">",
@@ -329,7 +329,7 @@
       "modelUrl": "https://aistudio.google.com/docs/models/gemini-3.1-flash-lite",
       "pricingNotes": "Text/image/video input rates. Audio input costs $0.50/MTok; cache storage is separate. Thinking is billed as output.",
       "description": "Provider positions Flash-Lite for lightweight processing at high volume.",
-      "status": "current",
+      "status": "previous",
       "contextType": "input"
     },
     {
@@ -456,7 +456,7 @@
       "modelUrl": "https://docs.x.ai/developers/models/grok-build-0.1",
       "pricingNotes": "Rates as listed on 16 Nov 2026. On 21 Nov 2026 the xAI pricing table no longer listed this model and its model page redirected to the model list.",
       "description": "Coding model for agentic coding workflows, released in early access.",
-      "status": "current",
+      "status": "previous",
       "longContextPricing": {
         "thresholdTokens": 200000,
         "thresholdOperator": ">=",

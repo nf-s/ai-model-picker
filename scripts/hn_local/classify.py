@@ -70,6 +70,7 @@ FAMILIES = {
     'Gemini Argon': ('gemini argon',),
     'Gemini Carbon': ('gemini carbon',),
     'Gemini Hydrogen': ('gemini hydrogen',),
+    'Gemini Neon': ('gemini neon',),
     'DeepSeek': ('deepseek',),
     'DeepSeek V4 Pro': ('deepseek v4 pro',),
     'DeepSeek V4.1 Flash': ('deepseek v4.1 flash',),
@@ -145,6 +146,8 @@ FAMILIES = {
 AMBIGUOUS_MODELS = {'inkling', 'reported-deepseek-v4-pro', 'deepseek-v4-pro', 'deepseek-flash'}
 SHORT_NAMES = {
     'gpt-6-astra': ('gpt 6 astra',),
+    'gpt-6.2-astra': ('6.2 astra',),
+    'gpt-6.2-sol': ('6.2 sol',),
     'claude-opus-5-5': ('opus 5.5',),
     'claude-haiku-5-5': ('haiku 5.5',),
     'claude-sonnet-5-5': ('sonnet 5.5',),

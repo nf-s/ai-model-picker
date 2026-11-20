@@ -12,6 +12,10 @@ The base figures are USD per million tokens for standard provider API service an
 - [DeepSeek pricing](https://api-docs.deepseek.com/quick_start/pricing/) identifies the actual served versions behind the Flash and Pro API names. The legacy Flash aliases now serve V4.1 Flash; historical benchmark results for older versions must not be relabelled as the current version.
 - [xAI pricing](https://docs.x.ai/developers/pricing) and the linked model pages establish Grok 4.7 and Grok 4.3. Grok Build 0.1 keeps the rates read on 16 November 2026; see the discrepancies below. The public documentation now uses SpaceXSI branding; the dataset retains xAI as the provider grouping for the x.ai API.
 
+## Status
+
+`status` is `previous` when a newer model of the same line exists or the provider names a replacement: GPT-6 Astra and GPT-6.1 Sol (replaced by GPT-6.2 Astra and Sol), Gemini 3.1 Flash-Lite (Google names Gemini 3.5 Flash-Lite as its replacement) and Grok Build 0.1 (no longer in the xAI price table) became `previous` on 21 November 2026. Models without a price record take their status from [model-status.json](model-status.json), with a reason for each.
+
 ## Data interpretation
 
 `longContextPricing` records a threshold, its comparison operator and replacement token rates. `nextPricing` records the announced price change for Carbon and Argon on 1 December 2026. `offPeakPricing` supplies DeepSeek's alternate rates. An estimator that accepts large prompts should use these fields rather than silently applying the baseline price.

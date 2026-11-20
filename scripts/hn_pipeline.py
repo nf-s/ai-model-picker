@@ -6,8 +6,10 @@ import json
 import os
 import signal
 import sqlite3
+import subprocess
 import sys
 import time
+import types
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 from pathlib import Path
@@ -25,6 +27,9 @@ from hn_local.state import Counters, Found, State, writer_lock
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_DATA = ROOT / 'src/lib/snapshot.json'
 STATE_DIR = ROOT / '.local/hn'
+# The files that define the target list, and how far back `retarget` looks for the one a run used.
+TARGET_FILES = ('src/lib/snapshot.json', 'scripts/hn_local/classify.py')
+PREVIOUS_REVISIONS = 50
 MAX_BLOCK_SIZE = 64
 EXPORT_INTERVAL = 5
 REVIEW_PAGE = 32
@@ -477,7 +482,50 @@ def classifier_key_for(classifier_id, model, targets):
     return hashlib.sha256(f'{PIPELINE_VERSION}/{classifier_id}/{model}/{targets.registry_id}'.encode()).hexdigest()
 
 
-def retarget(state, previous_models, classifier_id, model):
+def revisions():
+    """Recent commits that changed the target list, newest first."""
+    return subprocess.run(
+        ['git', 'log', f'-{PREVIOUS_REVISIONS}', '--format=%H', '--', *TARGET_FILES],
+        cwd=ROOT, capture_output=True, text=True, check=True,
+    ).stdout.split()
+
+
+def revision_file(revision, path):
+    return subprocess.run(
+        ['git', 'show', f'{revision}:{path}'], cwd=ROOT, capture_output=True, text=True, check=True,
+    ).stdout
+
+
+def targets_at(revision):
+    """The target list at one commit, built with that commit's own name tables."""
+    name = 'hn_local.classify_at_revision'
+    module = types.ModuleType(name)
+    # Dataclasses look their module up while the class body runs.
+    sys.modules[name] = module
+    try:
+        exec(compile(revision_file(revision, TARGET_FILES[1]), f'{revision}:{TARGET_FILES[1]}', 'exec'), vars(module))
+    finally:
+        del sys.modules[name]
+    return module.Targets(json.loads(revision_file(revision, TARGET_FILES[0]))['models'])
+
+
+def previous_targets(scan_key):
+    """The target list that a run was scanned with: the newest commit whose list gives its scan key."""
+    try:
+        candidates = revisions()
+    except (OSError, subprocess.CalledProcessError):
+        raise PipelineError('previous-targets-not-found') from None
+    for revision in candidates:
+        try:
+            targets = targets_at(revision)
+        except (OSError, subprocess.CalledProcessError, SyntaxError, KeyError, ValueError, AttributeError):
+            continue
+        if scan_key_for(targets) == scan_key:
+            return targets
+    raise PipelineError('previous-targets-not-found')
+
+
+def retarget(state, previous, classifier_id, model):
     """Keep a run's reviews after the model list changes, and set its window to be scanned again.
 
     The next `run` scans the saved window for the new names, walks threads whose title names one and
@@ -486,7 +534,6 @@ def retarget(state, previous_models, classifier_id, model):
     job = state.job()
     if job is None:
         raise PipelineError('no-checkpoint')
-    previous = Targets(previous_models)
     if (
         job['classifier'] != classifier_id
         or job['scan_key'] != scan_key_for(previous)
@@ -681,10 +728,6 @@ def arguments():
         )
         command.add_argument('--model', help='Model name; the default depends on the backend')
         command.add_argument('--classifier-id', help='Classifier ID; the default depends on the backend')
-    renamed.add_argument(
-        '--previous-models', type=Path, required=True,
-        help='The src/lib/snapshot.json that the run was scanned with, such as one written by git show',
-    )
     scan.add_argument('--endpoint', default=DEFAULT_ENDPOINT, help='Loopback model server, for the local backend')
     scan.add_argument('--classifier-workers', type=int, choices=range(1, 33), default=8, metavar='1..32')
     scan.add_argument('--first-item', type=positive_integer, help='First Firebase item for a diagnostic range')
@@ -732,8 +775,10 @@ def main():
                 export_progress(state)
                 return 0
             if args.command == 'retarget':
-                previous = json.loads(args.previous_models.read_text(encoding='utf-8'))['models']
-                retarget(state, previous, args.classifier_id, args.model)
+                job = state.job()
+                if job is None:
+                    raise PipelineError('no-checkpoint')
+                retarget(state, previous_targets(job['scan_key']), args.classifier_id, args.model)
                 export_progress(state)
                 return 0
             if args.command == 'context':

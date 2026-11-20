@@ -515,8 +515,8 @@ class State:
                 self.connection.execute(
                     f'UPDATE {table} SET classifier_key = ? WHERE classifier_key = ?', (classifier_key, previous),
                 )
-            self.connection.execute('DELETE FROM added_target')
-            self.connection.executemany('INSERT INTO added_target VALUES (?, ?)', sorted(added))
+            # A retarget before the last one's scan finished adds to its targets.
+            self.connection.executemany('INSERT OR IGNORE INTO added_target VALUES (?, ?)', sorted(added))
             for item_id, (targets, certain) in stories.items():
                 if self.story(item_id)['state'] == 'expanded':
                     self.requeue_thread(classifier_key, item_id)

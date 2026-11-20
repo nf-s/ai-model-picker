@@ -159,6 +159,13 @@ for item in restricted['sources']:
 def public(record, key='benchmarkId'):
     return record[key] not in restricted_ids
 
+# Models without a price record take a reviewed status, with a reason for each; see model-status.json.
+for entry in read('model-status')['models']:
+    record = next((model for model in model_records if model['name'] == entry['name']), None)
+    if record is None or 'pricing' in record or entry['status'] not in ('current', 'previous', 'preview'):
+        raise SystemExit(f"model-status.json: {entry['name']} is not an unpriced model with a known status.")
+    record['status'] = entry['status']
+
 snapshot = {'checkedAt': pricing['checkedAt'], 'models': model_records, 'benchmarks': [item for item in benchmarks if public(item, 'id')], 'results': [item for item in results if public(item)], 'reports': reports, 'sources': list(sources_by_url.values())}
 path = ROOT / 'src' / 'lib' / 'snapshot.json'
 path.write_text(json.dumps(snapshot, indent=2, ensure_ascii=False) + '\n')

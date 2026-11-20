@@ -21,6 +21,8 @@ The public source catalog contains 28 distinct URLs. The 15 reports include prof
 
 ## Identity and normalization
 
+Each model's status (current, previous or preview) feeds the Board's "Current models only" filter. Priced models take it from `research/pricing.json` and the others from `research/model-status.json`, which gives a reason for each; a model is previous when a newer model of its line is in the data or its provider names a replacement. Ten models, mostly image models, have no status because the data does not settle it.
+
 The build script joins exact reviewed names and a small explicit spelling-alias table. It does not strip dates or merge generations automatically. DeepSeek's priced aliases retain the served 1017/0813 version; an older unversioned SWE-rebench record stays separate. Provider spelling variants are normalized without changing model identities.
 
 `research/*.json` retain original numeric fields and detailed provenance. `src/lib/snapshot.json` holds the app's normalized records, per-result URLs, metadata and source catalog. Zod validates URLs, numeric values, unique IDs, model/benchmark references and cost/time context. Regression tests cover the cost denominator, missingness, configuration matching, price thresholds and scheduled rates.

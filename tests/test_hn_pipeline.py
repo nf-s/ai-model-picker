@@ -4,6 +4,7 @@ import io
 import json
 import os
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -14,7 +15,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
 
 import anthropic
 
@@ -32,8 +34,8 @@ from hn_local.sources import (
 from hn_local.state import Counters, State
 from hn_pipeline import (
     REWALK_DAYS, arguments, classifier_key_for, consume_partition, expand_stories, extend_window, mirror_pages,
-    process_block, read_ancestors, reconcile_pages, resolve_context, retarget, review_batches, review_comments,
-    scan_key_for, thread_root,
+    previous_targets, process_block, read_ancestors, reconcile_pages, resolve_context, retarget, review_batches,
+    review_comments, scan_key_for, thread_root,
 )
 
 MODEL_FIXTURES = [
@@ -934,7 +936,7 @@ class TestPhases(unittest.TestCase):
         renamed = Targets([*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}])
         key = classifier_key_for('fixture', 'fixture-model', renamed)
         with patch('hn_pipeline.current_targets', return_value=renamed):
-            retarget(self.state, MODEL_FIXTURES, 'fixture', 'fixture-model')
+            retarget(self.state, self.targets, 'fixture', 'fixture-model')
         job = self.state.job()
         self.assertEqual((job['classifier_key'], job['scan_key'], job['state']), (key, scan_key_for(renamed), 'paused'))
         # Every review is kept under the new key.
@@ -973,15 +975,42 @@ class TestPhases(unittest.TestCase):
         without = Targets([model for model in MODEL_FIXTURES if model['id'] != 'claude-opus-4'])
         before = self.state.job()
         for previous, current, model, reason in (
-            (MODEL_FIXTURES, renamed, 'another-model', 'checkpoint-configuration-mismatch'),
-            ([*MODEL_FIXTURES[:2]], renamed, 'fixture-model', 'checkpoint-configuration-mismatch'),
-            (MODEL_FIXTURES, self.targets, 'fixture-model', 'targets-unchanged'),
-            (MODEL_FIXTURES, without, 'fixture-model', 'removed-target-has-reviews'),
+            (self.targets, renamed, 'another-model', 'checkpoint-configuration-mismatch'),
+            (Targets(MODEL_FIXTURES[:2]), renamed, 'fixture-model', 'checkpoint-configuration-mismatch'),
+            (self.targets, self.targets, 'fixture-model', 'targets-unchanged'),
+            (self.targets, without, 'fixture-model', 'removed-target-has-reviews'),
         ):
             with self.subTest(reason=reason, model=model), patch('hn_pipeline.current_targets', return_value=current):
                 with self.assertRaisesRegex(PipelineError, reason):
                     retarget(self.state, previous, 'fixture', model)
                 self.assertEqual(tuple(self.state.job()), tuple(before))
+
+    def test_a_second_retarget_before_the_scan_ends_adds_its_targets_to_the_first(self):
+        self.retargeted_run()
+        first = Targets([*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}])
+        second = Targets([*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}, {'id': 'other-new', 'name': 'Other New 2'}])
+        with patch('hn_pipeline.current_targets', return_value=first):
+            retarget(self.state, self.targets, 'fixture', 'fixture-model')
+        with patch('hn_pipeline.current_targets', return_value=second):
+            retarget(self.state, first, 'fixture', 'fixture-model')
+        self.assertEqual(self.state.added_targets(), {('model', 'example-new'), ('model', 'other-new')})
+        self.assertEqual(self.state.job()['scan_key'], scan_key_for(second))
+
+    def test_the_previous_target_list_is_the_newest_commit_that_gives_the_scan_key(self):
+        source = (ROOT / 'scripts/hn_local/classify.py').read_text()
+        lists = {'newest': [*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}], 'older': MODEL_FIXTURES}
+
+        def revision_file(revision, path):
+            if revision == 'broken':
+                raise subprocess.CalledProcessError(128, 'git')
+            return source if path.endswith('.py') else json.dumps({'models': lists[revision]})
+
+        with patch('hn_pipeline.revisions', return_value=['newest', 'broken', 'older']), \
+                patch('hn_pipeline.revision_file', side_effect=revision_file):
+            found = previous_targets(scan_key_for(self.targets))
+            self.assertEqual(found.registry_id, self.targets.registry_id)
+            with self.assertRaisesRegex(PipelineError, 'previous-targets-not-found'):
+                previous_targets('another-scan')
 
     def test_collecting_without_the_model_leaves_uncertain_titles_pending(self):
         items = [

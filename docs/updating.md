@@ -176,17 +176,17 @@ No command fetches this data. Someone reads each source again and edits the revi
 
 1. Open each URL in the `sources` list of the file you are refreshing and compare it with the file. Edit the JSON to match the source. Keep each value's unit, uncertainty, cost basis and exact configuration. Leave out what the source does not state; never estimate a value or copy one from a similar model. Keep a dated model version as its own model.
 2. Set `checkedAt` at the top of each file you compared to today's date, also when nothing in it changed.
-3. Keep a copy of the current model list, which the Hacker News run needs if the list changes, then build and read the summary line:
-
-   ```sh
-   cp src/lib/snapshot.json .local/hn/previous-models.json
-   ```
+3. Build and read the summary line:
 
    ```sh
    npm run data:build
    ```
 
    Expected, with other numbers: `Saved 98 model identities, 4 benchmarks, 153 results, 15 reports, 28 sources; …`. It writes `src/lib/snapshot.json` and `.local/restricted/payload.json`. Check the new model names for duplicates of existing ones under another spelling; add each such spelling to the `aliases` table in `scripts/build-snapshot.py` and build again. If the number of model identities changed, or you renamed a model, follow [When the model list changes](#when-the-model-list-changes) after the remaining steps.
+
+   Give every new model a status, which the Board's "Current models only" filter reads. A priced model has `status` in `research/pricing.json`; any other model gets an entry in `research/model-status.json` with a one-sentence reason. A model is `previous` when a newer model of its line is in the data or its provider names a replacement, and the model it replaces becomes `previous` too; `preview` when its name says so and nothing has replaced it; `current` when it is the newest of its line. Leave a model out when the data does not settle it. The build stops if an entry names an unknown model or a priced one.
+
+   To give comments about a new model their short spellings, such as "6.2 Sol" for GPT-6.2 Sol, add them to `SHORT_NAMES` in `scripts/hn_local/classify.py`, and add a family such as "Gemini Neon" to `FAMILIES`. Avoid spellings that are ordinary words.
 
 4. Run the tests:
 
@@ -216,7 +216,7 @@ The names of the benchmarks in `.local/restricted/` must not appear in a tracked
 
 The model list is the `models` array in `src/lib/snapshot.json`. It changes when a model is added to or removed from `research/pricing.json`, when a benchmark or report row names a model that was not in the list, when a model's `id`, `name`, `apiId` or `version` changes, and when the name tables in `scripts/hn_local/classify.py` change.
 
-- **arXiv:** the next `npm run arxiv:run` matches every stored paper again. Nothing else is needed.
+- **arXiv:** the next `npm run arxiv:run` matches every stored paper again, without reading arXiv, in a few minutes. A paper whose matched models change loses its label until labelling runs again: on 21 November 2026, 22 new models left 18 labelled papers unlabelled. Nothing else is needed.
 - **Hacker News:** the reviewed run keeps being served, but `extend` refuses it with `checkpoint-configuration-mismatch` until it is retargeted, because it was scanned for the old names. Retargeting keeps every review, scans the six months again for the new names (free) and reviews only the comments that are new or that name a new model (paid). It does not work if a model `id` that some comment was reviewed for was removed: keep such models in the list.
 
 To retarget the Hacker News run, first make sure it is finished (step 1 of [Hacker News comments](#hacker-news-comments)) and copy the checkpoint (step 2). Then:
@@ -224,22 +224,22 @@ To retarget the Hacker News run, first make sure it is finished (step 1 of [Hack
 1. Retarget it:
 
    ```sh
-   .local/hn/venv/bin/python -B scripts/hn_pipeline.py retarget --state-dir .local/hn/threads --backend anthropic --previous-models .local/hn/previous-models.json
+   .local/hn/venv/bin/python -B scripts/hn_pipeline.py retarget --state-dir .local/hn/threads --backend anthropic
    ```
 
-   Expected: exit code 0 and one line of JSON with `"state": "paused"` and `partitionsComplete` 0. `.local/hn/previous-models.json` is the copy made before `npm run data:build`. If it is missing or the command stops with `checkpoint-configuration-mismatch`, write the last committed model list there and repeat the command; the command checks the file against the run and changes nothing when it does not match:
+   Expected: exit code 0 and one line of JSON with `"state": "paused"` and `partitionsComplete` 0. The command finds the model list the run was scanned with in Git: it reads `src/lib/snapshot.json` and `scripts/hn_local/classify.py` at each of the last 50 commits that changed them, and uses the newest that matches the run. So commit each model-list change before the next one, or retarget in between.
 
-   ```sh
-   git show HEAD:src/lib/snapshot.json > .local/hn/previous-models.json
-   ```
+   | Output                              | Meaning                                                                        | What to do                                                     |
+   | ----------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+   | `targets-unchanged`                 | The model list is the one the run was scanned with.                            | Nothing to do: use `extend`.                                   |
+   | `previous-targets-not-found`        | No recent commit holds the list the run was scanned with. Nothing was changed. | Stop and report.                                               |
+   | `removed-target-has-reviews`        | The new list removes a model or family that some review refers to.             | Put the model back in the research files, rebuild, and repeat. |
+   | `checkpoint-configuration-mismatch` | The backend differs from the run's, or batches are still out. Nothing changed. | Check the command; finish step 4 of the HN procedure first.    |
+   | `already-running`                   | Another command is using the directory.                                        | Wait for it to end.                                            |
 
-   | Output                       | Meaning                                                            | What to do                                                     |
-   | ---------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
-   | `targets-unchanged`          | The model list is the one the run was scanned with.                | Nothing to do: use `extend`.                                   |
-   | `removed-target-has-reviews` | The new list removes a model or family that some review refers to. | Put the model back in the research files, rebuild, and repeat. |
-   | `already-running`            | Another command is using the directory.                            | Wait for it to end.                                            |
+   Retargeting again before the scan in step 2 has finished is safe: the targets of both changes are kept.
 
-2. Scan again without the model. This is free and takes hours, because it reads all six months of items again; start it in the background as in step 4 of the Hacker News procedure:
+2. Scan again without the model. This is free and took about 50 minutes on 21 November 2026, because it reads all six months of items again; start it in the background as in step 4 of the Hacker News procedure:
 
    ```sh
    .local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads --backend anthropic --collect-only >> .local/hn/update.log 2>&1; echo "exit $?"
