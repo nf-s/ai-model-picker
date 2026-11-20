@@ -69,7 +69,7 @@ Expected: three files, with `checkpoint.sqlite3` at about 90 MB. Note the direct
 .local/hn/venv/bin/python -B scripts/hn_pipeline.py extend --state-dir .local/hn/threads
 ```
 
-Expected: no output and exit code 0. The command reads one number from the HN API and calls no model.
+Expected: exit code 0 and one line of JSON that starts `{"state": "paused", "reason": null` and shows `storiesPending` above 0 and `partitionsTotal` above `partitionsComplete`. The command reads one number from the HN API and calls no model.
 
 | Output                              | Meaning                                                                                                                       | What to do                                                             |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -157,7 +157,7 @@ Never run two harvests at once, even in separate directories: arXiv allows one r
 
 ### 3. Check the result
 
-Run the command from step 1 again. Expected: `complete None` and today's or yesterday's date in UTC. `daysComplete` is one less than `daysTotal`, because the current UTC day stays open and is read again next time. `papers` is at least what it was.
+Run the command from step 1 again. Expected: `complete None` and today's or yesterday's date in UTC. `daysComplete` is one less than `daysTotal`, because the current UTC day stays open and is read again next time. `papers` is at least what it was. `assessed` and `results` can fall a little: a paper whose new version changes its title or abstract loses its label and result until labelling runs again. On 20 November 2026, 445 new papers took `papers` to 11,476 and 9 labels were dropped this way.
 
 New papers have no label, and the Papers page counts them as Unlabelled. Labelling runs a local model for about 3.5 seconds a paper and is done only when the owner asks; see [Labelling](arxiv-pipeline.md#labelling). There is nothing to commit.
 
@@ -318,7 +318,7 @@ Nothing is scheduled today. These notes are for whoever sets that up.
 - **Safe to run unattended:** [Before any update](#before-any-update), the Hacker News steps 1 to 5 and the arXiv steps 1 to 3. Every decision in them is a comparison of printed values.
 - **Order:** arXiv and Hacker News are independent and can run one after the other in either order. Do not build for publishing while the Hacker News update is between steps 3 and 5.
 - **Exit codes:** for the Hacker News review, exit code 1 with `classification-unresolved` is success. Decide from the step 1 command, not from the exit code alone.
-- **Sign-in:** the `ant auth login` sign-in expires some weeks after the login and needs a browser to renew. An unattended job needs an API key supplied through the environment for that one command, as the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api) show with the macOS keychain. Wrangler's sign-in can expire too.
+- **Sign-in:** the `ant auth login` sign-in needs a browser to renew, and the one made on 18 November 2026 stopped working two days later. An unattended job needs an API key supplied through the environment for that one command, as the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api) show with the macOS keychain. Wrangler's sign-in can expire too.
 - **Cost and time:** an update pays for the new comments and for one more attempt at the unresolved ones, so a weekly update costs about the same as seven daily ones. Each update also walks the threads of the last 30 days again and sends two batches, whatever the number of new comments, so frequent small updates repeat that work. Only one update has been timed.
 - **Copies:** every Hacker News update leaves a 90 MB copy in `.local/hn/`. A job that runs often needs the owner's rule for removing old ones.
 - **Not suitable for a script:** the benchmark, price, report and app guide refresh, which needs someone to read the sources; a new full Hacker News run; and labelling arXiv papers with the local model.

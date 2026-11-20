@@ -75,7 +75,7 @@ brew install anthropics/tap/ant
 ant auth login
 ```
 
-The sign-in opens a browser and is tied to one Console organization and workspace, whose credit the run spends. It expires some weeks after the login. With no credential the command stops with `anthropic-api-credential-missing`. With a sign-in that can no longer be read or renewed it stops with `anthropic-api-credential-failed`; run `ant auth login` again and resume. A sign-in profile cannot change the address either: requests still go to `api.anthropic.com`.
+The sign-in opens a browser and is tied to one Console organization and workspace, whose credit the run spends. It does not last long: the sign-in made on 18 November 2026 could no longer be renewed on 20 November. With no credential the command stops with `anthropic-api-credential-missing`. With a sign-in that can no longer be read or renewed it stops with `anthropic-api-credential-failed`; run `ant auth login` again and resume. A sign-in profile cannot change the address either: requests still go to `api.anthropic.com`.
 
 An API key works instead of the sign-in. On macOS it can stay in the login keychain and be passed for one command only:
 
