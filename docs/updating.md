@@ -214,7 +214,7 @@ The names of the benchmarks in `.local/restricted/` must not appear in a tracked
 
 ### When the model list changes
 
-The model list is the `models` array in `src/lib/snapshot.json`. It changes when a model is added to or removed from `research/pricing.json`, when a benchmark or report row names a model that was not in the list, when a model's `id`, `name`, `apiId` or `version` changes, and when the name tables in `scripts/hn_local/classify.py` change.
+The model list is the `models` array in `src/lib/snapshot.json`. It changes when a model is added to or removed from `research/pricing.json`, when a benchmark or report row names a model that was not in the list, when a model's `id`, `name`, `apiId` or `version` changes, and when the name tables or `MATCHER_VERSION` in `scripts/hn_local/classify.py` change. Raise `MATCHER_VERSION` whenever the matching rules change without a change to the names.
 
 - **arXiv:** the next `npm run arxiv:run` matches every stored paper again, without reading arXiv, in a few minutes. A paper whose matched models change loses its label until labelling runs again: on 21 November 2026, 22 new models left 18 labelled papers unlabelled. Nothing else is needed.
 - **Hacker News:** the reviewed run keeps being served, but `extend` refuses it with `checkpoint-configuration-mismatch` until it is retargeted, because it was scanned for the old names. Retargeting keeps every review, scans the six months again for the new names (free) and reviews only the comments that are new or that name a new model (paid). It does not work if a model `id` that some comment was reviewed for was removed: keep such models in the list.
