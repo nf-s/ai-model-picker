@@ -985,6 +985,25 @@ class TestPhases(unittest.TestCase):
                     retarget(self.state, previous, 'fixture', model)
                 self.assertEqual(tuple(self.state.job()), tuple(before))
 
+    def test_names_written_with_unicode_hyphens_match(self):
+        for text in ('GPT\u20116 Astra is fast.', 'GPT\u20106 Astra is fast.', 'GPT\u20136 Astra is fast.'):
+            with self.subTest(text=text):
+                self.assertEqual([target.label for target in self.targets.mentions(text)], ['gpt-6-astra'])
+        self.assertEqual(
+            [target.label for target in self.targets.title_targets('GPT\u20116 Astra launch')[0]], ['gpt-6-astra'],
+        )
+
+    def test_retarget_reviews_again_a_walked_thread_whose_title_now_names_another_target(self):
+        self.retargeted_run()
+        # As stored before the title matched the model: the family only.
+        self.state.connection.execute('''UPDATE story SET targets = '[["family", "GPT"]]' WHERE item_id = 300''')
+        renamed = Targets([*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}])
+        with patch('hn_pipeline.current_targets', return_value=renamed):
+            retarget(self.state, self.targets, 'fixture', 'fixture-model')
+        self.assertIn(301, [row['item_id'] for row in self.state.queued(10)])
+        self.assertIn(['model', 'gpt-6-astra'], json.loads(self.state.story(300)['targets']))
+        self.assertEqual(self.state.story(300)['state'], 'expanded')
+
     def test_a_second_retarget_before_the_scan_ends_adds_its_targets_to_the_first(self):
         self.retargeted_run()
         first = Targets([*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}])

@@ -546,10 +546,14 @@ def retarget(state, previous, classifier_id, model):
     if state.assessed_targets() - set(targets.by_label):
         raise PipelineError('removed-target-has-reviews')
     added = set(targets.by_label) - set(previous.by_label)
+    window = state.scan_window(job)
     stories = {}
-    for story in state.connection.execute('SELECT item_id, title FROM story'):
+    for story in state.connection.execute('SELECT item_id, title, targets, created FROM story'):
+        if story['created'] is None or window is None or not window.contains(story['created']):
+            continue
         named, certain = targets.title_targets(story['title'])
-        if any((target.kind, target.label) in added for target in named):
+        # A title that names a target it was not stored with, by a new name or new matching.
+        if {(target.kind, target.label) for target in named} - {tuple(pair) for pair in json.loads(story['targets'])}:
             stories[story['item_id']] = (json.dumps([[target.kind, target.label] for target in named]), int(certain))
     state.retarget(classifier_key_for(classifier_id, model, targets), scan_key_for(targets), added, stories)
 

@@ -501,8 +501,8 @@ class State:
         """Keep every review under a changed target list, and set the saved window to be scanned again.
 
         added holds the (kind, label) of each new target. stories maps the ID of each recorded story whose
-        title names a new target to its targets and certainty under the new list. A walked one keeps its
-        thread and has its comments reviewed again; any other is judged and walked again.
+        title names a target it was not stored with to its targets and certainty under the new list. The
+        comments of its thread are reviewed again; a story that was not walked is judged and walked.
         """
         job = self.job()
         if job is None or self.scan_window(job) is None or job['source'] != 'archive-and-tail' or self.batched():
@@ -518,8 +518,8 @@ class State:
             # A retarget before the last one's scan finished adds to its targets.
             self.connection.executemany('INSERT OR IGNORE INTO added_target VALUES (?, ?)', sorted(added))
             for item_id, (targets, certain) in stories.items():
+                self.requeue_thread(classifier_key, item_id)
                 if self.story(item_id)['state'] == 'expanded':
-                    self.requeue_thread(classifier_key, item_id)
                     self.connection.execute(
                         'UPDATE story SET targets = ?, certain = ? WHERE item_id = ?', (targets, certain, item_id),
                     )

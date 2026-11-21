@@ -143,6 +143,10 @@ FAMILIES = {
     'Veo': ('google veo', 'veo 2', 'veo 3'),
     'Runway Gen': ('runway gen-2', 'runway gen-3', 'runway gen-4'),
 }
+# Part of the registry ID: change it whenever matching changes without a change to the names.
+MATCHER_VERSION = 2
+# Hyphens and dashes that some sources use inside names, as in "GPT‑6.2", read as an ASCII hyphen.
+DASHES = {code: '-' for code in (*range(0x2010, 0x2016), 0x2212)}
 AMBIGUOUS_MODELS = {'inkling', 'reported-deepseek-v4-pro', 'deepseek-v4-pro', 'deepseek-flash'}
 SHORT_NAMES = {
     'gpt-6-astra': ('gpt 6 astra',),
@@ -253,7 +257,7 @@ class Targets:
         self.by_label = {(target.kind, target.label): target for target in aliases.values()}
         self.registry_id = hashlib.sha256(
             json.dumps(
-                [(words, target.kind, target.label, target.name) for words, target in sorted(aliases.items())],
+                [MATCHER_VERSION, [(words, target.kind, target.label, target.name) for words, target in sorted(aliases.items())]],
                 ensure_ascii=True,
             ).encode()
         ).hexdigest()[:12]
@@ -279,6 +283,7 @@ class Targets:
         A bare ambiguous name such as Claude or Gemini counts only with AI wording or a
         distinctive target nearby, unless the surrounding thread is already about a model.
         """
+        prose = prose.translate(DASHES)
         matches = []
         for match in self.pattern.finditer(prose):
             words = alias_words(match.group())
