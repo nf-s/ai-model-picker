@@ -14,6 +14,7 @@ MUST_BE_ZERO = check_module['MUST_BE_ZERO']
 CLAIM = 'Synthetic claim about the example model.'
 TITLE = 'Synthetic story about the example model'
 LOCAL_PATH = Path('/synthetic/checkout')
+ARTICLE_URL = 'https://example.test/synthetic-article'
 
 
 class TestSiteCheck(unittest.TestCase):
@@ -24,6 +25,8 @@ class TestSiteCheck(unittest.TestCase):
         (self.dist / 'assets').mkdir(parents=True)
         self.restricted = Path(directory.name) / 'payload.json'
         self.public = Path(directory.name) / 'snapshot.json'
+        self.expert_catalog = Path(directory.name) / 'catalog.json'
+        self.write(self.expert_catalog, {'articles': [{'title': 'Example article', 'date': '2026-03-01', 'url': ARTICLE_URL}]})
         self.write(self.public, {'models': [{'id': 'example-model'}], 'sources': [{'id': 'shared-source'}]})
         self.write(self.restricted, {
             'benchmarks': [{'id': 'restricted-benchmark'}],
@@ -46,7 +49,7 @@ class TestSiteCheck(unittest.TestCase):
         (self.dist / 'assets/index.js').write_text(script, encoding='utf-8')
 
     def report(self, **options):
-        return site_report(self.dist, self.restricted, self.public, (LOCAL_PATH,), **options)
+        return site_report(self.dist, self.restricted, self.public, (LOCAL_PATH,), self.expert_catalog, **options)
 
     def failed(self, **options):
         report = self.report(**options)
@@ -78,6 +81,20 @@ class TestSiteCheck(unittest.TestCase):
         self.build(script='const results = ["restricted-result", "shared-source"];')
         self.assertEqual(self.report()['restrictedIdentifiers'], 1)
         self.assertEqual(self.failed(), ['restrictedIdentifiers'])
+
+    def test_an_expert_article_link_or_catalog_file_blocks_a_static_build(self):
+        self.build(script=f'const original = "{ARTICLE_URL}";')
+        self.assertEqual(self.failed(), ['expertArticleLeaks'])
+        self.build()
+        self.write(self.dist / 'catalog.json', {'articles': []})
+        self.assertEqual(self.failed(), ['expertArticleLeaks'])
+
+    def test_an_expert_article_with_additional_fields_blocks_an_upload(self):
+        self.write(self.expert_catalog, {
+            'articles': [{'title': 'Example article', 'date': '2026-03-01', 'url': ARTICLE_URL, 'body': 'Example body.'}]
+        })
+        with self.assertRaises(ValueError):
+            self.report()
 
     def test_a_file_over_the_limit_is_counted(self):
         size = (self.dist / 'hn-comments-1.json').stat().st_size

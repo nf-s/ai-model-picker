@@ -6,6 +6,7 @@ A reference for choosing an AI model. It joins published benchmark results with 
 - **Models**: one page per model or family, with its rank on every benchmark, API price, app selections, published reports, selected practitioner findings, weekly sentiment, what people say by theme, which models commenters prefer it to, sentiment by task, and the comments.
 - **Discussion**: every collected comment, filtered by model, sentiment, theme, task, label confidence and period, with a ranking of models inside the current filter. Comments are listed under their stories as one-sentence claims or in full.
 - **Papers**: arXiv papers from the same six months whose title or abstract names a tracked model or family, filtered by model or family and title words.
+- **Expert articles** offers title, source and year filters for collected blog and newsletter posts. Each title opens the original post. Access on the published app requires an approved Google account.
 - **Benchmark pages**: every published result for one benchmark, including alternate configurations, with the source's method and limits. Reached from the Board's column headers and a model's benchmark tiles.
 - **App guide**: which selection to make in ChatGPT and Claude on their highest-usage plans for eight tasks, with alternatives, settings and sources. The Coding agents mode includes practitioner advice under each task.
 - **Data**: HN collection status and controls, every source with its coverage and limits, and the snapshot download.
@@ -24,7 +25,7 @@ npm run dev
 
 Open http://127.0.0.1:5186. The dev launcher also starts a loopback-only local analysis controller, which serves the comment index the HN views read.
 
-Views are hash routes: `#/` (Board), `#/model/<key>`, `#/discussion/<key>`, `#/papers/<key>`, `#/benchmark/<id>`, `#/apps` and `#/data`. A key is `model:<id>` or `family:<name>`.
+Views are hash routes: `#/` (Board), `#/model/<key>`, `#/discussion/<key>`, `#/papers/<key>`, `#/expert-articles`, `#/benchmark/<id>`, `#/apps` and `#/data`. A key is `model:<id>` or `family:<name>`.
 
 The [published app](https://ai-model-picker.pages.dev/) includes a dated HN results snapshot and loads comment text from the public HN API on demand. Benchmarks whose terms do not allow republishing are kept outside Git and shown only to Google accounts the administrator approves under **Sign in → Manage access**; the local dev server shows them from `.local/restricted/`. Source licences and credits are on the Data page. Processing continues locally; republishing updates the hosted snapshot. See [Cloudflare Pages deployment](docs/deployment.md) for the build and release procedure.
 

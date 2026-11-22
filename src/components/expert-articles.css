@@ -1,0 +1,68 @@
+.rd-ea-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 235px) max-content;
+  align-items: end;
+  gap: 8px;
+}
+.rd-ea-filters label {
+  display: grid;
+  gap: 3px;
+  color: var(--rd-ink2);
+  font-size: 12px;
+}
+.rd-ea-filters .rd-select,
+.rd-ea-filters .rd-input {
+  min-width: 0;
+  min-height: 32px;
+}
+.rd-ea-count {
+  scroll-margin-top: 58px;
+}
+.rd-ea-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-ea-article {
+  display: grid;
+  gap: 2px;
+  padding: 9px 14px;
+  overflow-wrap: anywhere;
+}
+.rd .rd-ea-article a {
+  justify-self: start;
+  color: var(--rd-ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.rd .rd-ea-article a:hover {
+  color: var(--rd-accent);
+  text-decoration: underline;
+}
+.rd-ea-article svg {
+  margin-left: 4px;
+  vertical-align: -1px;
+  color: var(--rd-ink3);
+}
+.rd-ea-article p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  color: var(--rd-ink3);
+  font-size: 12px;
+}
+.rd-ea-pager {
+  display: flex;
+  gap: 8px;
+}
+@media (max-width: 560px) {
+  .rd-ea-filters {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+  .rd-ea-filters label:first-child {
+    grid-column: 1 / -1;
+  }
+}

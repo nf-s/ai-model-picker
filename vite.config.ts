@@ -6,12 +6,26 @@ import react from '@vitejs/plugin-react';
 import { z } from 'zod';
 
 // Serves a local file at the path the published site uses for it. Only the
-// one fixed file is ever read, and only by the dev and preview servers.
-function localJson(name: string, route: string, relative: string[]): Plugin {
+// one fixed file is ever read by the local servers.
+function localJson(
+  name: string,
+  route: string,
+  relative: string[],
+  loopbackOnly = false,
+): Plugin {
   let file = '';
+  let remote = false;
   const serve: Connect.NextHandleFunction = (request, response, next) => {
     const path = new URL(request.url ?? '/', 'http://localhost').pathname;
     if (request.method !== 'GET' || path !== route) return next();
+    if (
+      loopbackOnly &&
+      (remote ||
+        !['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(
+          request.socket.remoteAddress ?? '',
+        ))
+    )
+      return next();
     response.setHeader('Cache-Control', 'no-store');
     readFile(file).then(
       (body) => {
@@ -30,12 +44,13 @@ function localJson(name: string, route: string, relative: string[]): Plugin {
     name,
     configResolved(config) {
       file = join(config.root, ...relative);
+      remote = config.env.VITE_RESTRICTED === 'remote';
     },
     configureServer(server) {
       server.middlewares.use(serve);
     },
     configurePreviewServer(server) {
-      server.middlewares.use(serve);
+      if (!loopbackOnly) server.middlewares.use(serve);
     },
   };
 }
@@ -116,9 +131,26 @@ export default defineConfig({
       'restricted',
       'payload.json',
     ]),
+    localJson(
+      'local-expert-articles',
+      '/api/expert-articles',
+      ['.local', 'expert-articles', 'catalog.json'],
+      true,
+    ),
     thirdPartyLicenses(),
   ],
   server: {
+    fs: {
+      deny: [
+        '.env',
+        '.env.*',
+        '*.{crt,pem,key,p12,pfx,cer,der}',
+        '.npmrc',
+        '.yarnrc.yml',
+        '**/.git/**',
+        '**/.local/**',
+      ],
+    },
     proxy: {
       '/api/hn': { target: 'http://127.0.0.1:5187', changeOrigin: false },
     },

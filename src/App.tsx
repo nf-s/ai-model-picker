@@ -5,6 +5,7 @@ import Benchmark from './components/Benchmark';
 import Board from './components/Board';
 import DataPage from './components/DataPage';
 import Discussion from './components/Discussion';
+import ExpertArticles from './components/ExpertArticles';
 import ModelFile from './components/ModelFile';
 import ModelFilterControl, { OutsideFilter } from './components/ModelFilter';
 import Papers from './components/Papers';
@@ -31,6 +32,7 @@ const views: { route: Route; label: string; also?: View }[] = [
   { route: { view: 'model', key: null }, label: 'Models' },
   { route: { view: 'discussion', key: null }, label: 'Discussion' },
   { route: { view: 'papers', key: null, area: null }, label: 'Papers' },
+  { route: { view: 'expert-articles' }, label: 'Expert articles' },
   { route: { view: 'apps' }, label: 'App guide' },
   { route: { view: 'data' }, label: 'Data' },
 ];
@@ -178,6 +180,7 @@ export default function App({ access }: { access: Access }) {
           <Benchmark key={route.id} id={route.id} scope={scope} />
         )}
         {route.view === 'apps' && <AppGuide hn={hn} scope={scope} />}
+        {route.view === 'expert-articles' && <ExpertArticles access={access} />}
         {route.view === 'data' && <DataPage pipeline={pipeline} />}
         {route.view === 'account' && (
           <Account access={access} error={route.error} />

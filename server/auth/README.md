@@ -13,7 +13,7 @@ single-page app.
 ## Layout
 
 - `server/auth/`: authentication service, D1 store and Google ID-token checks.
-- `server/restricted.mjs`: `GET`/`HEAD /api/restricted`.
+- `server/restricted.mjs`: the shared access check and response for protected JSON.
 - `server/routes.mjs`: route selection shared by the Pages Functions.
 - `functions/auth/[[path]].js` and `functions/api/[[path]].js`: Pages Functions
   entry points. Shared modules stay outside `functions/`, where every file
@@ -66,17 +66,18 @@ migration to any other database.
 
 ## Routes
 
-| Route                        | Request                               | Result                                                                                                                                          |
-| ---------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /auth/google/start`     | Optional `next` local URL             | 303 to Google, sets browser-binding cookie                                                                                                      |
-| `GET /auth/google/callback`  | Google `code`/`state`, binding cookie | 303 to the safe `next` URL with session and CSRF cookies; on failure 303 to `/#/account?error=<code>`                                           |
-| `POST /auth/logout`          | Session, `X-CSRF-Token`, `Origin`     | `{ok:true}`; revokes the session and clears all four cookies                                                                                    |
-| `GET /api/session`           | Session cookie                        | `{authenticated:false}` or `{authenticated:true,email,sub,isAdmin,csrfToken,expiresAt}`                                                         |
-| `GET /api/enrollment`        | Enrollment cookie                     | `{enrollment:null}` or `{enrollment:{email,subject,expiresAt}}`                                                                                 |
-| `GET /api/admin/access`      | Administrator session                 | `{adminEmail,grants:[{email,subject,enabled,isAdmin,updatedAt}]}`                                                                               |
-| `POST /api/admin/access`     | `{email,subject?:string\|null}`       | Grant, re-enable or rebind; `{ok:true}`                                                                                                         |
-| `DELETE /api/admin/access`   | `{email}`                             | Revoke the grant and its sessions; `{ok:true}`                                                                                                  |
-| `GET`/`HEAD /api/restricted` | Session of any granted user           | The ignored `.local/restricted/payload.json` (`{benchmarks, results, sources, evidence, attributions}`), bundled by `functions/api/[[path]].js` |
+| Route                             | Request                               | Result                                                                                                                                          |
+| --------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /auth/google/start`          | Optional `next` local URL             | 303 to Google, sets browser-binding cookie                                                                                                      |
+| `GET /auth/google/callback`       | Google `code`/`state`, binding cookie | 303 to the safe `next` URL with session and CSRF cookies; on failure 303 to `/#/account?error=<code>`                                           |
+| `POST /auth/logout`               | Session, `X-CSRF-Token`, `Origin`     | `{ok:true}`; revokes the session and clears all four cookies                                                                                    |
+| `GET /api/session`                | Session cookie                        | `{authenticated:false}` or `{authenticated:true,email,sub,isAdmin,csrfToken,expiresAt}`                                                         |
+| `GET /api/enrollment`             | Enrollment cookie                     | `{enrollment:null}` or `{enrollment:{email,subject,expiresAt}}`                                                                                 |
+| `GET /api/admin/access`           | Administrator session                 | `{adminEmail,grants:[{email,subject,enabled,isAdmin,updatedAt}]}`                                                                               |
+| `POST /api/admin/access`          | `{email,subject?:string\|null}`       | Grant, re-enable or rebind; `{ok:true}`                                                                                                         |
+| `DELETE /api/admin/access`        | `{email}`                             | Revoke the grant and its sessions; `{ok:true}`                                                                                                  |
+| `GET`/`HEAD /api/restricted`      | Session of any granted user           | The ignored `.local/restricted/payload.json` (`{benchmarks, results, sources, evidence, attributions}`), bundled by `functions/api/[[path]].js` |
+| `GET`/`HEAD /api/expert-articles` | Session of any granted user           | The ignored `.local/expert-articles/catalog.json` (`{articles: [{title, date, url}]}`), bundled by `functions/api/[[path]].js`                  |
 
 Errors are JSON `{error,message}` with a 4xx or 5xx status. Unknown `/auth/*`
 and `/api/*` paths return 404 `not_found`; known paths with another method
@@ -105,7 +106,7 @@ session's `X-CSRF-Token`.
 - The administrator is defined by configuration and cannot be granted or
   revoked through the API.
 - Responses are `no-store`, `nosniff`, `no-referrer` and `noindex`.
-  `/api/restricted` is `private, no-store` with `Vary: Cookie`.
+  `/api/restricted` and `/api/expert-articles` are `private, no-store` with `Vary: Cookie`.
 - Login, grant, revoke and logout events are recorded in `access_audit`
   without tokens.
 
@@ -119,5 +120,5 @@ Functions compile with:
 npx wrangler@4.163.0 pages functions build --outdir <temporary directory>
 ```
 
-Production D1 and Google sign-in need a separate check after deployment. Do not
-create test accounts in the production database.
+Production D1 and Google sign-in need a separate check after deployment. Use an
+existing granted account for that check.

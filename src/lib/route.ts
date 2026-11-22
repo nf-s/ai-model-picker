@@ -7,6 +7,7 @@ export type Route =
   | { view: 'model'; key: string | null }
   | { view: 'discussion'; key: string | null }
   | { view: 'papers'; key: string | null; area: ArxivArea | null }
+  | { view: 'expert-articles' }
   | { view: 'benchmark'; id: string }
   | { view: 'apps' }
   | { view: 'data' }
@@ -52,6 +53,7 @@ export function parseRoute(hash: string): Route {
   }
   if (view === 'benchmark' && value) return { view, id: value };
   if (view === 'apps') return { view };
+  if (view === 'expert-articles') return { view };
   if (view === 'data') return { view };
   if (view === 'account') return { view, error: query.get('error') };
   return { view: 'board' };
@@ -61,7 +63,12 @@ export function routeHref(route: Route) {
   if (route.view === 'board') return '#/';
   if (route.view === 'benchmark')
     return `#/benchmark/${encodeURIComponent(route.id)}`;
-  if (route.view === 'apps' || route.view === 'data') return `#/${route.view}`;
+  if (
+    route.view === 'apps' ||
+    route.view === 'data' ||
+    route.view === 'expert-articles'
+  )
+    return `#/${route.view}`;
   if (route.view === 'account')
     return `#/account${route.error ? `?${new URLSearchParams({ error: route.error })}` : ''}`;
   if (route.view === 'papers')

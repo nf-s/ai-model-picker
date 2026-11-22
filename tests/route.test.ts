@@ -87,3 +87,9 @@ test('the account route carries a sign-in error code', () => {
     '#/account?error=invalid_state',
   );
 });
+
+test('Expert articles has a standalone bookmarkable route', () => {
+  const hash = routeHref({ view: 'expert-articles' });
+  assert.equal(hash, '#/expert-articles');
+  assert.deepEqual(parseRoute(hash), { view: 'expert-articles' });
+});

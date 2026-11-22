@@ -10,6 +10,7 @@ Nothing updates on its own. Each source is updated separately, and the published
 | arXiv papers                               | [arXiv papers](#arxiv-papers)                                                                 | Free                                          | No                   |
 | Benchmarks, prices, reports, the app guide | [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide) | Free, but someone has to read the sources     | Yes                  |
 | Practitioner findings                      | [Practitioner findings](#practitioner-findings)                                               | Free for existing reviewed findings           | Yes                  |
+| Expert articles                            | [Expert articles](#expert-articles)                                                           | Free for existing verified articles           | No                   |
 | Published site                             | [Publish](#publish)                                                                           | Free                                          | No                   |
 
 The Hacker News and arXiv data live in the ignored `.local/` directory, and the published site carries its own publication time. An update of either therefore leaves nothing to commit. Do not edit the documentation to restate their counts: the app's Data page and the `status` commands below are the record.
@@ -270,6 +271,12 @@ A new full run, which reviews every comment again, is needed only after a change
 
 Update [the reviewed selection](../research/practitioner-findings.json) by hand from existing reviewed findings. Check each summary, condition, date, attribution and match against the original public comment and the reply context. Keep family or tool mentions at the level the source supports. Use short paraphrases, and check the public download for text or identifiers that should stay private. Set `checkedAt` to the date of the source check. Run `npm test` and `npm run build`, then open an affected page and verify the original and context links. The Data download carries the same selection.
 
+## Expert articles
+
+1. Check candidates against the existing verified article sources. Keep original publication dates and canonical HTTPS links. Require an attributable byline for team-blog posts. Exclude replies, interviews, reposts and unresolved matches.
+2. Use the reviewed export at `.local/expert-articles/catalog.json`. It is a JSON object with an `articles` array of `{ title, date, url }` objects. Dates use `YYYY-MM-DD`. The file and the source material stay out of Git and public downloads.
+3. Open Expert articles in the loopback dev app and verify the title, source and year filters and an original-post link. For a release, run the build and pre-upload checks below. The catalog and its links must be absent from the static output. Compile the Pages Functions separately as described in [Google sign-in](../server/auth/README.md#verification).
+
 ## Publish
 
 Publish only when the owner asks for it. A request to update data is not a request to publish.
@@ -283,6 +290,8 @@ npm test && npm run hn:test && npm run arxiv:test && npm run format:check
 ```
 
 Expected: every command passes.
+
+Check that the reviewed catalog is available at `.local/expert-articles/catalog.json` before building.
 
 ### 2. Build
 
@@ -316,11 +325,12 @@ mixedReleases: 0
 oversizeFiles: 0
 personalDetails: 0
 restrictedIdentifiers: 0
+expertArticleLeaks: 0
 localPaths: 0
 The site build passed the checks.
 ```
 
-The last five counts must be 0. They are comment files from different exports, files over the 25 MiB that Cloudflare Pages accepts, claims or story titles that still contain a link, an address, a handle or a phone number, identifiers that exist only in the restricted results, and paths on this computer. If the command ends with "Do not upload", do not upload: report the output. `comments` must equal the first number printed in step 2.
+The last six counts must be 0. They are comment files from different exports, files over the 25 MiB that Cloudflare Pages accepts, claims or story titles that still contain a link, an address, a handle or a phone number, identifiers that exist only in the restricted results, expert article catalog files or links, and paths on this computer. If the command ends with "Do not upload", report the output and stop. `comments` must equal the first number printed in step 2.
 
 ### 4. Upload
 
@@ -346,9 +356,10 @@ The two commands must print the same line. If the first still shows the earlier 
 
 ```sh
 curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/restricted
+curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/expert-articles
 ```
 
-Expected: `401`.
+Expected: `401` for both endpoints.
 
 ```sh
 curl -sI https://ai-model-picker.pages.dev/hn-comments-1.json | grep -i -E '^(cache-control|x-robots-tag)'

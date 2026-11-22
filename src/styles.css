@@ -642,6 +642,10 @@ p {
     gap: 8px 14px;
     padding: 8px 12px;
   }
+  .rd-top nav {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+  }
   .rd-top-meta {
     margin-left: 0;
     justify-content: flex-start;
