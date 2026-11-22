@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from arxiv_local.assess import ASSESS_VERSION, DEFAULT_ENDPOINT, Assessor
+from arxiv_local.failure_review import export_failure_review
 from arxiv_local.sources import OaiReader, today
 from arxiv_local.state import Counters, State
 from hn_local.classify import Targets
@@ -83,8 +84,10 @@ def harvest_day(reader, targets, start_at, day):
     return counters, papers, cleared
 
 
-def export_progress(state):
+def export_progress(state, *, review=False):
     status = state.export()
+    if review:
+        export_failure_review(state)
     totals = status['totals']
     print(json.dumps({
         'state': status['state'],
@@ -150,7 +153,7 @@ def run(args, state):
         state.set_run('paused', 'day-limit')
     else:
         state.set_run('complete')
-    export_progress(state)
+    export_progress(state, review=not stopped())
     return 0
 
 
@@ -222,7 +225,7 @@ def arguments():
         'assess', help='Label matched abstracts and record evaluation results on the local model',
     )
     status = commands.add_parser('status', help='Print coverage and progress as JSON')
-    export = commands.add_parser('export', help='Rebuild papers.json and status.json')
+    export = commands.add_parser('export', help='Rebuild papers.json, status.json and failure-review.json')
     for command in (harvest, label, status, export):
         command.add_argument('--state-dir', type=Path, default=STATE_DIR)
     harvest.add_argument('--max-days', type=positive_integer, help='Pause after this many datestamp days')
@@ -253,7 +256,7 @@ def main():
             return 0
         with writer_lock(args.state_dir), State(args.state_dir) as state:
             if args.command == 'export':
-                export_progress(state)
+                export_progress(state, review=True)
                 return 0
             if args.command == 'assess':
                 return assess(args, state)

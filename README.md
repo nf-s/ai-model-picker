@@ -55,6 +55,8 @@ See [pipeline instructions](docs/hn-pipeline.md), [archive verification](docs/hn
 
 ## Updating the data
 
+Hacker News reviews and arXiv harvests each produce a local shortlist of reported agent failures worth testing. Each entry links to its source and suggests a check to run. See [local failure reports](docs/updating.md#local-failure-reports).
+
 Nothing updates on its own. [Updating the data](docs/updating.md) has a step-by-step procedure for each source (Hacker News comments, arXiv papers, and the benchmark, price, report and app guide files), for publishing, and notes for automating them. Each step gives the command, the expected result and what to do when it differs. Agents start from [AGENTS.md](AGENTS.md).
 
 ## Data in the app

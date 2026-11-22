@@ -118,6 +118,8 @@ Run the command from step 1 again. Expected:
 
 There is nothing to commit. The local app (`npm run dev`, then http://127.0.0.1:5186/#/data) shows the new range and counts. The published site does not change until someone follows [Publish](#publish).
 
+The review also writes the [local HN failure report](#local-failure-reports), including when the run finishes with `classification-unresolved`.
+
 ### Restoring the copy
 
 Restore only when the owner says so, with no pipeline command running. Batches sent after the copy was made are unknown to it, so their reviews are lost although they were charged.
@@ -160,6 +162,16 @@ Never run two harvests at once, even in separate directories: arXiv allows one r
 Run the command from step 1 again. Expected: `complete None` and today's or yesterday's date in UTC. `daysComplete` is one less than `daysTotal`, because the current UTC day stays open and is read again next time. `papers` is at least what it was. `assessed` and `results` can fall a little: a paper whose new version changes its title or abstract loses its label and result until labelling runs again. On 20 November 2026, 445 new papers took `papers` to 11,476 and 9 labels were dropped this way.
 
 New papers have no label, and the Papers page counts them as Unlabelled. Labelling runs a local model for about 3.5 seconds a paper and is done only when the owner asks; see [Labelling](arxiv-pipeline.md#labelling). There is nothing to commit.
+
+The harvest also writes the [local paper failure report](#local-failure-reports). Newly matched papers are eligible as soon as their abstracts arrive.
+
+## Local failure reports
+
+Open `failure-review.json` in the state directory used for the update. With the commands above, the files are `.local/hn/threads/failure-review.json` and `.local/arxiv/failure-review.json`. Both jobs run locally as part of the scrape and use data already collected. They make no additional model or network requests.
+
+Each report lists up to 50 of the most recent matching sources, the total candidate count, source links and suggested local checks. Zero matches is a valid result. The selection rules cover specific symptoms and can miss unfamiliar wording. Use the HN link to read the comment in its thread. For a paper, open the source to check which model, task, comparison and measurement support the observation. A model mentioned in a paper may have served as a judge or a baseline.
+
+To test a finding, choose a representative task, fix the starting state and acceptance check, then compare runs at the relevant model and effort settings. Record the pass or failure, parent rework, elapsed time and total usage through acceptance, including retries. The reports stay local and do not change the model rankings.
 
 ## Benchmarks, prices, reports and the app guide
 

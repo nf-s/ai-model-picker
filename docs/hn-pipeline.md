@@ -39,7 +39,7 @@ Use a separate state directory for a bounded validation step.
   --max-classifications 50
 ```
 
-The same command without the limits resumes that directory's entire run. `Ctrl+C`, `SIGTERM`, `--max-items` (source rows) and `--max-classifications` (comment reviews) pause at a checkpoint. `--classifier-workers` sets the number of parallel model requests (default 8). `--collect-only` runs the scan and lists the threads whose titles are unambiguous without calling the model, then pauses with the reason `collect-only`; a later `run` without it checks the uncertain titles and reviews the queue. `status` prints detailed progress. `export` regenerates the local `status.json` and `results.json` from SQLite. Both commands accept `--state-dir`. All flags are defined in `arguments()` in `scripts/hn_pipeline.py`.
+The same command without the limits resumes that directory's entire run. `Ctrl+C`, `SIGTERM`, `--max-items` (source rows) and `--max-classifications` (comment reviews) pause at a checkpoint. `--classifier-workers` sets the number of parallel model requests (default 8). `--collect-only` runs the scan and lists the threads whose titles are unambiguous without calling the model, then pauses with the reason `collect-only`; a later `run` without it checks the uncertain titles and reviews the queue. `status` prints detailed progress. `export` regenerates the local `status.json`, `results.json` and `failure-review.json` from SQLite. Both commands accept `--state-dir`. All flags are defined in `arguments()` in `scripts/hn_pipeline.py`.
 
 `context` stores the parent and story IDs, and the story title, for comments that have no story recorded, such as those in the previous analysis, which predates these columns. It reads the comments and their ancestors from the official HN API one thread level at a time, 256 comments per page, newest first, and does not call the model. It changes no review, assessment or existing story. A comment whose story cannot be found (removed item, broken chain or more than 128 levels) keeps no story. It prints a line of counts per page; `Ctrl+C` or `SIGTERM` stops after the current page, and running it again only reads comments that still have no story. It accepts `--state-dir`, `--workers` and `--max-firebase-requests`, and like `run` it holds the state directory's lock, so it cannot run while another command uses that directory.
 
@@ -62,6 +62,14 @@ The same command without the limits resumes that directory's entire run. `Ctrl+C
 ```
 
 While an extended or retargeted run is unfinished, the app and the export use the previous analysis, as for any unfinished run (see [Runs, models and files](#runs-models-and-files)). The full update procedure, with the copy made first, the expected output and what to do on each error, is in [Updating the data](updating.md#hacker-news-comments).
+
+## Failure review
+
+When a review run finishes, including with `classification-unresolved`, it writes `failure-review.json` in its state directory. To rebuild the report from reviews already stored in a checkpoint, run `export` with the same `--state-dir`. Building the file makes no requests to HN or a model. The file stays local.
+
+The report counts the matching comments in the saved window and lists up to 50, newest first. Each has the comment's direct HN link and timestamp, an assessed model or family, the classifier's summary and suggested local checks. A comment needs a concrete failure signal in the summary and a single critical target assessed with medium or high confidence in a coding or agent workflow. The report skips comparisons and claims with conflicting model names. If the claim names no target, the report marks the attribution as coming from review context.
+
+Follow the link to check what happened, who or what the comment attributes it to, and whether it gives enough detail for a local check. The summaries can miss or misread failures. Counts describe the shortlist criteria and coverage of this checkpoint. They cannot measure failure rates or compare models.
 
 ## Review through the Anthropic API
 

@@ -302,6 +302,13 @@ class State:
             )
         ]
 
+    def failure_review_papers(self):
+        return self.connection.execute(
+            """SELECT p.id, p.title, p.abstract, p.submitted FROM paper p
+               WHERE EXISTS (SELECT 1 FROM mention m WHERE m.paper_id = p.id)
+               ORDER BY p.submitted DESC, p.id DESC"""
+        )
+
     def add_assessment(self, assessor_key, paper_id, digest, assessment):
         with self.connection:
             self.connection.execute(

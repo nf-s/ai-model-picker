@@ -19,6 +19,7 @@ from hn_local.classify import (
     parse_review, plain, review_prompt, sanitize_html,
 )
 from hn_local.clickhouse import CLICKHOUSE_BATCH_SIZE, ClickHouseReader
+from hn_local.failure_review import export_failure_review
 from hn_local.sources import (
     RECONCILE_ID, FirebaseReader, Partition, PipelineError, archive_pages, build_plan, get_maxitem, tail_partitions,
 )
@@ -425,8 +426,10 @@ def resolve_context(state, firebase, stopped, budget=None):
     return totals
 
 
-def export_progress(state):
+def export_progress(state, review_targets=None):
     status = state.export()
+    if review_targets is not None:
+        export_failure_review(state, status, review_targets)
     totals = status['totals']
     print(json.dumps({
         'state': status['state'],
@@ -591,7 +594,7 @@ def run(args, state):
     state.ensure_reconciliation()
     job = state.job()
     if job['state'] == 'complete' and not state.queued(1, failed=True):
-        export_progress(state)
+        export_progress(state, None if args.collect_only else targets)
         return 0
 
     stop = False
@@ -665,20 +668,22 @@ def run(args, state):
         export_progress(state)
         return 1
     unfinished = state.next_partition() is not None or state.pending_stories() or state.queued(1)
+    review_targets = None if args.collect_only else targets
+    exit_code = 0
     if not unfinished and not state.queued(1, failed=True):
         state.set_run('complete')
     elif not unfinished and not stop and all(budget):
         state.set_run('blocked', 'classification-unresolved')
-        export_progress(state)
-        return 1
+        exit_code = 1
     else:
         reason = (
             'user-stop' if stop else 'item-limit' if not budget[0]
             else 'collect-only' if args.collect_only else 'classifier-limit'
         )
         state.set_run('paused', reason, partition)
-    export_progress(state)
-    return 0
+        review_targets = None
+    export_progress(state, review_targets)
+    return exit_code
 
 
 def context(args, state):
@@ -708,7 +713,7 @@ def arguments():
     commands = parser.add_subparsers(dest='command', required=True)
     scan = commands.add_parser('run', help='Scan and classify, resuming the saved checkpoint')
     status = commands.add_parser('status', help='Print current coverage and progress as JSON')
-    export = commands.add_parser('export', help='Rebuild the two sanitized JSON snapshots')
+    export = commands.add_parser('export', help='Rebuild the sanitized JSON snapshots and the local failure review')
     migrate = commands.add_parser('migrate', help='Restrict an existing archive checkpoint to six months')
     backfill = commands.add_parser('context', help='Store parent and story IDs and story titles, without the model')
     extend = commands.add_parser(
@@ -772,7 +777,7 @@ def main():
                 export_progress(state)
                 return 0
             if args.command == 'export':
-                export_progress(state)
+                export_progress(state, current_targets())
                 return 0
             if args.command == 'extend':
                 extend_window(state, scan_key_for(current_targets()))
