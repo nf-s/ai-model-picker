@@ -3,11 +3,11 @@
 A reference for choosing an AI model. It joins published benchmark results with six months of Hacker News discussion, so a model can be judged on both in one place.
 
 - **Board** (home): choose a task. One table ranks models on that task's benchmarks beside HN comment volume, sentiment, its four-week change and sentiment on the matching topic.
-- **Models**: one page per model or family, with its rank on every benchmark, API price, app selections, published reports, weekly sentiment, what people say by theme, which models commenters prefer it to, sentiment by task, and the comments.
+- **Models**: one page per model or family, with its rank on every benchmark, API price, app selections, published reports, selected practitioner findings, weekly sentiment, what people say by theme, which models commenters prefer it to, sentiment by task, and the comments.
 - **Discussion**: every collected comment, filtered by model, sentiment, theme, task, label confidence and period, with a ranking of models inside the current filter. Comments are listed under their stories as one-sentence claims or in full.
 - **Papers**: arXiv papers from the same six months whose title or abstract names a tracked model or family, filtered by model or family and title words.
 - **Benchmark pages**: every published result for one benchmark, including alternate configurations, with the source's method and limits. Reached from the Board's column headers and a model's benchmark tiles.
-- **App guide**: which selection to make in ChatGPT and Claude on their highest-usage plans for eight tasks, with alternatives, settings and sources. Coding-agent choices are a separate mode.
+- **App guide**: which selection to make in ChatGPT and Claude on their highest-usage plans for eight tasks, with alternatives, settings and sources. The Coding agents mode includes practitioner advice under each task.
 - **Data**: HN collection status and controls, every source with its coverage and limits, and the snapshot download.
 - **Model filter** (header, on every view): limits the whole site to chosen providers, such as ChatGPT and Claude, or to individual models. Ranks stay overall ranks. The selection is remembered in the browser and cleared in one click.
 

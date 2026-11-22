@@ -10,6 +10,7 @@ import {
   results,
 } from '../lib/data';
 import { routeHref } from '../lib/route';
+import { adviceForTask } from '../lib/practitioner';
 import {
   benchmarkLabel,
   formatScore,
@@ -18,6 +19,7 @@ import {
 } from '../lib/site-data';
 import type { HnData } from '../lib/site-data';
 import type { Scope } from '../lib/model-filter';
+import PractitionerFindings from './PractitionerFindings';
 import './app-guide.css';
 
 type PlanId = 'chatgpt' | 'claude';
@@ -186,6 +188,7 @@ function Detail({
   const options = taskOptions(task, mode).filter(
     (option) => app === 'both' || option.choice.planId === app,
   );
+  const advice = mode === 'coding' ? adviceForTask(task.id) : [];
   const workOptions = task.alternatives.flatMap((option) => {
     const choice = guide.choices.find((entry) => entry.id === option.choiceId);
     return choice?.surface === 'ChatGPT Work' ? [{ ...option, choice }] : [];
@@ -249,6 +252,17 @@ function Detail({
         </p>
       )}
       {taskEvidence(task).length > 0 && <Evidence task={task} />}
+      {advice.length > 0 && (
+        <section
+          className="rd-ag-extra"
+          aria-labelledby={`rd-ag-advice-${task.id}`}
+        >
+          <h4 className="rd-h" id={`rd-ag-advice-${task.id}`}>
+            Practitioner advice
+          </h4>
+          <PractitionerFindings findings={advice} heading="h5" />
+        </section>
+      )}
       {sources.length > 0 && (
         <p className="rd-ag-sources">
           <span className="rd-muted">Sources</span>

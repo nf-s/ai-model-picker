@@ -15,6 +15,7 @@ import { guide } from '../lib/guide';
 import { formatHnRange, hnClassifierCheck, hnSources } from '../lib/hn-client';
 import type { HnPipeline } from '../lib/hn-client';
 import { hnPublished } from '../lib/hn-published';
+import { practitionerReview } from '../lib/practitioner';
 import { routeHref } from '../lib/route';
 import './data-page.css';
 
@@ -546,11 +547,17 @@ export default function DataPage({ pipeline }: { pipeline: HnPipeline }) {
         <h2 className="rd-h" id="rd-dp-download-title">
           Download
         </h2>
+        <p className="rd-note">
+          Includes selected practitioner findings checked against their original
+          sources on {practitionerReview.checkedAt}. The collection window was{' '}
+          {practitionerReview.collectionStart} to{' '}
+          {practitionerReview.collectionEnd}. Coverage varies by source.
+        </p>
         <div>
           <button
             type="button"
             className="rd-button"
-            onClick={downloadSnapshot}
+            onClick={() => downloadSnapshot(practitionerReview)}
           >
             <Download size={14} aria-hidden="true" />
             Download sourced data (JSON)

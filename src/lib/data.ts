@@ -1,5 +1,6 @@
 import rawSnapshot from './snapshot.json';
 import { attributionCheckedAt, attributions } from './attribution';
+import type { PractitionerReview } from './practitioner';
 import { validRestrictedPayload } from './restricted';
 import type { RestrictedPayload } from './restricted';
 import { snapshotSchema } from './schema';
@@ -45,7 +46,7 @@ export function addRestricted(payload: unknown) {
   return true;
 }
 
-export function downloadSnapshot() {
+export function downloadSnapshot(practitionerFindings: PractitionerReview) {
   const url = URL.createObjectURL(
     new Blob(
       [
@@ -53,6 +54,7 @@ export function downloadSnapshot() {
           {
             ...publicSnapshot,
             attribution: { checkedAt: attributionCheckedAt, attributions },
+            practitionerFindings,
           },
           null,
           2,

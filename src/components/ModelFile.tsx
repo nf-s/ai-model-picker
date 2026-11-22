@@ -12,6 +12,7 @@ import {
   positiveShare,
   relatedNames,
   tallyTotal,
+  targetKey,
   themeLabel,
 } from '../lib/hn-insights';
 import type {
@@ -23,6 +24,7 @@ import type {
 } from '../lib/hn-insights';
 import { dollars, duration } from '../lib/metrics';
 import type { Scope } from '../lib/model-filter';
+import { findingsForTarget, practitionerFamilies } from '../lib/practitioner';
 import {
   appSelections,
   benchmarkLabel,
@@ -48,6 +50,7 @@ import {
 import type { WeekRange } from './parts';
 import { RankNote } from './ModelFilter';
 import ModelPapers from './ModelPapers';
+import PractitionerFindings from './PractitionerFindings';
 import Reports from './Reports';
 import { routeHref } from '../lib/route';
 import { themesFor } from '../lib/hn-themes';
@@ -86,6 +89,10 @@ function Rail({
   );
   const entries = useMemo(() => {
     const insights = hn.status === 'ready' ? hn.insights.targets : null;
+    const families = new Set(practitionerFamilies);
+    if (kind === 'family')
+      for (const insight of insights?.values() ?? [])
+        if (insight.kind === 'family') families.add(insight.target);
     const rows =
       kind === 'model'
         ? models
@@ -96,14 +103,19 @@ function Rail({
               detail: model.provider,
               insight: insights?.get(modelKey(model.id)) ?? null,
             }))
-        : [...(insights?.values() ?? [])]
-            .filter((insight) => insight.kind === 'family')
-            .map((insight) => ({
-              key: insight.key,
-              name: insight.target,
-              detail: 'Family',
-              insight,
-            }));
+        : [...families].flatMap((name) => {
+            const key = targetKey({ kind: 'family', target: name });
+            return scope.key(key)
+              ? [
+                  {
+                    key,
+                    name,
+                    detail: 'Family',
+                    insight: insights?.get(key) ?? null,
+                  },
+                ]
+              : [];
+          });
     const wanted = query.trim().toLowerCase();
     return rows
       .filter((row) => row.name.toLowerCase().includes(wanted))
@@ -160,11 +172,9 @@ function Rail({
       </ol>
       {entries.length === 0 && (
         <p className="rd-note">
-          {kind === 'family' && hn.status !== 'ready'
-            ? 'Families come from the comment index.'
-            : scope.active && kind === 'family' && !query.trim()
-              ? 'Families are listed only for providers selected in the filter.'
-              : 'No match.'}
+          {scope.active && kind === 'family' && !query.trim()
+            ? 'Families are listed only for providers selected in the filter.'
+            : 'No match.'}
         </p>
       )}
     </aside>
@@ -1055,6 +1065,7 @@ export default function ModelFile({
   const key = selected ?? fallback;
   const ref = key ? parseTargetKey(key) : null;
   const model = ref?.kind === 'model' ? modelById.get(ref.target) : undefined;
+  const practitionerFindings = findingsForTarget(ref);
   const insight =
     key && hn.status === 'ready' ? hn.insights.targets.get(key) : undefined;
   return (
@@ -1065,11 +1076,30 @@ export default function ModelFile({
         {!model && insight && hn.status === 'ready' && (
           <FamilyHeader insight={insight} hn={hn} scope={scope} />
         )}
-        {!model && !insight && hn.status !== 'loading' && (
-          <p className="rd-note">Nothing is recorded under this name.</p>
-        )}
+        {ref?.kind === 'family' &&
+          !insight &&
+          practitionerFindings.length > 0 && (
+            <header className="rd-mf-head">
+              <h1>{ref.target}</h1>
+              <p className="rd-mf-sub">Model family</p>
+            </header>
+          )}
+        {!model &&
+          !insight &&
+          practitionerFindings.length === 0 &&
+          hn.status !== 'loading' && (
+            <p className="rd-note">Nothing is recorded under this name.</p>
+          )}
         {model && <BenchmarkTiles model={model} scope={scope} />}
         {model && <ModelReports model={model} />}
+        {practitionerFindings.length > 0 && (
+          <details key={`practitioner:${key}`} className="rd-mf-reports">
+            <summary className="rd-h">
+              Practitioner findings · {practitionerFindings.length}
+            </summary>
+            <PractitionerFindings findings={practitionerFindings} />
+          </details>
+        )}
         {key && <ModelPapers key={key} target={key} />}
         {hn.status === 'loading' && (
           <p className="rd-note">Loading Hacker News comments…</p>

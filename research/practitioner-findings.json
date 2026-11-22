@@ -1,0 +1,162 @@
+{
+  "checkedAt": "2026-11-22",
+  "collectionStart": "2024-11-22",
+  "collectionEnd": "2026-11-22",
+  "findings": [
+    {
+      "kind": "observed outcome",
+      "attribution": "author observation",
+      "date": "2026-11-10",
+      "title": "Three.js game prototype from one prompt",
+      "summary": "The author linked a generated cat-and-mouse game and reported about 40 minutes for the run.",
+      "conditions": "Fable 5.2 at Extra effort. One prompt, with a link to the generated game.",
+      "targets": [{ "kind": "model", "id": "claude-fable-5-2" }],
+      "sourceUrl": "https://news.ycombinator.com/item?id=50434508",
+      "contextUrl": "https://news.ycombinator.com/item?id=50433659"
+    },
+    {
+      "kind": "observed outcome",
+      "attribution": "author observation",
+      "date": "2026-11-09",
+      "title": "Ported a Three.js scene to WebGL",
+      "summary": "The author got a working vanilla JavaScript port whose rendering differed from the original. The comment links both demos and the transcript.",
+      "conditions": "Opus 5.5 at Medium effort in the same Claude Chat thread that built the original. The author compared the results visually.",
+      "targets": [
+        { "kind": "model", "id": "claude-opus-5-5" },
+        { "kind": "tool", "id": "Claude Chat" }
+      ],
+      "sourceUrl": "https://news.ycombinator.com/item?id=50421091",
+      "contextUrl": "https://news.ycombinator.com/item?id=50420258"
+    },
+    {
+      "kind": "observed outcome",
+      "attribution": "author observation",
+      "date": "2026-10-13",
+      "title": "SVG drawings at three effort levels",
+      "summary": "The author shared three pelican drawings, judged even the low-effort result favourably, and reported costs of roughly US$0.10 to US$0.17 per drawing.",
+      "conditions": "Gemini 4 Argon at low, medium and high reasoning effort. One drawing prompt and a subjective comparison.",
+      "targets": [{ "kind": "model", "id": "gemini-4-argon" }],
+      "sourceUrl": "https://news.ycombinator.com/item?id=50074156",
+      "contextUrl": "https://news.ycombinator.com/item?id=50073879"
+    },
+    {
+      "kind": "concrete failure",
+      "attribution": "author observation",
+      "date": "2026-10-13",
+      "title": "Photo ranking changed with attachment order",
+      "summary": "The author could not find a prompt that kept the photo choice consistent when they reordered the attachments.",
+      "conditions": "One informal experiment with multiple images in GPT-6 Astra Decisions.",
+      "targets": [{ "kind": "model", "id": "gpt-6-astra" }],
+      "sourceUrl": "https://news.ycombinator.com/item?id=50072746",
+      "contextUrl": "https://news.ycombinator.com/item?id=50072702"
+    },
+    {
+      "kind": "concrete failure",
+      "attribution": "author observation",
+      "date": "2026-09-28",
+      "title": "Max effort ran out of tokens before returning an SVG",
+      "summary": "The author reported about 15 minutes and 128,000 thinking tokens before the run ended without a final drawing. The comment gives results for the other effort levels.",
+      "conditions": "Sonnet 5.5 at maximum thinking effort on one pelican-drawing prompt.",
+      "targets": [{ "kind": "model", "id": "claude-sonnet-5-5" }],
+      "sourceUrl": "https://news.ycombinator.com/item?id=49882573",
+      "contextUrl": "https://news.ycombinator.com/item?id=49881850"
+    },
+    {
+      "kind": "observed outcome",
+      "attribution": "author observation",
+      "date": "2026-06-22",
+      "title": "Ported model inference to run in the browser",
+      "summary": "The author got an interactive ONNX demo running with help from Opus 4.8 and shared the demo, code and agent transcript.",
+      "conditions": "Claude Code and one ONNX port. The demo download was about 1.3 GB.",
+      "targets": [
+        { "kind": "model", "id": "claude-opus-4-8" },
+        { "kind": "tool", "id": "Claude Code" }
+      ],
+      "sourceUrl": "https://news.ycombinator.com/item?id=48637027",
+      "contextUrl": "https://news.ycombinator.com/item?id=48630171"
+    },
+    {
+      "kind": "observed outcome",
+      "attribution": "author observation",
+      "date": "2025-07-17",
+      "title": "Reports fewer shortcuts around tests with newer Claude releases",
+      "summary": "The author said Claude 3.7 and 4 took fewer shortcuts to make tests pass in their work. When it still happened, they had the agent undo the shortcut and fix the underlying problem.",
+      "conditions": "Informal comparison across releases. The comment gives no task list or counts.",
+      "targets": [{ "kind": "family", "id": "Claude" }],
+      "sourceUrl": "https://news.ycombinator.com/item?id=44599627",
+      "contextUrl": "https://news.ycombinator.com/item?id=44599165"
+    },
+    {
+      "kind": "workflow advice",
+      "attribution": "author observation",
+      "date": "2026-11-14",
+      "taskId": "subagents",
+      "title": "Keep questions and results in the coordinating thread",
+      "summary": "The author starts tasks in a Project and lets delegated threads do their work while the main thread collects questions and results.",
+      "conditions": "The author described less context switching in their Claude Code Projects workflow.",
+      "targets": [{ "kind": "tool", "id": "Claude Code" }],
+      "sourceUrl": "https://news.ycombinator.com/item?id=50493211",
+      "contextUrl": "https://news.ycombinator.com/item?id=50493172"
+    },
+    {
+      "kind": "workflow advice",
+      "attribution": "author observation",
+      "date": "2026-10-06",
+      "taskId": "web-apps",
+      "title": "Prototype several uses of a proposed API",
+      "summary": "The author uses coding agents to build disposable clients that exercise an API in different ways before committing to its design.",
+      "conditions": "A design practice for APIs still in flux, based on the author's own use.",
+      "targets": [],
+      "sourceUrl": "https://news.ycombinator.com/item?id=49973136",
+      "contextUrl": "https://news.ycombinator.com/item?id=49972008"
+    },
+    {
+      "kind": "workflow advice",
+      "attribution": "author advice",
+      "date": "2026-07-27",
+      "taskId": "bug-fixes",
+      "title": "Verify fixes against a protected copy of the tests",
+      "summary": "Run acceptance checks against a reserved test suite when an agent could make the working tests pass by editing them.",
+      "conditions": "The advice addresses regressions checked by an existing test suite.",
+      "targets": [],
+      "sourceUrl": "https://news.ycombinator.com/item?id=49073470",
+      "contextUrl": "https://news.ycombinator.com/item?id=49073002"
+    },
+    {
+      "kind": "workflow advice",
+      "attribution": "author observation",
+      "date": "2026-03-08",
+      "taskId": "subagents",
+      "title": "Give parallel agents a shared place for findings",
+      "summary": "The author suggests having research agents read prior findings and post their own in the same format in a shared GitHub Discussion.",
+      "conditions": "The source links one agent report and proposes the workflow for additional workers.",
+      "targets": [],
+      "sourceUrl": "https://news.ycombinator.com/item?id=47294063",
+      "contextUrl": "https://news.ycombinator.com/item?id=47293739"
+    },
+    {
+      "kind": "workflow advice",
+      "attribution": "author advice",
+      "date": "2026-02-13",
+      "taskId": "bug-fixes",
+      "title": "Confirm the test command works before editing",
+      "summary": "The author starts coding sessions with a test run to verify the agent can execute the suite. They recommend having the agent test its edits as it goes.",
+      "conditions": "The author's example uses pytest in a project with tests already in place.",
+      "targets": [{ "kind": "tool", "id": "Claude Code" }],
+      "sourceUrl": "https://news.ycombinator.com/item?id=47002943",
+      "contextUrl": "https://news.ycombinator.com/item?id=47002404"
+    },
+    {
+      "kind": "workflow advice",
+      "attribution": "author observation",
+      "date": "2026-01-14",
+      "taskId": "web-apps",
+      "title": "Search the codebase and save plans to files",
+      "summary": "The author uses code search and file-based plans as examples of how coding agents can work across a repository larger than a single context window.",
+      "conditions": "This relies on agents having search and file access. The source compares context sizes using Codex and Claude as examples.",
+      "targets": [{ "kind": "family", "id": "Codex" }],
+      "sourceUrl": "https://news.ycombinator.com/item?id=46624884",
+      "contextUrl": "https://news.ycombinator.com/item?id=46624829"
+    }
+  ]
+}

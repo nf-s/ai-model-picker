@@ -9,6 +9,7 @@ Nothing updates on its own. Each source is updated separately, and the published
 | Hacker News comments                       | [Hacker News comments](#hacker-news-comments)                                                 | Paid: about 5 US cents per 1,000 new comments | No                   |
 | arXiv papers                               | [arXiv papers](#arxiv-papers)                                                                 | Free                                          | No                   |
 | Benchmarks, prices, reports, the app guide | [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide) | Free, but someone has to read the sources     | Yes                  |
+| Practitioner findings                      | [Practitioner findings](#practitioner-findings)                                               | Free for existing reviewed findings           | Yes                  |
 | Published site                             | [Publish](#publish)                                                                           | Free                                          | No                   |
 
 The Hacker News and arXiv data live in the ignored `.local/` directory, and the published site carries its own publication time. An update of either therefore leaves nothing to commit. Do not edit the documentation to restate their counts: the app's Data page and the `status` commands below are the record.
@@ -264,6 +265,10 @@ To retarget the Hacker News run, first make sure it is finished (step 1 of [Hack
 Until step 3 finishes, the local app shows the older analysis kept in `.local/hn/` and `npm run build:pages` stops with "Could not export the current Hacker News checkpoint." Do not publish in between.
 
 A new full run, which reviews every comment again, is needed only after a change to the review itself, such as its prompt or classifier. Through the Anthropic API the first one cost about US$7 and took about two hours. Start one only when the owner asks; the steps are in the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api).
+
+## Practitioner findings
+
+Update [the reviewed selection](../research/practitioner-findings.json) by hand from existing reviewed findings. Check each summary, condition, date, attribution and match against the original public comment and the reply context. Keep family or tool mentions at the level the source supports. Use short paraphrases, and check the public download for text or identifiers that should stay private. Set `checkedAt` to the date of the source check. Run `npm test` and `npm run build`, then open an affected page and verify the original and context links. The Data download carries the same selection.
 
 ## Publish
 
