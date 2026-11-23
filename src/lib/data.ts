@@ -1,10 +1,11 @@
 import rawSnapshot from './snapshot.json';
-import { attributionCheckedAt, attributions } from './attribution';
-import type { PractitionerReview } from './practitioner';
+import { attributions } from './attribution';
+import type { Core } from './core-schema';
+import { publicDownload } from './download';
 import { validRestrictedPayload } from './restricted';
 import type { RestrictedPayload } from './restricted';
 import { snapshotSchema } from './schema';
-import type { ModelRecord } from './schema';
+import type { ModelRecord, Snapshot } from './schema';
 
 export type { Benchmark, BenchmarkResult, Category, Report } from './schema';
 export const snapshot = snapshotSchema.parse(rawSnapshot);
@@ -13,7 +14,7 @@ export type Model = ModelRecord;
 export const models: Model[] = snapshot.models;
 
 // Copied before any restricted records are added, so the download stays public.
-const publicSnapshot = {
+const publicSnapshot: Snapshot = {
   ...snapshot,
   benchmarks: [...benchmarks],
   results: [...results],
@@ -55,16 +56,12 @@ export function addRestricted(payload: unknown) {
   return true;
 }
 
-export function downloadSnapshot(practitionerFindings: PractitionerReview) {
+export function downloadPublicData(core: Core) {
   const url = URL.createObjectURL(
     new Blob(
       [
         JSON.stringify(
-          {
-            ...publicSnapshot,
-            attribution: { checkedAt: attributionCheckedAt, attributions },
-            practitionerFindings,
-          },
+          publicDownload(publicSnapshot, core, attributions),
           null,
           2,
         ),

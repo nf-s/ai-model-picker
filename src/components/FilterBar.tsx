@@ -31,8 +31,9 @@ export const formatDay = (day: string) =>
 
 // One bar for every filter. The job is in the address; the rest is kept in
 // this browser. Period, sources, basis and current models apply to Brief,
-// Model, Switch and People; the other views use the model selection. Named
-// and the basis are enabled only when the named records are loaded.
+// Model, Switch, People, Search and Data; the other views use the model
+// selection. Named and the basis are enabled only when the named records are
+// loaded.
 export default function FilterBar({
   filter,
   onChange,

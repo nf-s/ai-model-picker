@@ -46,8 +46,8 @@ type Outcome =
       advice: Ranked | null;
     };
 
-// The filter bar as the search reads it.
-function searchFilter(
+// The filter bar as the search reads it; the Data page counts with it too.
+export function searchFilter(
   data: BriefData,
   job: string | null,
   bar: FilterBar,

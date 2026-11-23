@@ -19,7 +19,7 @@ SEARCH_WORD_BYTES = 4 * 1024 * 1024
 SEARCH_PAGE = 10
 MUST_BE_ZERO = ('mixedReleases', 'oversizeFiles', 'tooManyFiles', 'personalDetails', 'restrictedIdentifiers',
                 'expertArticleLeaks', 'localPaths', 'namedRecords', 'namedFiles', 'personNames',
-                'searchIndexMissing', 'searchMixedReleases', 'searchOverBudget')
+                'restrictedNames', 'arxivExport', 'searchIndexMissing', 'searchMixedReleases', 'searchOverBudget')
 # Practitioners' use records and method advice stay behind sign-in: their ids, and the file
 # the records build writes them to, must not reach a static build.
 NAMED_ID = re.compile(r'\b(?:ur|ma):[0-9a-f]{24}/\d+')
@@ -27,6 +27,8 @@ NAMED_FILE = 'named-private.json'
 # Hacker News comment files hold public story titles and claims, which may name anyone. The search
 # index's record files hold the same claims and titles on its Hacker News records.
 COMMENT_FILE = re.compile(r'hn-comments-\d+\.json')
+# arXiv papers left the app; their old export must not be uploaded again.
+ARXIV_FILE = 'arxiv-snapshot.json'
 
 
 def load(path):
@@ -92,6 +94,27 @@ def person_names(people_file):
     return names
 
 
+def restricted_names(research_file):
+    """The names and short names of the benchmarks that cannot be republished. They are matched as
+    whole words, ignoring case, and never printed."""
+    data = load(research_file)
+    if not isinstance(data, dict) or not isinstance(data.get('benchmarks'), list) or not data['benchmarks']:
+        raise ValueError('Invalid restricted research file.')
+    names = set()
+    for benchmark in data['benchmarks']:
+        if not isinstance(benchmark, dict) or not isinstance(benchmark.get('name'), str) or not benchmark['name'].strip():
+            raise ValueError('Invalid restricted research file.')
+        names.add(benchmark['name'].strip())
+        short = benchmark.get('shortName')
+        if isinstance(short, str) and short.strip():
+            names.add(short.strip())
+    return sorted(names)
+
+
+def word(name):
+    return re.compile(r'(?<![\w-])' + re.escape(name) + r'(?![\w-])', re.IGNORECASE)
+
+
 def without_hn_text(path):
     """A search record file's text with the claims and story titles of its Hacker News records left out."""
     data = load(path)
@@ -131,8 +154,8 @@ def search_report(search, word_bytes):
     }
 
 
-def site_report(dist, restricted, public, local_paths, expert_catalog, people_file, file_bytes=FILE_BYTES,
-                site_files=SITE_FILES, word_bytes=SEARCH_WORD_BYTES):
+def site_report(dist, restricted, public, local_paths, expert_catalog, people_file, restricted_research,
+                file_bytes=FILE_BYTES, site_files=SITE_FILES, word_bytes=SEARCH_WORD_BYTES):
     """Totals for the build, and the counts in MUST_BE_ZERO, which block an upload when above zero."""
     snapshot = load(dist / 'hn-snapshot.json')
     core = load(dist / 'core.json')
@@ -146,7 +169,8 @@ def site_report(dist, restricted, public, local_paths, expert_catalog, people_fi
     json_files = [load(path) for path in files if path.suffix == '.json']
     article_urls = expert_article_urls(expert_catalog)
     article_links = re.compile('|'.join(map(re.escape, sorted(article_urls, key=len, reverse=True))))
-    # Named records stay behind sign-in, so no person's name belongs in a static file.
+    # Named records stay behind sign-in, so no person's name belongs in a static file, and no restricted
+    # benchmark is named in one. Public story titles and claims may name either.
     search_records = dist / 'search' / 'r'
     outside_comments = ''.join(
         without_hn_text(path) if path.parent == search_records else path.read_text(encoding='utf-8', errors='ignore')
@@ -174,6 +198,10 @@ def site_report(dist, restricted, public, local_paths, expert_catalog, people_fi
         ),
         'namedFiles': sum(path.name == NAMED_FILE for path in files),
         'personNames': sum(name in outside_comments for name in person_names(people_file)),
+        'restrictedNames': sum(
+            len(word(name).findall(outside_comments)) for name in restricted_names(restricted_research)
+        ),
+        'arxivExport': sum(path.name == ARXIV_FILE for path in files),
         **search_report(dist / 'search', word_bytes),
     }
 
@@ -183,7 +211,7 @@ if __name__ == '__main__':
         report = site_report(
             ROOT / 'dist', ROOT / '.local/restricted/payload.json', ROOT / 'src/lib/snapshot.json',
             (ROOT, Path.home()), ROOT / '.local/expert-articles/catalog.json',
-            ROOT / '.local/people/people.json',
+            ROOT / '.local/people/people.json', ROOT / '.local/restricted/research.json',
         )
     except (OSError, KeyError, TypeError, ValueError):
         raise SystemExit('Could not check the site build and private payloads. See docs/updating.md.') from None

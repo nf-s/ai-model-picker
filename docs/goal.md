@@ -23,7 +23,7 @@ A job is a real piece of work with its limits: the kind of task, the app or codi
 
 - Published benchmark results and official API prices.
 - Published reports and controlled experiments.
-- arXiv papers that evaluate a tracked model.
+- arXiv metadata, as a feed for reports reviewed by hand.
 - Hacker News discussion that names a model.
 - Dated first-hand accounts from practitioners who publish their work with these models.
 - The selections that ChatGPT, Claude and the coding agents offer, for the app guide.

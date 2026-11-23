@@ -214,3 +214,48 @@ test('the search route carries the words and the job', () => {
   assert.equal(href, '#/search/opus%20refactor%20%2F%205.5%3F?job=coding');
   assert.deepEqual(parseRoute(href), route);
 });
+
+test('every old address lands as the old-links table says', () => {
+  const brief: Route = { view: 'brief', job: null };
+  const cases: [string, Route][] = [
+    // The Board, the redesign prefix and unknown addresses: Brief's chooser.
+    ['#/', brief],
+    ['#/board', brief],
+    ['#/redesign/board', brief],
+    ['#/redesign/', brief],
+    ['#/no-such-view', brief],
+    ['#/boards/x', brief],
+    // Model and family keys: the model or line page.
+    ['#/model/model:gpt-6-2-sol', model('gpt-6-2-sol')],
+    ['#/model/model%3Agpt-6-2-sol', model('gpt-6-2-sol')],
+    ['#/redesign/model/model%3Agpt-6-2-sol', model('gpt-6-2-sol')],
+    ['#/model/family:Claude', line('Claude')],
+    ['#/model/family%3AClaude%20Opus', line('Claude Opus')],
+    ['#/redesign/model/family%3AClaude', line('Claude')],
+    // Discussion: the same page, Crowd band's thread reader open.
+    ['#/discussion/model%3Agpt-6-2-sol', model('gpt-6-2-sol', null, true)],
+    ['#/discussion/model:gpt-6-2-sol', model('gpt-6-2-sol', null, true)],
+    ['#/discussion/family%3AClaude', line('Claude', null, true)],
+    ['#/redesign/discussion/family%3AGPT', line('GPT', null, true)],
+    // Papers: the Data page's line on why papers were removed.
+    ['#/papers', { view: 'data', section: 'papers' }],
+    [
+      '#/papers/model%3Agpt-6-astra?area=coding',
+      { view: 'data', section: 'papers' },
+    ],
+    ['#/redesign/papers', { view: 'data', section: 'papers' }],
+    // Expert articles: People.
+    ['#/expert-articles', { view: 'people', name: null, job: null }],
+    ['#/redesign/expert-articles', { view: 'people', name: null, job: null }],
+    // Kept routes are unchanged.
+    ['#/benchmark/epoch-eci', { view: 'benchmark', id: 'epoch-eci' }],
+    ['#/redesign/benchmark/epoch-eci', { view: 'benchmark', id: 'epoch-eci' }],
+    ['#/apps', { view: 'apps' }],
+    ['#/redesign/apps', { view: 'apps' }],
+    ['#/data', { view: 'data', section: null }],
+    ['#/redesign/data', { view: 'data', section: null }],
+    ['#/account', { view: 'account', error: null }],
+  ];
+  for (const [hash, route] of cases)
+    assert.deepEqual(parseRoute(hash), route, hash);
+});

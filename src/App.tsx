@@ -118,7 +118,8 @@ export default function App({ access }: { access: Access }) {
     route.view === 'model' ||
     route.view === 'switch' ||
     route.view === 'people' ||
-    route.view === 'search';
+    route.view === 'search' ||
+    route.view === 'data';
 
   // A new page starts at the top; opening or closing the thread reader on the
   // same page does not move it.
@@ -292,7 +293,13 @@ export default function App({ access }: { access: Access }) {
               />
             )}
             {route.view === 'data' && (
-              <DataPage pipeline={pipeline} section={route.section} />
+              <DataPage
+                pipeline={pipeline}
+                section={route.section}
+                coreData={coreData}
+                filter={filter}
+                scope={scope}
+              />
             )}
             {route.view === 'account' && (
               <Account access={access} error={route.error} />

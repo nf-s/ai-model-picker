@@ -559,14 +559,13 @@ Expected last lines, with other numbers (24 November 2026 shown):
 
 ```text
 Exported 89,824 Hacker News comment records.
-Exported 11,612 arXiv papers.
 Exported core.json: 752 measured records, 89,824 Hacker News comments.
 Exported the search index: 90,576 records in 3,111 files, 57,046,138 bytes.
 ```
 
 The search index's records are the measured records plus the Hacker News comments. If the last line is missing or the command ends with "Could not export build/records/core.json and build/records/search", run `npm run records:build` and read its last lines: it must print `Wrote the search index`. If it still fails, report the output and stop.
 
-Use this command, not `npm run build`: only this one builds the published mode and writes the data files into `dist/`.
+Use this command, not `npm run build`: only this one builds the published mode and writes the data files into `dist/`. It no longer exports arXiv papers: the app does not show them, and `dist/` must hold no `arxiv-snapshot.json`.
 
 ### 3. Check the build
 
@@ -583,7 +582,7 @@ claimsAndTitles: 96,909
 measuredRecords: 752
 restrictedOnlyIdentifiers: 109
 mixedReleases: 0
-siteFiles: 3,132
+siteFiles: 3,131
 oversizeFiles: 0
 tooManyFiles: 0
 personalDetails: 0
@@ -593,6 +592,8 @@ localPaths: 0
 namedRecords: 0
 namedFiles: 0
 personNames: 0
+restrictedNames: 0
+arxivExport: 0
 searchRecords: 90,576
 searchFiles: 3,111
 searchBytes: 57,046,138
@@ -604,7 +605,7 @@ searchOverBudget: 0
 The site build passed the checks.
 ```
 
-Every count that is 0 here must be 0. They are comment files from different exports, files over the 25 MiB that Cloudflare Pages accepts, more files than the 20,000 Pages accepts on the Free plan, claims or story titles that still contain a link, an address, a handle or a phone number, identifiers that exist only in the restricted results, expert article catalog files or links, paths on this computer, named records, the private named file, names from the people file, a missing search index, search files from two builds, and a search for the commonest word that would read more than 4 MiB. If the command ends with "Do not upload", report the output and stop. `comments` must equal the first number printed in step 2, and `searchRecords` must equal `comments` plus `measuredRecords`. If `siteFiles` is above 15,000, report it: the index needs larger record files before it reaches the limit.
+Every count that is 0 here must be 0. They are comment files from different exports, files over the 25 MiB that Cloudflare Pages accepts, more files than the 20,000 Pages accepts on the Free plan, claims or story titles that still contain a link, an address, a handle or a phone number, identifiers that exist only in the restricted results, expert article catalog files or links, paths on this computer, named records, the private named file, names from the people file, names of restricted benchmarks (read from `.local/restricted/research.json`, matched as whole words and never printed) anywhere outside the Hacker News comment text, an `arxiv-snapshot.json` left from an older build, a missing search index, search files from two builds, and a search for the commonest word that would read more than 4 MiB. If the command ends with "Do not upload", report the output and stop. `comments` must equal the first number printed in step 2, and `searchRecords` must equal `comments` plus `measuredRecords`. If `siteFiles` is above 15,000, report it: the index needs larger record files before it reaches the limit.
 
 ### 4. Upload
 

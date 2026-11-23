@@ -18,6 +18,7 @@ ARTICLE_URL = 'https://example.test/synthetic-article'
 MEASURED = {'id': 'bm:synthetic-result', 'cls': 'measured', 'quote': ''}
 NAMED_ID = 'ur:0123456789abcdef01234567/3'
 PERSON = 'Ada Example'
+RESTRICTED_NAME = 'Hidden Example Bench'
 
 
 class TestSiteCheck(unittest.TestCase):
@@ -30,6 +31,11 @@ class TestSiteCheck(unittest.TestCase):
         self.public = Path(directory.name) / 'snapshot.json'
         self.expert_catalog = Path(directory.name) / 'catalog.json'
         self.people = Path(directory.name) / 'people.json'
+        self.research = Path(directory.name) / 'research.json'
+        self.write(self.research, {'benchmarks': [
+            {'id': 'restricted-benchmark', 'name': RESTRICTED_NAME, 'shortName': 'HEB'},
+            {'id': 'other-restricted', 'name': 'Second Example Bench'},
+        ]})
         self.write(self.people, {'version': 1, 'people': [{'name': PERSON}, {'name': 'Ben Sample'}]})
         self.write(self.expert_catalog, {'articles': [{'title': 'Example article', 'date': '2026-03-01', 'url': ARTICLE_URL}]})
         self.write(self.public, {'models': [{'id': 'example-model'}], 'sources': [{'id': 'shared-source'}]})
@@ -69,7 +75,8 @@ class TestSiteCheck(unittest.TestCase):
 
     def report(self, **options):
         return site_report(
-            self.dist, self.restricted, self.public, (LOCAL_PATH,), self.expert_catalog, self.people, **options,
+            self.dist, self.restricted, self.public, (LOCAL_PATH,), self.expert_catalog, self.people, self.research,
+            **options,
         )
 
     def failed(self, **options):
@@ -116,6 +123,27 @@ class TestSiteCheck(unittest.TestCase):
         self.build(title=f'A story by {PERSON}')
         self.assertEqual(self.report()['personNames'], 0)
         self.assertEqual(self.failed(), [])
+
+    def test_a_restricted_benchmark_named_in_static_output_blocks_an_upload(self):
+        self.build(script=f'const name = "{RESTRICTED_NAME.lower()}";')
+        self.assertEqual(self.report()['restrictedNames'], 1)
+        self.assertEqual(self.failed(), ['restrictedNames'])
+        self.build()
+        self.write(self.dist / 'core.json', {'measured': [MEASURED], 'note': 'HEB and Second Example Bench'})
+        self.assertEqual(self.report()['restrictedNames'], 2)
+        # A name inside a longer word is not that name.
+        self.write(self.dist / 'core.json', {'measured': [MEASURED], 'note': 'HEBREW'})
+        self.assertEqual(self.report()['restrictedNames'], 0)
+
+    def test_a_restricted_benchmark_in_a_public_story_title_is_not_counted(self):
+        self.build(title=f'A story about {RESTRICTED_NAME}', claim=f'The model scored well on {RESTRICTED_NAME}.')
+        self.search([{'id': 'hn:2', 'cls': 'crowd', 'src': 'hn', 'text': RESTRICTED_NAME, 'title': RESTRICTED_NAME}])
+        self.assertEqual(self.report()['restrictedNames'], 0)
+        self.assertEqual(self.failed(), [])
+
+    def test_an_arxiv_export_blocks_an_upload(self):
+        self.write(self.dist / 'arxiv-snapshot.json', {'papers': []})
+        self.assertEqual(self.failed(), ['arxivExport'])
 
     def test_the_search_index_is_checked_like_the_rest(self):
         report = self.report()

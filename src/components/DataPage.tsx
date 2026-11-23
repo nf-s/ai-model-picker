@@ -1,22 +1,37 @@
 import { useState } from 'react';
-import { ArrowUpRight, Download, RefreshCw } from 'lucide-react';
 import {
-  benchmarks,
+  ArrowUpRight,
+  Download as DownloadIcon,
+  RefreshCw,
+} from 'lucide-react';
+import { attributions } from '../lib/attribution';
+import { useBriefData } from '../lib/core-client';
+import type { CoreData } from '../lib/core-client';
+import type { Core } from '../lib/core-schema';
+import {
   checkedAt,
-  downloadSnapshot,
+  downloadPublicData,
   models,
-  reports,
-  results,
   restrictedAttributions,
+  restrictedData,
   sources,
 } from '../lib/data';
-import { attributionCheckedAt, attributions } from '../lib/attribution';
 import { guide } from '../lib/guide';
 import { formatHnRange, hnClassifierCheck, hnSources } from '../lib/hn-client';
 import type { HnPipeline } from '../lib/hn-client';
 import { hnPublished } from '../lib/hn-published';
-import { practitionerReview } from '../lib/practitioner';
+import type { FilterBar, Scope } from '../lib/model-filter';
 import { routeHref } from '../lib/route';
+import { RecordsStatus } from './Bands';
+import {
+  Coverage,
+  JobRules,
+  Limits,
+  Measures,
+  Sources,
+  useAdvice,
+} from './DataSources';
+import { formatDay } from './FilterBar';
 import './data-page.css';
 
 const publicationDate = new Intl.DateTimeFormat('en-AU', {
@@ -439,11 +454,11 @@ function Licences() {
         Licences and attribution
       </h2>
       <p className="rd-note">
-        Checked {attributionCheckedAt}. This site is not affiliated with or
-        endorsed by any source.
+        This site is not affiliated with or endorsed by any source. Each entry
+        gives the day its licence or terms were checked.
       </p>
       <ul className="rd-panel rd-dp-sources">
-        {[...attributions, ...restrictedAttributions].map((entry) => (
+        {attributions.map((entry) => (
           <li key={entry.source}>
             <a
               className="rd-dp-link rd-dp-source-name"
@@ -464,6 +479,39 @@ function Licences() {
                   </a>
                 </>
               )}
+              {' · '}Checked {formatDay(entry.checkedAt)}
+            </span>
+            <p className="rd-dp-coverage">{entry.credit}</p>
+            {entry.changes && (
+              <p className="rd-dp-coverage rd-muted">
+                Changes: {entry.changes}
+              </p>
+            )}
+          </li>
+        ))}
+        {restrictedAttributions.map((entry) => (
+          <li key={entry.source}>
+            <a
+              className="rd-dp-link rd-dp-source-name"
+              href={entry.url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {entry.source}
+              <ArrowUpRight size={13} aria-hidden="true" />
+            </a>
+            <span className="rd-muted rd-dp-kind">
+              {entry.material}
+              {entry.licence && (
+                <>
+                  {' · '}
+                  <a href={entry.licence.url} target="_blank" rel="noreferrer">
+                    {entry.licence.name}
+                  </a>
+                </>
+              )}
+              {restrictedData.checkedAt &&
+                ` · Checked ${formatDay(restrictedData.checkedAt)}`}
             </span>
             <p className="rd-dp-coverage">{entry.credit}</p>
             {entry.changes && (
@@ -486,13 +534,7 @@ function Licences() {
   );
 }
 
-export default function DataPage({
-  pipeline,
-  section,
-}: {
-  pipeline: HnPipeline;
-  section: 'papers' | null;
-}) {
+function SourceDocuments() {
   const [query, setQuery] = useState('');
   const visibleSources = allSources.filter((source) =>
     `${source.name} ${source.kind} ${source.coverage}`
@@ -500,14 +542,115 @@ export default function DataPage({
       .includes(query.toLowerCase()),
   );
   return (
-    <div className="rd-page">
+    <section className="rd-section" aria-labelledby="rd-dp-sources-title">
+      <h2 className="rd-h" id="rd-dp-sources-title">
+        Source documents
+      </h2>
+      <p className="rd-note">
+        The pages the benchmark snapshot, prices, reports and App guide were
+        read from. This is a curated snapshot, not a live feed or complete
+        census. Each benchmark retains its scale and configurations. Missing
+        prices or results are not estimated.
+      </p>
+      <input
+        type="search"
+        className="rd-input rd-dp-search"
+        aria-label="Search sources"
+        name="source-search"
+        placeholder="Find a source or topic"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+      />
+      <ul className="rd-panel rd-dp-sources">
+        {visibleSources.map((source) => (
+          <li key={source.url}>
+            <a
+              className="rd-dp-link rd-dp-source-name"
+              href={source.url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {source.name}
+              <ArrowUpRight size={13} aria-hidden="true" />
+            </a>
+            <span className="rd-muted rd-dp-kind">{source.kind}</span>
+            <p className="rd-dp-coverage">{source.coverage}</p>
+            <details className="rd-dp-details">
+              <summary>Access & limitations</summary>
+              <p>{source.access}</p>
+              <p>{source.limitations}</p>
+            </details>
+          </li>
+        ))}
+      </ul>
+      {visibleSources.length === 0 && (
+        <p className="rd-muted">No sources match this search.</p>
+      )}
+    </section>
+  );
+}
+
+function Download({ core }: { core: Core | null }) {
+  return (
+    <section className="rd-section" aria-labelledby="rd-dp-download-title">
+      <h2 className="rd-h" id="rd-dp-download-title">
+        Download
+      </h2>
+      <p className="rd-note">
+        Public records and their attribution: the benchmark snapshot (models,
+        prices, results, reports, sources), every measured record with its job,
+        the benchmark definitions and the job list. Practitioner records, quotes
+        and restricted results are not included. OpenRouter usage is left out
+        because its terms do not allow re-serving it as data; it is published at{' '}
+        <a
+          href="https://openrouter.ai/rankings"
+          target="_blank"
+          rel="noreferrer"
+        >
+          openrouter.ai/rankings
+        </a>
+        .
+      </p>
+      <div>
+        <button
+          type="button"
+          className="rd-button"
+          disabled={core === null}
+          onClick={() => {
+            if (core) downloadPublicData(core);
+          }}
+        >
+          <DownloadIcon size={14} aria-hidden="true" />
+          Download public data (JSON)
+        </button>
+      </div>
+    </section>
+  );
+}
+
+export default function DataPage({
+  pipeline,
+  section,
+  coreData,
+  filter,
+  scope,
+}: {
+  pipeline: HnPipeline;
+  section: 'papers' | null;
+  coreData: CoreData;
+  filter: FilterBar;
+  scope: Scope;
+}) {
+  const data = useBriefData(coreData);
+  const advice = useAdvice();
+  return (
+    <div className="rd-page rd-dp-page">
       <header className="rd-page-head">
         <h1>Data</h1>
         <p>
-          {models.length} model identities · {benchmarks.length} benchmarks ·{' '}
-          {results.length} published results · {reports.length} reports.{' '}
+          {models.length} model identities.{' '}
           {models.filter((model) => model.pricing).length} models have verified
-          API prices. Benchmarks checked {checkedAt}
+          API prices. Benchmarks checked {checkedAt}.
         </p>
         <p
           id="data-papers"
@@ -519,73 +662,21 @@ export default function DataPage({
           report instead.
         </p>
       </header>
+      {data ? (
+        <>
+          <Sources data={data} advice={advice} />
+          <Limits data={data} />
+          <Coverage data={data} filter={filter} scope={scope} />
+          <Measures data={data} />
+          <JobRules data={data} />
+        </>
+      ) : (
+        <RecordsStatus coreData={coreData} />
+      )}
       <Collection pipeline={pipeline} />
-      <section className="rd-section" aria-labelledby="rd-dp-sources-title">
-        <h2 className="rd-h" id="rd-dp-sources-title">
-          Sources and coverage
-        </h2>
-        <p className="rd-note">
-          This is a curated snapshot, not a live feed or complete census. Each
-          benchmark retains its scale and configurations. Missing prices or
-          results are not estimated.
-        </p>
-        <input
-          type="search"
-          className="rd-input rd-dp-search"
-          aria-label="Search sources"
-          name="source-search"
-          placeholder="Find a source or topic"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-        <ul className="rd-panel rd-dp-sources">
-          {visibleSources.map((source) => (
-            <li key={source.url}>
-              <a
-                className="rd-dp-link rd-dp-source-name"
-                href={source.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {source.name}
-                <ArrowUpRight size={13} aria-hidden="true" />
-              </a>
-              <span className="rd-muted rd-dp-kind">{source.kind}</span>
-              <p className="rd-dp-coverage">{source.coverage}</p>
-              <details className="rd-dp-details">
-                <summary>Access & limitations</summary>
-                <p>{source.access}</p>
-                <p>{source.limitations}</p>
-              </details>
-            </li>
-          ))}
-        </ul>
-        {visibleSources.length === 0 && (
-          <p className="rd-muted">No sources match this search.</p>
-        )}
-      </section>
+      <SourceDocuments />
       <Licences />
-      <section className="rd-section" aria-labelledby="rd-dp-download-title">
-        <h2 className="rd-h" id="rd-dp-download-title">
-          Download
-        </h2>
-        <p className="rd-note">
-          Includes selected practitioner findings checked against their original
-          sources on {practitionerReview.checkedAt}. The collection window was{' '}
-          {practitionerReview.collectionStart} to{' '}
-          {practitionerReview.collectionEnd}. Coverage varies by source.
-        </p>
-        <div>
-          <button
-            type="button"
-            className="rd-button"
-            onClick={() => downloadSnapshot(practitionerReview)}
-          >
-            <Download size={14} aria-hidden="true" />
-            Download sourced data (JSON)
-          </button>
-        </div>
-      </section>
+      <Download core={data ? data.core : null} />
     </div>
   );
 }

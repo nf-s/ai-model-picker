@@ -1,6 +1,6 @@
 # Local arXiv paper index
 
-The local index reads arXiv metadata for the same six-calendar-month window as the [HN pipeline](hn-pipeline.md) and keeps papers whose title or abstract names a tracked model or model family. Open **Papers** for the results. It shows what is being published about each model. It is not a full-text search: paper bodies, PDFs and source files are never read, and a match means only that a name appears in the title or abstract.
+The local index reads arXiv metadata for the same six-calendar-month window as the [HN pipeline](hn-pipeline.md) and keeps papers whose title or abstract names a tracked model or model family. It is a feed for reports reviewed by hand: its outputs and failure shortlist point to studies worth reading, and a study that controls its comparison is added to `research/reports.json` as a reviewed report. The app shows no paper, label or result from it, and `npm run build:pages` exports nothing from it. The Papers page was removed on 24 November 2026: on 23 November only 47 of 408 paper results ranked a current exact model, each from one line of an abstract. It is not a full-text search: paper bodies, PDFs and source files are never read, and a match means only that a name appears in the title or abstract.
 
 ## Run, pause and resume
 
@@ -48,7 +48,6 @@ Errors are reported as fixed strings, never as response text. A source error lea
 | `local-classifier-unavailable`         | The local model server cannot be reached                            |
 | `local-classifier-response`            | The local model server returned a response with an unexpected shape |
 | `pipeline-state-or-dependency-error`   | A local SQLite, file or import error                                |
-| `invalid-published-checkpoint`         | The publish export found a value outside its allowlist              |
 
 ## Retention
 
@@ -91,12 +90,12 @@ After labelling, `assess` reads each paper labelled `evaluation` once more and r
 
 - Area: `coding`, `agents`, `reasoning`, `research`, `writing`, `design`, `vision`, `domain`, `safety`, `other`. `domain` is a specialist field such as medicine, law or finance, `vision` is understanding images, video or audio, and `design` is generating them.
 - Task: a phrase of at most 120 characters naming what was tested.
-- Best and weak: the paper's own matched models and families that the abstract explicitly ranks first among the models it compares, or ranks last or clearly behind another model on the same test. The prompt forbids inferring a ranking. A model is in neither list when it is the only one tested, when its score has no comparison with another model, when it is said to struggle without a comparison, when it is compared only with the paper's own method or with people, when it is the base that the paper's method builds on, when it was used as a tool or judge, or when the abstract compares settings of that one model. A model that leads the existing models but is beaten by the paper's own method counts as best. Weak is kept only when the same abstract ranks another matched model or family best; a weak entry on its own is discarded after the response is parsed, because in the trial it mostly recorded a model behind the paper's own method. In practice the weak list often holds a close second, so the views label it Behind, not Weak.
+- Best and weak: the paper's own matched models and families that the abstract explicitly ranks first among the models it compares, or ranks last or clearly behind another model on the same test. The prompt forbids inferring a ranking. A model is in neither list when it is the only one tested, when its score has no comparison with another model, when it is said to struggle without a comparison, when it is compared only with the paper's own method or with people, when it is the base that the paper's method builds on, when it was used as a tool or judge, or when the abstract compares settings of that one model. A model that leads the existing models but is beaten by the paper's own method counts as best. Weak is kept only when the same abstract ranks another matched model or family best; a weak entry on its own is discarded after the response is parsed, because in the trial it mostly recorded a model behind the paper's own method. In practice the weak list often holds a close second, so read it as behind, not weak.
 - Finding: one sentence of at most 300 characters, or null when the abstract reports no result for the named models.
 
 Names the model returns are matched to the paper's targets ignoring case, spacing and punctuation. Other names are dropped, and a name in both lists makes the response invalid. Results follow the same rules as labels: one stricter second request, failures stored and retried once per invocation, and `--exact-models` and `--max-papers` apply, with label and result requests counted together. Results are keyed to the label set and `RESULT_VERSION`, so a new labelling identity or a changed result prompt starts a new set. A paper whose label is no longer `evaluation` has no result in exports.
 
-**Current status:** on 18 November 2026 `assess` was run over the 1,383 papers that name an exact tracked model: 1,382 are labelled and 1 is stored as a failure. The 9,648 papers that name only a family have not been labelled; `--exact-models` keeps a later run to the same scope. The Papers page counts papers without a label as Unlabelled, and hides the kind and topic filters when no paper has a label. The result pass over the 414 papers labelled `evaluation` ran the same day in two parts: 413 have a result and 1 is stored as a failure. Running the command below again retries the two stored failures and works on any papers added by a later harvest.
+**Current status:** on 18 November 2026 `assess` was run over the 1,383 papers that name an exact tracked model: 1,382 are labelled and 1 is stored as a failure. The 9,648 papers that name only a family have not been labelled; `--exact-models` keeps a later run to the same scope. The result pass over the 414 papers labelled `evaluation` ran the same day in two parts: 413 have a result and 1 is stored as a failure. Running the command below again retries the two stored failures and works on any papers added by a later harvest.
 
 To run it, start a model server on loopback port 8790 first. The run used the MLX server from the HN pipeline's virtual environment with the model the HN pipeline currently uses:
 
@@ -117,15 +116,7 @@ Labelling took about 3.5 seconds per abstract with 4 workers on a 64 GB Apple Si
 
 `failure-review.json` lists up to 50 unverified paper candidates, newest first by submission time, and counts all distinct candidates. The report refreshes when `run` finishes fetching its requested days or when `export` runs. It reads matched abstracts, including papers awaiting labelling. The review uses text rules and looks for specific failure signals in reported AI coding or agent workflow studies. An `abstract-result` comes from a sentence explicitly reporting a result. An `abstract-clue` comes from a sentence describing a failure after the abstract introduces a study. Both require checking the linked paper to confirm what was tested and what the study observed. The model and family names record mentions in the paper metadata. The report includes the source link, study scope, scrubbed title, the signals that matched and suggested local checks. It is generated without model requests, excludes abstract text and stays in the local state directory.
 
-`npm run dev` serves `/arxiv-snapshot.json` from `.local/arxiv/papers.json`. The page is at `#/papers`; `#/papers/model%3A<model id>` and `#/papers/family%3A<family name>` open it filtered to one target. Paper titles link to the arXiv abstract page.
-
-## Publishing
-
-`npm run build:pages` runs `scripts/export-arxiv-site.py` after the HN export. It reads `.local/arxiv/` in one SQLite read transaction, validates every value and writes `dist/arxiv-snapshot.json` with a `publishedAt` time. The build fails without an arXiv checkpoint, as it does without an HN checkpoint. A harvest can continue during export.
-
-The export accepts only new-style arXiv identifiers, run states, label enums, category and month patterns, bounded titles and takeaways, and models present in `src/lib/snapshot.json` or families in the registry. Any other value stops the export with `invalid-published-checkpoint`. After changing the alias registry, run `run` (which re-matches) before publishing.
-
-The published file carries titles, identifiers, dates, categories, matched targets, generated labels and coverage counters. It excludes abstracts, licence URLs, version counts, local paths and the registry identifier. See [deployment](deployment.md).
+All of these stay in the local state directory. Nothing from the index is published: `npm run check:pages` fails if a `dist/arxiv-snapshot.json` from an older build is present. Old `#/papers` links open the Data page at the line saying why papers were removed.
 
 ## arXiv terms
 
@@ -135,13 +126,12 @@ arXiv's [API terms of use](https://info.arxiv.org/help/api/tou.html) apply to OA
 - Descriptive metadata (titles, abstracts, identifiers, categories) is CC0 and may be stored, transformed and shared.
 - E-print content (PDF and source) must not be stored and served. The pipeline does not request it.
 - The project must not present itself as endorsed by arXiv.
-- Linking to the abstract page is encouraged; the Papers page links each title there.
+- Linking to the abstract page is encouraged; a report added from a paper links to it.
 
 ## Tests
 
 ```sh
 npm run arxiv:test
-npm test
 ```
 
-`tests/test_arxiv_pipeline.py` covers record parsing and the field allowlist, licence and identifier patterns, deleted, invalid and pre-window records, request pacing, retries and backoff, resumption tokens and page limits, window and matching rules including the known false positives, partial and open days, revisions and deletions, re-matching with label retention, label validation, loopback enforcement, labelling order, failure retries and the exact-model option, result validation and name matching, the result passes and their shared budget, and the export shape. `tests/test_arxiv_failure_review.py` covers eligibility, evidence strength, source attribution, redaction, ordering and the report limit. `tests/test_arxiv_site.py` covers the publish export, its allowlists for labels and results, and a concurrent writer. `tests/arxiv-papers.test.ts` covers the snapshot schema and the Papers page's filters, counts and paging.
+`tests/test_arxiv_pipeline.py` covers record parsing and the field allowlist, licence and identifier patterns, deleted, invalid and pre-window records, request pacing, retries and backoff, resumption tokens and page limits, window and matching rules including the known false positives, partial and open days, revisions and deletions, re-matching with label retention, label validation, loopback enforcement, labelling order, failure retries and the exact-model option, result validation and name matching, the result passes and their shared budget, and the export shape. `tests/test_arxiv_failure_review.py` covers eligibility, evidence strength, source attribution, redaction, ordering and the report limit.

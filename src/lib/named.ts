@@ -79,6 +79,10 @@ export const namedPayloadSchema = z
     review: z.object({
       model: z.string(),
       methodology: z.string(),
+      // Passages by review state (valid, unresolved), and the unresolved
+      // ones by the check they failed. Unresolved passages are not served.
+      passages: z.record(z.string(), count),
+      unresolvedByIssue: z.record(z.string(), count),
       jobAgreement: z.object({
         share: z.number().min(0).max(1),
         check: z.string().min(1),
