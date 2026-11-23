@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { KeyboardEvent, MouseEvent } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { formatHnDate } from '../lib/hn-client';
 import { filterComments, positiveShare, themeLabel } from '../lib/hn-insights';
@@ -12,7 +11,7 @@ import type {
 } from '../lib/hn-insights';
 import { readHnItems, readHnThread } from '../lib/hn-reader';
 import type { HnItem, HnThread } from '../lib/hn-reader';
-import { keyName, percent, weekLabel } from '../lib/site-data';
+import { keyName, percent } from '../lib/site-data';
 
 export const sentimentLabels: Record<HnSentiment, string> = {
   positive: 'Positive',
@@ -83,140 +82,6 @@ export function ShareText({
       {percent(share)}
     </span>
   );
-}
-
-export type WeekRange = { from: number; to: number };
-const monthFormat = new Intl.DateTimeFormat('en-AU', {
-  month: 'short',
-  timeZone: 'UTC',
-});
-
-// Comments per week. Pass `segments` to stack each bar by sentiment.
-export function WeekChart({
-  weekStarts,
-  values,
-  segments,
-  selected,
-  onSelect,
-  height = 112,
-}: {
-  weekStarts: readonly string[];
-  values: readonly number[];
-  segments?: readonly Tally[];
-  selected: WeekRange | null;
-  onSelect: (range: WeekRange | null) => void;
-  height?: number;
-}) {
-  const slot = 26;
-  const width = Math.max(1, weekStarts.length) * slot;
-  const top = Math.max(1, ...values);
-  function choose(week: number, extend: boolean) {
-    if (extend && selected)
-      onSelect({
-        from: Math.min(selected.from, week),
-        to: Math.max(selected.to, week),
-      });
-    else if (selected && selected.from === week && selected.to === week)
-      onSelect(null);
-    else onSelect({ from: week, to: week });
-  }
-  return (
-    <div className="rd-weeks">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-        style={{ height }}
-        role="group"
-        aria-label="Comments per week. Select a week to filter; shift-select to extend the range."
-      >
-        {weekStarts.map((start, week) => {
-          const value = values[week] ?? 0;
-          const tally = segments?.[week];
-          const inRange =
-            selected !== null && week >= selected.from && week <= selected.to;
-          let offset = height;
-          const label = `Week of ${weekLabel(start)}: ${value.toLocaleString()} comments`;
-          return (
-            <g
-              key={start}
-              className={
-                selected === null || inRange ? 'rd-week' : 'rd-week rd-week-dim'
-              }
-              role="button"
-              tabIndex={0}
-              aria-pressed={inRange}
-              aria-label={label}
-              onClick={(event: MouseEvent) => choose(week, event.shiftKey)}
-              onKeyDown={(event: KeyboardEvent) => {
-                if (event.key !== 'Enter' && event.key !== ' ') return;
-                event.preventDefault();
-                choose(week, event.shiftKey);
-              }}
-            >
-              <title>{tally ? `${label} · ${tallyTitle(tally)}` : label}</title>
-              <rect
-                className="rd-week-hit"
-                x={week * slot}
-                y={0}
-                width={slot}
-                height={height}
-              />
-              {tally ? (
-                barOrder.map((sentiment) => {
-                  const size = (tally[sentiment] / top) * height;
-                  offset -= size;
-                  return (
-                    size > 0 && (
-                      <rect
-                        key={sentiment}
-                        className={`rd-s-${sentiment}`}
-                        x={week * slot + 3}
-                        y={offset}
-                        width={slot - 6}
-                        height={size}
-                      />
-                    )
-                  );
-                })
-              ) : (
-                <rect
-                  className="rd-week-bar"
-                  x={week * slot + 3}
-                  y={height - (value / top) * height}
-                  width={slot - 6}
-                  height={(value / top) * height}
-                />
-              )}
-            </g>
-          );
-        })}
-      </svg>
-      <div
-        className="rd-weeks-axis"
-        style={{ gridTemplateColumns: `repeat(${weekStarts.length}, 1fr)` }}
-        aria-hidden="true"
-      >
-        {weekStarts.map(
-          (start, week) =>
-            (week === 0 ||
-              weekStarts[week - 1]?.slice(5, 7) !== start.slice(5, 7)) && (
-              <span key={start} style={{ gridColumnStart: week + 1 }}>
-                {monthFormat.format(new Date(`${start}T00:00:00Z`))}
-              </span>
-            ),
-        )}
-      </div>
-    </div>
-  );
-}
-
-export function rangeLabel(weekStarts: readonly string[], range: WeekRange) {
-  const from = weekStarts[range.from];
-  const to = weekStarts[range.to];
-  if (!from || !to) return '';
-  return range.from === range.to
-    ? `Week of ${weekLabel(from)}`
-    : `${weekLabel(from)} to week of ${weekLabel(to)}`;
 }
 
 const itemCache = new Map<number, HnItem>();

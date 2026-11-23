@@ -78,15 +78,6 @@ export type HnFilter = {
   fromWeek: number | null;
   toWeek: number | null;
 };
-export type SliceSummary = {
-  total: number;
-  tally: Tally;
-  weeks: number[];
-  aspects: Record<HnAspect, number>;
-  themes: Map<HnTheme, number>;
-  tasks: Map<HnTask, number>;
-  targets: Map<string, number>;
-};
 
 const weekMs = 7 * 24 * 60 * 60 * 1000;
 
@@ -379,72 +370,4 @@ export function filterComments(index: CommentIndex, filter: HnFilter) {
   return index.rows.filter(
     (row) => matchingAssessments(row, filter).length > 0,
   );
-}
-
-export function summariseSlice(
-  index: CommentIndex,
-  filter: HnFilter,
-): SliceSummary {
-  const summary: SliceSummary = {
-    total: 0,
-    tally: emptyTally(),
-    weeks: Array.from({ length: index.weekStarts.length }, () => 0),
-    aspects: {
-      coding: 0,
-      reliability: 0,
-      cost: 0,
-      speed: 0,
-      design: 0,
-      agents: 0,
-      writing: 0,
-      research: 0,
-      reasoning: 0,
-    },
-    themes: new Map(),
-    tasks: new Map(),
-    targets: new Map(),
-  };
-  for (const row of index.rows) {
-    const matched = matchingAssessments(row, filter);
-    if (matched.length === 0) continue;
-    summary.total += 1;
-    summary.weeks[row.week] = (summary.weeks[row.week] ?? 0) + 1;
-    const seen = new Set<HnAspect>();
-    const themes = new Set<HnTheme>();
-    for (const assessment of matched) {
-      summary.tally[assessment.sentiment] += 1;
-      for (const aspect of assessment.aspects) seen.add(aspect);
-      for (const theme of assessment.themes ?? []) themes.add(theme);
-    }
-    for (const aspect of seen) summary.aspects[aspect] += 1;
-    for (const theme of themes)
-      summary.themes.set(theme, (summary.themes.get(theme) ?? 0) + 1);
-    if (row.task)
-      summary.tasks.set(row.task, (summary.tasks.get(row.task) ?? 0) + 1);
-    for (const assessment of row.assessments)
-      summary.targets.set(
-        assessment.key,
-        (summary.targets.get(assessment.key) ?? 0) + 1,
-      );
-  }
-  return summary;
-}
-
-// Sentiment per target inside a slice, for ranking targets against each
-// other. Applies the period, topic, theme, task, confidence and alongside
-// filters; the target and sentiment filters are ignored so every target keeps
-// its split.
-export function rankTargets(index: CommentIndex, filter: HnFilter) {
-  const open = { ...filter, target: null, sentiment: null };
-  const ranked = new Map<string, Tally>();
-  for (const row of index.rows)
-    for (const assessment of matchingAssessments(row, open)) {
-      let tally = ranked.get(assessment.key);
-      if (!tally) {
-        tally = emptyTally();
-        ranked.set(assessment.key, tally);
-      }
-      tally[assessment.sentiment] += 1;
-    }
-  return ranked;
 }

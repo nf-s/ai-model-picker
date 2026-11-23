@@ -363,60 +363,6 @@ p {
 .rd-bar-empty {
   background: var(--rd-line2);
 }
-.rd-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--rd-ink3);
-  font-size: 12px;
-}
-.rd-legend i {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 5px;
-  border-radius: 2px;
-}
-
-/* Weekly chart */
-.rd-weeks svg {
-  display: block;
-  width: 100%;
-  border-bottom: 1px solid var(--rd-line);
-}
-.rd-weeks-axis {
-  display: grid;
-  margin-top: 3px;
-  color: var(--rd-ink3);
-  font-size: 11px;
-  line-height: 1.2;
-}
-.rd-weeks-axis span {
-  grid-row: 1;
-  padding-left: 3px;
-  white-space: nowrap;
-}
-.rd-week {
-  cursor: pointer;
-  outline: none;
-}
-.rd-week-hit {
-  fill: transparent;
-}
-.rd-week:hover .rd-week-hit,
-.rd-week:focus-visible .rd-week-hit {
-  fill: var(--rd-accent-soft);
-}
-.rd-week-bar {
-  fill: #7f93ad;
-}
-.rd-week-dim rect:not(.rd-week-hit) {
-  opacity: 0.28;
-}
-
 /* Filter chips and segmented controls */
 .rd-chips {
   display: flex;

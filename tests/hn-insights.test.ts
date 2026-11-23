@@ -6,9 +6,7 @@ import {
   filterComments,
   indexComments,
   positiveShare,
-  rankTargets,
   relatedNames,
-  summariseSlice,
   targetKey,
 } from '../src/lib/hn-insights.ts';
 import type { HnIndexComment } from '../src/lib/hn-index.ts';
@@ -246,7 +244,7 @@ test('insights tally themes, tasks and stated preferences', () => {
   assert.equal(before.preferences.size, 0);
 });
 
-test('theme and task filters narrow the comments and are counted in a slice', () => {
+test('theme and task filters narrow the comments', () => {
   const index = indexComments(reviewed);
   const alpha = targetKey({ kind: 'model', target: 'alpha-2' });
   const beta = targetKey({ kind: 'model', target: 'beta-1' });
@@ -262,27 +260,6 @@ test('theme and task filters narrow the comments and are counted in a slice', ()
   assert.deepEqual(ids({ target: beta, task: 'coding' }), [4, 3]);
   assert.deepEqual(ids({ task: 'other' }), [2]);
   assert.deepEqual(ids({ task: 'coding', theme: 'pricing' }), [4]);
-  const slice = summariseSlice(index, { ...emptyFilter, target: alpha });
-  assert.deepEqual(
-    [...slice.themes],
-    [
-      ['pricing', 1],
-      ['code-quality', 1],
-      ['speed', 1],
-    ],
-  );
-  assert.deepEqual(
-    [...slice.tasks],
-    [
-      ['coding', 2],
-      ['other', 1],
-    ],
-  );
-  // A comment counts once for a theme carried by two of its labels.
-  assert.equal(summariseSlice(index, emptyFilter).themes.get('pricing'), 1);
-  const ranked = rankTargets(index, { ...emptyFilter, theme: 'speed' });
-  assert.equal(ranked.get(alpha)?.mixed, 1);
-  assert.equal(ranked.get(beta)?.positive, 1);
 });
 
 test('insights tally sentiment by target, week, aspect and unrelated pair', () => {
@@ -316,7 +293,7 @@ test('insights tally sentiment by target, week, aspect and unrelated pair', () =
   assert.equal(insights.targets.get('family:Alpha')?.pairs.size, 1);
 });
 
-test('filters apply to the selected target label and summarise the slice', () => {
+test('filters apply to the selected target label', () => {
   const index = indexComments(comments);
   const alpha = targetKey({ kind: 'model', target: 'alpha-2' });
   const beta = targetKey({ kind: 'model', target: 'beta-1' });
@@ -329,36 +306,4 @@ test('filters apply to the selected target label and summarise the slice', () =>
   assert.deepEqual(ids({ target: beta, aspect: 'speed' }), [4]);
   assert.deepEqual(ids({ target: alpha, confidence: 'low' }), [3]);
   assert.deepEqual(ids({ fromWeek: 1, toWeek: 1 }), [3, 2]);
-  const slice = summariseSlice(index, { ...emptyFilter, target: alpha });
-  assert.equal(slice.total, 4);
-  assert.equal(slice.tally.positive, 2);
-  assert.deepEqual(slice.weeks, [1, 2, 1]);
-  assert.equal(slice.aspects.coding, 3);
-  assert.equal(slice.targets.get(beta), 2);
-  assert.equal(slice.targets.get('family:Alpha'), 1);
-});
-
-test('targets are ranked inside a slice with their full sentiment split', () => {
-  const index = indexComments(comments);
-  const alpha = targetKey({ kind: 'model', target: 'alpha-2' });
-  const beta = targetKey({ kind: 'model', target: 'beta-1' });
-  const coding = rankTargets(index, {
-    ...emptyFilter,
-    target: alpha,
-    sentiment: 'positive',
-    aspect: 'coding',
-  });
-  assert.deepEqual(coding.get(alpha), {
-    positive: 2,
-    negative: 0,
-    mixed: 1,
-    neutral: 0,
-    unclear: 0,
-  });
-  assert.equal(coding.get(beta)?.negative, 1);
-  assert.equal(coding.has('family:Alpha'), false);
-  const together = rankTargets(index, { ...emptyFilter, alongside: beta });
-  assert.equal(together.get(alpha)?.positive, 1);
-  assert.equal(together.get(alpha)?.negative, 1);
-  assert.equal(together.get('family:Alpha')?.positive, 1);
 });

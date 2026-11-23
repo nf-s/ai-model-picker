@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { benchmarks, models, results } from './data';
 import type { Benchmark, BenchmarkResult } from './data';
-import { guide } from './guide';
 import { loadHnIndex } from './hn-index';
 import {
   cleanFilterBar,
@@ -121,17 +120,6 @@ export function modelKey(modelId: string) {
   return targetKey({ kind: 'model', target: modelId });
 }
 
-// Where a model can be selected in the ChatGPT and Claude apps.
-export function appSelections(modelId: string) {
-  const seen = new Set<string>();
-  return guide.choices.filter((choice) => {
-    const label = `${choice.surface}/${choice.name}`;
-    if (choice.modelId !== modelId || seen.has(label)) return false;
-    seen.add(label);
-    return true;
-  });
-}
-
 export type HnData =
   // Not requested: the comment index loads only when a view lists comments.
   | { status: 'idle' }
@@ -221,14 +209,4 @@ export function useModelFilter() {
     writeStoredFilter(browserStorage(), cleaned);
   }, []);
   return { filter, setFilter: change };
-}
-
-const dayFormat = new Intl.DateTimeFormat('en-AU', {
-  day: 'numeric',
-  month: 'short',
-  timeZone: 'UTC',
-});
-
-export function weekLabel(weekStart: string) {
-  return dayFormat.format(new Date(`${weekStart}T00:00:00Z`));
 }
