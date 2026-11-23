@@ -182,10 +182,10 @@ test('coverage is by each record’s own job; the filters apply as Search applie
   // tracked job file, never under no job.
   const pending = {
     ...core.measured[0],
-    id: 'ur:000000000000000000000001/1',
+    id: 'hn:1',
     job: '',
     how: 'pending',
-    via: 'review:images',
+    via: 'task:images',
   };
   assert.deepEqual(
     [...byJob([pending])].map(([row, records]) => [row, records.length]),

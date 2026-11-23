@@ -35,8 +35,8 @@ UNRESOLVED = 'unresolved.jsonl'
 REVIEW_STATUS = 'review-status.json'
 # US$ per million tokens at batch rates.
 RATES = {'input_tokens': 0.05, 'output_tokens': 0.25, 'cache_creation_input_tokens': 0.0625, 'cache_read_input_tokens': 0.005}
-# Measured on 23 November 2026: US$1.754465 for 18,345 passages, retries included.
-USD_PER_PASSAGE = 1.754465 / 18_345
+# Measured on 24 November 2026 with the approved job list: US$1.86164 for 18,345 passages, retries included.
+USD_PER_PASSAGE = 1.86164 / 18_345
 SCHEMA = """
     CREATE TABLE IF NOT EXISTS configuration (name TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS batches (local_id INTEGER PRIMARY KEY, remote_id TEXT UNIQUE, state TEXT NOT NULL);
@@ -143,6 +143,35 @@ class Checkpoint:
             return
         if key[:2] != [METHODOLOGY, MODEL] or key[-1] != PROMPT_SHA256:
             raise PipelineError('review-checkpoint-methodology-mismatch')
+
+    def replace(self, kept):
+        """Empty a checkpoint made with earlier instructions so every collected item is prepared and
+        reviewed again with the current ones. `kept` must be a directory holding a copy of the checkpoint
+        and its result files, taken after the earlier review's last write: the copy is opened and compared
+        first, and nothing changes unless it has the same key, passages, batches and token counts, and
+        the same result files. Returns the earlier review's passage states."""
+        key = self.key()
+        if key is None or (key[:2] == [METHODOLOGY, MODEL] and key[-1] == PROMPT_SHA256):
+            raise PipelineError('no-earlier-review-to-replace')
+        if set(self.batches()) - {'collected', 'rejected'}:
+            raise PipelineError('earlier-review-unfinished')
+        kept = Path(kept)
+        if not (kept / DATABASE).is_file() or kept.resolve() == self.directory.resolve():
+            raise PipelineError('kept-copy-missing')
+        with Checkpoint(kept, readonly=True) as copy:
+            same = (copy.key() == key and copy.states() == self.states() and copy.batches() == self.batches()
+                    and copy.usage() == self.usage())
+        for name in (USE_RECORDS, METHOD_ADVICE, UNRESOLVED, REVIEW_STATUS):
+            live, copied = self.directory / name, kept / name
+            same = same and live.is_file() and copied.is_file() and file_sha256(live) == file_sha256(copied)
+        if not same:
+            raise PipelineError('kept-copy-differs')
+        earlier = self.states()
+        with self.db:
+            for table in ('usage', 'jobs', 'batches', 'prepared'):
+                self.db.execute(f'DELETE FROM {table}')
+            self.db.execute("UPDATE configuration SET value=? WHERE name='review_key'", (review_key(),))
+        return earlier
 
     def has_table(self, name):
         return self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)).fetchone() is not None

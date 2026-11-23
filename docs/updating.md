@@ -315,7 +315,7 @@ The job list is `research/jobs.json` ([data](data.md#shared-records-and-the-job-
 3. Compare the coverage with the last build's: a job that falls to zero, or records that move to "Needs reading", should be explained by the change. Restricted benchmarks take their job from their category in `.local/restricted/research.json` through `benchmark-category`; tell the owner if a category no longer gives a job, without naming the benchmark.
 4. Run the checks in `AGENTS.md`, look at Brief for every job and at the Data page's job coverage, and commit `research/jobs.json` with any test or fixture that names a job id.
 
-The records that need reading get a job only from the next people review and Hacker News review with the new list (see [People](#people) and [Hacker News comments](#hacker-news-comments)); ask the owner before either, as both are paid. Neither review knows the approved list yet: the people review's labels (`scripts/people_local/review.py`) and the Hacker News review's tasks are still the earlier 17 jobs, mapped through `replaces`. Changing them changes the review instructions, so each needs a new review of every stored passage or comment: about US$2 for the people review and about US$7 for Hacker News.
+The people review labels with the approved list since 24 November 2026, so no people record needs reading. A job's id or label is part of the people review's instructions: changing one makes `status` report `instructionsUnchanged: false`, and the people review needs [a new review of every passage](#when-the-review-instructions-change) (about US$2; ask the owner). The Hacker News review's tasks are still the earlier 17 jobs, mapped through `replaces`; its records that need reading get a job only from a new Hacker News review with the new list (about US$7; ask the owner).
 
 On 24 November 2026 one restricted benchmark's category in `.local/restricted/research.json` was `reasoning`, which gives no job under the approved list, so it orders no brief until the owner changes that category. The build does not stop for it.
 
@@ -477,12 +477,12 @@ python3 -B scripts/people_pipeline.py status
 
 Expected: JSON with `people`, `items` and `review`. `review.instructionsUnchanged` is `true`, `queued` is 0 and `batches` has only `collected` entries. `itemsNotPrepared` is 0 unless a collection ran without a review since.
 
-| Output                                                | Meaning                                                     | What to do                                                                                     |
-| ----------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `missing-people.json`                                 | There is no `.local/people/` on this machine.               | Stop and report. Only the owner restores it.                                                   |
-| `people-file-invalid: …` or `sources-file-invalid: …` | A local file breaks its format; the message names the rule. | Fix the file as [Adding or dropping a person](#adding-or-dropping-a-person) says, then repeat. |
-| `queued` above 0, or a `submitted` batch              | A review was stopped before it finished.                    | Go to step 3, then step 4, which finishes it.                                                  |
-| `instructionsUnchanged` is `false`                    | The review instructions changed in code.                    | Stop and report. A changed prompt needs a new review of every passage.                         |
+| Output                                                | Meaning                                                     | What to do                                                                                                                                                                 |
+| ----------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `missing-people.json`                                 | There is no `.local/people/` on this machine.               | Stop and report. Only the owner restores it.                                                                                                                               |
+| `people-file-invalid: …` or `sources-file-invalid: …` | A local file breaks its format; the message names the rule. | Fix the file as [Adding or dropping a person](#adding-or-dropping-a-person) says, then repeat.                                                                             |
+| `queued` above 0, or a `submitted` batch              | A review was stopped before it finished.                    | Go to step 3, then step 4, which finishes it.                                                                                                                              |
+| `instructionsUnchanged` is `false`                    | The review instructions changed in code.                    | Stop and report. A changed prompt needs a new review of every passage: [When the review instructions change](#when-the-review-instructions-change), with the owner's word. |
 
 ### 2. Collect
 
@@ -544,7 +544,7 @@ Do not start a second copy. Stopping it is safe; batches already sent stay charg
 
 ### 5. Check the result
 
-Run the command from step 1 again. Expected: `queued` 0, every batch `collected`, and `useRecords` and `methodAdvice` at least what they were before. Compare `review.passages.unresolved` with step 1: on 23 November 2026, 335 of 18,345 passages (1.8%) were unresolved. If the unresolved passages grew by more than 3% of the passages sent in step 4, stop and report before anyone builds for publishing.
+Run the command from step 1 again. Expected: `queued` 0, every batch `collected`, and `useRecords` and `methodAdvice` at least what they were before. Compare `review.passages.unresolved` with step 1: on 23 November 2026, 335 of 18,345 passages (1.8%) were unresolved, and on 24 November 2026, 237 (1.3%). If the unresolved passages grew by more than 3% of the passages sent in step 4, stop and report before anyone builds for publishing.
 
 ```sh
 npm run records:build
@@ -560,6 +560,44 @@ Expected: the coverage table with a `Use (review)` column, then `Named records (
 | `review:<label> is not in the crosswalk`                 | The job list changed without the `review-job` table.               | Add the label to `review-job` in `research/jobs.json` and build again. |
 
 There is nothing to commit. Never copy `build/records/named-private.json` into `dist/` or a commit.
+
+### When the review instructions change
+
+A change to `scripts/people_local/review.py`, or to a job's id or label in `research/jobs.json`, changes the review's instructions, and the stored review no longer matches them. Every stored passage is then prepared and reviewed again; nothing is collected. It is paid (about US$2 on 24 November 2026): ask the owner first. Run step 1 first: `queued` 0 and only `collected` batches.
+
+1. Copy the checkpoint and its result files into a dated folder. Use the date of the review being kept.
+
+   ```sh
+   mkdir .local/people/earlier-review-YYYY-MM-DD
+   ```
+
+   ```sh
+   python3 -c "import sqlite3; s = sqlite3.connect('file:.local/people/review.sqlite3?mode=ro', uri=True); d = sqlite3.connect('.local/people/earlier-review-YYYY-MM-DD/review.sqlite3'); s.backup(d); d.close()"
+   ```
+
+   ```sh
+   cp .local/people/use-records.jsonl .local/people/method-advice.jsonl .local/people/unresolved.jsonl .local/people/review-status.json .local/people/earlier-review-YYYY-MM-DD/
+   ```
+
+   Expected: no output. The next step checks the copy.
+
+2. Before the whole review, try the new instructions on a few hundred passages in a separate state directory: a folder outside `.local/people/` with copies of `people.json` and `sources.json` and the lines of `items.jsonl` to try, reviewed with steps 3 and 4 and `--state-dir <folder>`. Compare its labels with labels you trust, and stop if they agree less often than the stored review's.
+
+3. Replace the review and read the estimate:
+
+   ```sh
+   python3 -B scripts/people_pipeline.py review --queue-only --replace-review .local/people/earlier-review-YYYY-MM-DD
+   ```
+
+   Expected: the JSON of step 3 with `replacedReview` (the earlier review's passage states), `newItems` equal to `items` in step 1 and `blockedByPrivacyCheck` 0. Run it once; a second run stops with `no-earlier-review-to-replace` and changes nothing.
+
+   | Output                                     | Meaning                                              | What to do                                                 |
+   | ------------------------------------------ | ---------------------------------------------------- | ---------------------------------------------------------- |
+   | `kept-copy-missing` or `kept-copy-differs` | The folder holds no copy, or one that differs.       | Repeat step 1 into a new folder. Nothing was changed.      |
+   | `earlier-review-unfinished`                | A batch of the earlier review is still out.          | Finish it with the earlier code first, then copy it again. |
+   | `no-earlier-review-to-replace`             | The checkpoint already has the current instructions. | Go on to the next step.                                    |
+
+4. Report `queued` and `estimatedUsd` to the owner, then follow steps 4 and 5 above. Until step 4 ends, `npm run records:build` stops on the earlier result files (`A use record has other fields`).
 
 ### Adding or dropping a person
 

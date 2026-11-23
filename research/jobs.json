@@ -587,21 +587,16 @@
       ]
     },
     "review-job": {
-      "version": 2,
+      "version": 3,
       "labels": [
         {
-          "label": "coding",
-          "job": "coding",
+          "label": "code",
+          "job": "code",
           "fit": "direct"
         },
         {
-          "label": "bug-fix",
-          "job": "bug-fix",
-          "fit": "direct"
-        },
-        {
-          "label": "refactor",
-          "job": "refactor",
+          "label": "debug",
+          "job": "debug",
           "fit": "direct"
         },
         {
@@ -610,8 +605,8 @@
           "fit": "direct"
         },
         {
-          "label": "tests",
-          "job": "tests",
+          "label": "plan",
+          "job": "plan",
           "fit": "direct"
         },
         {
@@ -620,20 +615,13 @@
           "fit": "direct"
         },
         {
-          "label": "agents",
-          "job": "agents",
-          "fit": "none",
-          "note": "A way of running (run: unattended). The task needs reading until the next review."
+          "label": "research",
+          "job": "research",
+          "fit": "direct"
         },
         {
-          "label": "delegation",
-          "job": "delegation",
-          "fit": "none",
-          "note": "A way of running (run: parallel). The task needs reading until the next review."
-        },
-        {
-          "label": "planning",
-          "job": "planning",
+          "label": "documents",
+          "job": "documents",
           "fit": "direct"
         },
         {
@@ -642,25 +630,14 @@
           "fit": "direct"
         },
         {
-          "label": "research",
-          "job": "research",
-          "fit": "direct"
-        },
-        {
-          "label": "analysis",
-          "job": "analysis",
-          "fit": "direct"
-        },
-        {
           "label": "writing",
           "job": "writing",
           "fit": "direct"
         },
         {
-          "label": "reasoning",
-          "job": "reasoning",
-          "fit": "none",
-          "note": "Split: maths, everyday questions or no job. Needs reading until the next review."
+          "label": "maths",
+          "job": "maths",
+          "fit": "direct"
         },
         {
           "label": "chat",
@@ -668,16 +645,14 @@
           "fit": "direct"
         },
         {
-          "label": "images",
-          "job": "images",
-          "fit": "none",
-          "note": "Split: read media or make images. Needs reading until the next review."
+          "label": "read-media",
+          "job": "read-media",
+          "fit": "direct"
         },
         {
-          "label": "local",
-          "job": "local",
-          "fit": "none",
-          "note": "A setting (setting: local). The task needs reading until the next review."
+          "label": "make-images",
+          "job": "make-images",
+          "fit": "direct"
         },
         {
           "label": "other",

@@ -45,7 +45,8 @@ from hn_local.classify import ASPECTS as HN_ASPECTS, THEMES as HN_THEMES
 from hn_local.sources import PipelineError
 from hn_local.state import DATABASE
 from people_local.review import (
-    ADVICE_FIELDS, ADVICE_SCOPE, BASIS, COMPARISON, JOBS, OUTCOMES, SCALE, USE_FIELDS, EFFORT as REVIEW_EFFORT,
+    ADVICE_FIELDS, ADVICE_SCOPE, BASIS, COMPARISON, JOBS, OUTCOMES, RUN as REVIEW_RUN, SCALE,
+    SETTING as REVIEW_SETTING, USE_FIELDS, EFFORT as REVIEW_EFFORT,
 )
 from records_schema import (
     DATE_PATTERN, FIELDS, JOB_PATTERN, RUNS, SETTINGS, STANCES, SURFACES, RecordError, check_people, check_record,
@@ -1077,6 +1078,8 @@ def check_named(data, model_ids):
         need(row['model_named'].strip() != '', f'{where}: names no model')
     for row in data['advice']:
         need(row['applies_to'] in ADVICE_SCOPE, f'method advice from {row["source_id"]}: unknown label')
+    for row in data['use'] + data['advice']:
+        need(row['setting'] in REVIEW_SETTING and row['run'] in REVIEW_RUN, f'record from {row["source_id"]}: unknown setting or run')
 
 
 def plain(text):
@@ -1124,10 +1127,12 @@ def named_records(data, records):
             text=row['summary'],
             quote=row['quote'],
             cond=' · '.join(value for value in (
-                row['setting'], row['scale'] if row['scale'] != 'not stated' else '', row['sample_size'], row['cost_time'],
+                row['other_settings'], row['scale'] if row['scale'] != 'not stated' else '', row['sample_size'], row['cost_time'],
             ) if value),
             tool=row['tool'],
             effort='' if row['effort'] == 'other' else row['effort'],
+            setting=row['setting'],
+            run=row['run'],
             date=date if is_date(date) else '',
             person=person['name'],
             url=row['source_url'],
@@ -1161,6 +1166,8 @@ def named_records(data, records):
             text=row['advice'],
             quote=row['quote'],
             tool=row['tool'],
+            setting=row['setting'],
+            run=row['run'],
             date=date if is_date(date) else '',
             person=person['name'],
             url=row['source_url'],

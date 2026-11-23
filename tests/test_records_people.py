@@ -48,16 +48,16 @@ def common(source):
 def use(source, **changes):
     return {
         'model_named': 'Claude Opus 5.5', 'exact': True, 'model_id': 'claude-opus-5-5', 'model_line': '',
-        'tool': 'Claude Code', 'effort': 'medium', 'setting': '', 'job': 'interface', 'task': 'Port a renderer',
-        'outcome': 'worked', 'compared_named': '', 'compared_id': '', 'comparison': '', 'basis': 'first-hand use',
+        'tool': 'Claude Code', 'effort': 'medium', 'other_settings': '', 'setting': '', 'run': '', 'job': 'interface',
+        'task': 'Port a renderer', 'outcome': 'worked', 'compared_named': '', 'compared_id': '', 'comparison': '', 'basis': 'first-hand use',
         'sample_size': '', 'scale': 'one session', 'cost_time': '', 'quote': 'A quote from the source itself.',
         'summary': 'The writer ported a renderer.',
     } | changes | common(source)
 
 
 def advice(source, **changes):
-    return {'advice': 'Write down what done looks like.', 'applies_to': 'delegation', 'tool': '',
-            'quote': 'Write down what done looks like first.'} | changes | common(source)
+    return {'advice': 'Write down what done looks like.', 'applies_to': 'plan', 'setting': '', 'run': 'parallel',
+            'tool': '', 'quote': 'Write down what done looks like first.'} | changes | common(source)
 
 
 def review(uses, advices, unresolved=0):
@@ -66,7 +66,7 @@ def review(uses, advices, unresolved=0):
         'use': uses,
         'advice': advices,
         'unresolved': [{'source_id': ADA, 'start': 0, 'end': 10, 'attempts': 2, 'issue': 'quote-not-verbatim'}] * unresolved,
-        'status': {'model': 'claude-haiku-5-5', 'methodology': 'use-records-v2', 'use_records': len(uses),
+        'status': {'model': 'claude-haiku-5-5', 'methodology': 'use-records-v3', 'use_records': len(uses),
                    'method_advice': len(advices), 'passage_states': {'valid': 9, 'unresolved': unresolved},
                    'issues': {'quote-not-verbatim': unresolved} if unresolved else {}},
     }
@@ -75,7 +75,7 @@ def review(uses, advices, unresolved=0):
 USES = [
     use(ADA),
     use(ADA, exact=False, model_id='', model_named='Claude', model_line='Claude', job='other', outcome='failed'),
-    use(ADA, model_id='', model_named='GPT-9 Turbo', tool='', job='coding', outcome='worked after rework'),
+    use(ADA, model_id='', model_named='GPT-9 Turbo', tool='', job='code', outcome='worked after rework'),
     use(BASIL, basis='measured', sample_size='120 respondents', job='review', outcome='no outcome stated'),
     use(BASIL, basis='first-hand use'),
     use(CORA),
@@ -146,10 +146,11 @@ class TestNamed(unittest.TestCase):
         self.assertEqual((first['job'], first['how'], first['via']), ('interface', 'review', 'review:interface'))
         self.assertEqual((records[f'ur:{ADA}/2']['job'], records[f'ur:{ADA}/2']['how']), ('', ''))
         self.assertEqual(records[f'ma:{CORA}/1']['job'], '')
-        # Advice for the old delegation job has no job until the next review, and sets the run field.
-        delegation = records[f'ma:{ADA}/1']
-        self.assertEqual((delegation['job'], delegation['how'], delegation['via'], delegation['run']),
-                         ('', 'pending', 'review:delegation', 'parallel'))
+        # The review's labels are the approved jobs, and its run field is kept.
+        plan = records[f'ma:{ADA}/1']
+        self.assertEqual((plan['job'], plan['how'], plan['via'], plan['run']), ('plan', 'review', 'review:plan', 'parallel'))
+        self.assertEqual((records[f'ur:{ADA}/3']['job'], records[f'ur:{ADA}/3']['via']), ('code', 'review:code'))
+        self.assertEqual(named()['pending'], [])
 
     def test_old_job_ids_map_through_replaces(self):
         jobs = copy.deepcopy(JOBS)
@@ -166,16 +167,19 @@ class TestNamed(unittest.TestCase):
         records = by_id(named(jobs=jobs))
         self.assertEqual((records[f'ur:{ADA}/1']['job'], records[f'ur:{ADA}/1']['via']), ('web-interface', 'review:interface'))
 
-    def test_use_records_of_split_jobs_need_reading_and_are_counted_apart(self):
-        data = review([use(ADA, job='images', tool='Ollama'), use(ADA, job='local', task='Draw a pelican as an SVG')], [], 1)
+    def test_the_review_sets_setting_and_run_and_a_local_runner_sets_local(self):
+        data = review([use(ADA, job='read-media', setting='hosted', run='unattended', other_settings='1M context'),
+                       use(ADA, job='other', tool='Ollama', task='Draw a pelican as an SVG'),
+                       use(ADA, job='code', tool='Ollama', setting='hosted')], [], 1)
         result = named(data=data)
         records = by_id(result)
-        image, local = records[f'ur:{ADA}/1'], records[f'ur:{ADA}/2']
-        self.assertEqual((image['job'], image['how'], image['surface'], image['setting']), ('', 'pending', 'local-runner', 'local'))
-        self.assertEqual((local['how'], local['setting'], local['x']['tags']), ('pending', 'local', ['drawing-test']))
-        self.assertNotIn('tags', image['x'])
-        self.assertEqual(result['pending'], [{'old': 'images', 'use': 1, 'advice': 0}, {'old': 'local', 'use': 1, 'advice': 0}])
-        self.assertTrue(all(row['use'] == 0 for row in result['coverage']))
+        media, drawing, hosted = records[f'ur:{ADA}/1'], records[f'ur:{ADA}/2'], records[f'ur:{ADA}/3']
+        self.assertEqual((media['job'], media['setting'], media['run'], media['cond']),
+                         ('read-media', 'hosted', 'unattended', '1M context · one session'))
+        self.assertEqual((drawing['job'], drawing['how'], drawing['surface'], drawing['setting'], drawing['x']['tags']),
+                         ('', '', 'local-runner', 'local', ['drawing-test']))
+        self.assertEqual((hosted['surface'], hosted['setting']), ('local-runner', 'hosted'))
+        self.assertEqual(result['pending'], [])
 
     def test_an_unmapped_review_label_stops_the_build(self):
         jobs = copy.deepcopy(JOBS)
@@ -194,15 +198,17 @@ class TestNamed(unittest.TestCase):
         self.assertEqual(core_with['coverage'], core_without['coverage'])
 
     def test_broken_review_files_stop_the_build(self):
-        cases = {
-            'differ from review-status.json': review(USES, ADVICE, 1) | {'unresolved': []},
-            'its person is not in people.json': review([use(ADA) | {'practitioner': 'Unlisted Person'}], []),
-            'is not in the snapshot': review([use(ADA, model_id='gpt-9-turbo')], []),
-            'has other fields': review([use(ADA) | {'notes': ''}], []),
-            'unknown label': review([use(ADA, outcome='fine')], []),
-            'source id is not 24 hex digits': review([use(ADA) | {'source_id': 'x'}], []),
-        }
-        for expected, data in cases.items():
+        cases = [
+            ('differ from review-status.json', review(USES, ADVICE, 1) | {'unresolved': []}),
+            ('its person is not in people.json', review([use(ADA) | {'practitioner': 'Unlisted Person'}], [])),
+            ('is not in the snapshot', review([use(ADA, model_id='gpt-9-turbo')], [])),
+            ('has other fields', review([use(ADA) | {'notes': ''}], [])),
+            ('unknown label', review([use(ADA, outcome='fine')], [])),
+            ('unknown label', review([use(ADA, job='coding')], [])),
+            ('unknown setting or run', review([use(ADA, run='overnight')], [])),
+            ('source id is not 24 hex digits', review([use(ADA) | {'source_id': 'x'}], [])),
+        ]
+        for expected, data in cases:
             with self.subTest(expected), self.assertRaises(BuildError) as raised:
                 named(data)
             self.assertIn(expected, str(raised.exception))

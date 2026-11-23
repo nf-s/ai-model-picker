@@ -86,7 +86,8 @@ def status(directory):
         'review': {
             'model': MODEL,
             'methodology': METHODOLOGY,
-            'instructionsUnchanged': prompt_hash() == PROMPT_SHA256 and (key is None or key[-1] == PROMPT_SHA256),
+            'instructionsUnchanged': prompt_hash() == PROMPT_SHA256 and (
+                key is None or (key[:2] == [METHODOLOGY, MODEL] and key[-1] == PROMPT_SHA256)),
             'itemsPrepared': len(prepared & set(collected)),
             'itemsNotPrepared': unprepared,
             'passages': states,
@@ -174,15 +175,19 @@ def review(args):
     with ExitStack() as stack:
         stack.enter_context(writer_lock(directory))
         checkpoint = stack.enter_context(Checkpoint(directory))
+        replaced = checkpoint.replace(args.replace_review) if args.replace_review else None
         checkpoint.check_key()
         collected = items(directory)
         added, privacy = prepare(config, checkpoint, collected)
         queued, characters = checkpoint.queue()
-        print(json.dumps({
+        plan = {
             'newItems': added['items'], 'newPassages': added['passages'], 'blockedByPrivacyCheck': added['blocked'],
             'queued': queued, 'queuedCharacters': characters,
             'estimatedUsd': round(queued * USD_PER_PASSAGE, 2), 'batchesOut': checkpoint.batches().get('submitted', 0),
-        }, indent=2), flush=True)
+        }
+        if replaced is not None:
+            plan['replacedReview'] = replaced
+        print(json.dumps(plan, indent=2), flush=True)
         if args.queue_only:
             return 0
         api = batch_api.Batches(*batch_api.anthropic_client())
@@ -224,6 +229,10 @@ def arguments(argv=None):
     mode.add_argument('--queue-only', action='store_true', help='Queue new passages and print the cost estimate; send nothing')
     mode.add_argument('--backend', choices=('anthropic',), help='anthropic: the paid Message Batches API')
     review_command.add_argument('--max-passages', type=positive_integer, help='Send at most this many passages')
+    review_command.add_argument(
+        '--replace-review', type=Path, metavar='KEPT_COPY',
+        help='Start again with the current instructions in place of a checkpoint made with earlier ones, after '
+             'checking that KEPT_COPY holds an identical copy of it and its result files')
     return parser.parse_args(argv)
 
 

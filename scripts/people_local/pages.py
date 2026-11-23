@@ -9,6 +9,9 @@ from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
+# A Unix home folder and the user name in it, wherever the path starts: after a space, quote,
+# backtick or bracket, at the start of a line, or inside a longer path.
+HOME_FOLDER = re.compile(r'/(?:Users|home)/[^/\s"`]+')
 # Contact details, keys and home folders are replaced before any text is kept.
 PRIVATE = [
     re.compile(r'(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b'),
@@ -16,7 +19,7 @@ PRIVATE = [
                r'github_pat_[0-9A-Za-z_]{20,}|AKIA[A-Z0-9]{16}|xox[baprs]-[\w-]{12,})\b'),
     re.compile(r'(?im)\b(?:api[-_ ]?key|password|access[-_ ]?token|client[-_ ]?secret)\s*[:=]\s*[\x22\x27]?[\w./+=-]{12,}'),
     re.compile(r'(?<![\w-])(?:\+\d{1,3}[-. ]+|\(\d{3}\)[-. ]+)\d[\d -.]{6,13}\d(?!\w)'),
-    re.compile(r'\b(?:/Users|/home)/[^/\s"`]+'),
+    HOME_FOLDER,
 ]
 # Whether an item may be about models or agents at all; items that are not are kept but not reviewed.
 RELEVANT = re.compile(

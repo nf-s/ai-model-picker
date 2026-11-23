@@ -6,7 +6,7 @@ from html import unescape
 
 from hn_local.classify import PII
 
-from .pages import scrub
+from .pages import HOME_FOLDER, scrub
 
 PASSAGE_SIZE = 8200
 OVERLAP = 600
@@ -41,7 +41,8 @@ class Privacy:
 
     def __init__(self, names):
         self.names = names
-        self.output_patterns = (names, HN_HANDLE, URL_TEXT, WINDOWS_HOME, AUTH_LINE, PROVIDER_SECRET, PRIVATE_KEY)
+        self.output_patterns = (names, HN_HANDLE, URL_TEXT, WINDOWS_HOME, HOME_FOLDER, AUTH_LINE, PROVIDER_SECRET,
+                                PRIVATE_KEY)
 
     def redact(self, text, own_names):
         """`text` with code, keys, links and contact details replaced, each of `own_names` (the writer)

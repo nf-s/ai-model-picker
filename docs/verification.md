@@ -139,3 +139,28 @@ At the canonical URL the Hacker News snapshot (publication time, four comment fi
 **One live check failed.** `/arxiv-snapshot.json` still returned the previous release's arXiv export, with `cf-cache-status: HIT`, `age: 2411` and `cache-control: public, s-maxage=604800` at 14:49:36 UTC on 23 November. The new deployment does not contain the file: the same address with a query string returned the app's page. Cloudflare's edge cache holds the copy it stored at about 14:09 UTC under that seven-day header, so a visitor can still fetch it by its direct address, and no page links to it, until it expires by 14:09 UTC on 30 November 2026 (01:09 on 1 December in Hobart) at the latest. The cache was not purged and nothing was uploaded again. A first run of the 401 check used a loop variable named `path`, which in zsh replaces the command search path, so its `curl` commands did not run; the procedure now names it `endpoint`.
 
 Signed out, in a fresh browser profile at 1440 and 390 CSS pixels: the job chooser, the briefs for writing code and for research, the Claude Opus 5.5 model page, Switch between it and GPT-6.2 Sol, a search for "claude code" (Measured and Crowd results grouped by job; a measured result opened in the drawer with its source link; every request it made was under `/search/`), the Code Arena WebDev benchmark page, the App guide, the Data page (no scan controls) and People, which showed only the line saying practitioner records need sign-in, as did every Named band. `#/board` opened the chooser, `#/discussion/model:claude-opus-5-5` the model page with its thread reader, and `#/papers` the Data page at the line on papers. No page scrolled sideways, the console had no messages, and no request went to `/api/`, `/auth/` or a local address. Not checked: signing in with a granted account to see the People pages, person pages and the Named band's cards, which only the owner can do.
+
+## People re-review of 24 November 2026
+
+The stored practitioner passages were reviewed again with the approved 13-job list, after the Unix home-folder redaction was fixed. The review of 23 November 2026 was first copied into `.local/people/earlier-review-2026-11-23/`; the copy opened with the same key, 18,345 passages, 12 batches, token counts and result files, and `PRAGMA integrity_check` returned `ok`. `review --queue-only --replace-review` checked the copy again, emptied the checkpoint and prepared all 19,130 items: 18,345 passages queued, none blocked, and none of them held a home folder (the earlier review had sent 34).
+
+A pilot of 498 passages from 300 items, including the 100 reference passages, cost US$0.10. Against the reference relabelled for the 13 jobs (AI labels), the job agreed on 27 of 38 records matched by model (0.71), and at the level of the parent job on 0.79. On the same passages the review of 23 November 2026 agreed on 15 of 37 with the original reference (0.41), and on 16 of 29 (0.55) where its labels move to the 13 jobs with certainty, 8 being unknown. The sample is small, so these scores are rough. Record recall was 0.59 and precision 0.67 (0.57 and 0.58 before). 35 of the pilot's 498 first replies (7.0%) failed the checks and 7 passages (1.4%) were unresolved after the retry; the 23 November review had 5.1% and 1.8%.
+
+The full review cost US$1.86 (13.7 million input, 91.1 million cached input and 2.9 million output tokens), so US$1.96 with the pilot. 762 passages (4.2%) were sent twice and 237 (1.3%) stayed unresolved: 134 quotes not verbatim, 31 quotes spanning a redaction, 22 empty required texts, 41 over-long fields, 6 replies with too many records and 3 with a redacted name.
+
+| Named records                                            | 23 November 2026 | 24 November 2026 |
+| -------------------------------------------------------- | ---------------: | ---------------: |
+| Use records (shown)                                      |            6,572 |            5,830 |
+| … with a certain job                                     |            3,608 |            4,153 |
+| … needing reading                                        |            1,776 |                0 |
+| … with no job                                            |            1,188 |            1,677 |
+| Method advice                                            |            4,515 |            5,198 |
+| … with a certain job                                     |            1,818 |            2,577 |
+| … needing reading                                        |            1,085 |                0 |
+| … with no job (`general`)                                |            1,612 |            2,621 |
+| Use records with setting local / hosted                  |          410 / 0 |        443 / 576 |
+| Use records with run interactive / unattended / parallel |     0 / 484 / 50 |   225 / 168 / 79 |
+
+Use records per job, before and after: code 1,271 and 1,568; debug 430 and 453; review 163 and 121; plan 75 and 77; interface 510 and 148; research 337 and 250; documents 259 and 153; extraction 169 and 72; writing 156 and 134; maths 0 and 162; chat 238 and 336; read media 0 and 229; make images 0 and 450. Of the 450 make-images records, 299 carry the drawing-test tag: the review labelled pelican and other SVG drawings by text models as making images, against its rule. The tag still marks them.
+
+`npm run records:build` printed the coverage table with no people record needing reading and "Named records (private, behind sign-in): 5,830 use records (26 left out as advice-only), 5,198 method advice, 16 people." The site was not published; it serves the records of 23 November 2026 until the next publish.

@@ -28,8 +28,8 @@ from people_local.config import load, redaction_pattern
 from people_local.fetch import AGENT, SPACING, Fetcher, http_get
 from people_local.redact import Privacy, hide_blocks, own_names, passage_ranges, plain_links
 from people_local.review import (
-    ADVICE_FIELDS, MAX_OUTPUT, PROMPT_SHA256, RETRY_NOTE, SCHEMA, SYSTEM, USE_FIELDS, ReviewError, params,
-    prompt_hash, repair, validate,
+    ADVICE_FIELDS, JOBS, MAX_OUTPUT, PROMPT_SHA256, RETRY_NOTE, SCHEMA, SYSTEM, USE_FIELDS, ReviewError, job_list,
+    params, prompt_hash, repair, validate,
 )
 from people_local.state import SCHEMA as STATE_SCHEMA, Checkpoint, file_sha256, items
 
@@ -330,6 +330,20 @@ class TestRedaction(unittest.TestCase):
         self.assertFalse(self.privacy.leaks([out], scrubbed=False))
         self.assertTrue(self.privacy.leaks(['Basil Sample said so']))
 
+    def test_unix_home_folders_are_removed_wherever_they_start(self):
+        cases = ('cd /Users/quill/src', 'the path "/Users/quill/app"', "the path '/home/quill/app'",
+                 'run `/home/quill/bin/tool`', 'see (/Users/quill/notes) and [/home/quill/x]',
+                 '/Users/quill/start of a line', 'line one\n/home/quill/next line', 'tmp/Users/quill/a',
+                 'logs at ~/../home/quill/logs', 'path=/home/quill/x')
+        for text in cases:
+            with self.subTest(text=text):
+                out = self.privacy.redact(text, ['Ada Example'])
+                self.assertNotIn('quill', out)
+                self.assertIn('[redacted]', out)
+                self.assertFalse(self.privacy.leaks([out], scrubbed=False))
+                self.assertTrue(self.privacy.leaks([text], scrubbed=False))
+        self.assertEqual(self.privacy.redact('/Users/ and /homepage stay', ['Ada Example']), '/Users/ and /homepage stay')
+
     def test_an_outlet_redacts_the_names_in_each_byline(self):
         person = self.config.by_key('weekly')
         self.assertEqual(own_names({'bylines': ['Dana Writer and Eli Editor', 'Weekly Review']}, person), ['Dana Writer', 'Eli Editor'])
@@ -369,8 +383,8 @@ JOB = {
 def use_record(**changes):
     record = {
         'model_named': 'Claude Opus 5.5', 'exact': True, 'model_id': 'claude-opus-5-5', 'model_line': '',
-        'tool': 'Claude Code', 'effort': 'medium', 'setting': '', 'job': 'interface', 'task': 'Port a renderer',
-        'outcome': 'worked after rework', 'compared_named': '', 'compared_id': '', 'comparison': '',
+        'tool': 'Claude Code', 'effort': 'medium', 'other_settings': '', 'setting': '', 'run': '', 'job': 'interface',
+        'task': 'Port a renderer', 'outcome': 'worked after rework', 'compared_named': '', 'compared_id': '', 'comparison': '',
         'basis': 'first-hand use', 'sample_size': '', 'scale': 'one session', 'cost_time': '',
         'quote': 'It took two tries and I had to fix the shader loading by hand.',
         'summary': 'The writer ported a renderer and fixed shader loading by hand.',
@@ -379,7 +393,7 @@ def use_record(**changes):
 
 
 def advice(**changes):
-    return {'advice': 'Check the result by hand.', 'applies_to': 'general', 'tool': '',
+    return {'advice': 'Check the result by hand.', 'applies_to': 'general', 'setting': '', 'run': '', 'tool': '',
             'quote': 'I had to fix the shader loading by hand.'} | changes
 
 
@@ -406,6 +420,20 @@ class TestReplies(unittest.TestCase):
         self.assertTrue(request['messages'][0]['content'].endswith(RETRY_NOTE))
         self.assertFalse(params('{}')['messages'][0]['content'].endswith(RETRY_NOTE))
 
+    def test_the_jobs_are_the_approved_list(self):
+        approved = json.loads((ROOT / 'research/jobs.json').read_text(encoding='utf-8'))['jobs']
+        self.assertEqual(JOBS, tuple(job['id'] for job in approved) + ('other',))
+        for job in approved:
+            self.assertIn(f'  {job["id"]}: {job["label"]}', SYSTEM)
+        for old in ('coding', 'bug-fix', 'agents', 'delegation', 'local', 'images', 'reasoning'):
+            self.assertNotIn(f'  {old}: ', SYSTEM)
+        with tempfile.TemporaryDirectory() as directory:
+            changed = Path(directory) / 'jobs.json'
+            changed.write_text(json.dumps({'jobs': approved[:-1]}), encoding='utf-8')
+            with self.assertRaises(PipelineError) as raised:
+                job_list(changed)
+            self.assertEqual(str(raised.exception), 'review-jobs-differ-from-job-list')
+
     def test_a_valid_reply(self):
         reply = {'use_records': [use_record()], 'method_advice': [advice()]}
         self.assertIs(self.check(reply), reply)
@@ -425,11 +453,16 @@ class TestReplies(unittest.TestCase):
     def test_counts_and_labels(self):
         self.refused({'use_records': [use_record()] * 5, 'method_advice': []}, 'wrong-array-shape')
         self.refused({'use_records': [], 'method_advice': [advice()] * 3}, 'wrong-array-shape')
-        for field, value in (('job', 'gardening'), ('outcome', 'fine'), ('basis', 'rumour'), ('effort', 'huge'),
-                             ('scale', 'forever'), ('comparison', 'better')):
+        for field, value in (('job', 'gardening'), ('job', 'coding'), ('job', 'local'), ('outcome', 'fine'),
+                             ('basis', 'rumour'), ('effort', 'huge'), ('scale', 'forever'), ('comparison', 'better'),
+                             ('setting', 'laptop'), ('run', 'overnight')):
             with self.subTest(field=field):
                 self.refused({'use_records': [use_record(**{field: value})], 'method_advice': []}, 'unrecognized-label')
         self.refused({'use_records': [], 'method_advice': [advice(applies_to='other')]}, 'unrecognized-advice-label')
+        self.refused({'use_records': [], 'method_advice': [advice(applies_to='delegation')]}, 'unrecognized-advice-label')
+        self.refused({'use_records': [], 'method_advice': [advice(run='swarm')]}, 'unrecognized-advice-label')
+        self.check({'use_records': [use_record(job='read-media', setting='local', run='unattended')],
+                    'method_advice': [advice(applies_to='plan', run='parallel')]})
 
     def test_ids_only_from_the_candidate_list(self):
         self.refused({'use_records': [use_record(model_id='gpt-6.2-sol')], 'method_advice': []}, 'model-id-not-a-candidate')
@@ -563,7 +596,7 @@ class TestPipeline(unittest.TestCase):
         plan = json.loads(out)
         self.assertEqual((plan['newItems'], plan['blockedByPrivacyCheck']), (4, 0))
         self.assertGreater(plan['queued'], 0)
-        self.assertAlmostEqual(plan['estimatedUsd'], round(plan['queued'] * 1.754465 / 18345, 2))
+        self.assertAlmostEqual(plan['estimatedUsd'], round(plan['queued'] * 1.86164 / 18345, 2))
         code, out, _ = run_cli('review', '--state-dir', str(self.directory), '--queue-only')
         self.assertEqual((json.loads(out)['newItems'], json.loads(out)['queued']), (0, plan['queued']))
 
@@ -633,12 +666,67 @@ class TestPipeline(unittest.TestCase):
         with sqlite3.connect(self.directory / 'review.sqlite3') as db:
             db.executescript(STATE_SCHEMA + 'DROP TABLE prepared;')
             db.execute("INSERT INTO configuration VALUES ('review_key', ?)",
-                       (json.dumps(['use-records-v2', 'claude-haiku-5-5', 'registry', digest, PROMPT_SHA256]),))
+                       (json.dumps(['use-records-v2', 'claude-haiku-5-5', 'registry', digest, 'earlier-instructions']),))
         path.write_text(''.join(lines), encoding='utf-8')
         code, out, _ = run_cli('status', '--state-dir', str(self.directory))
-        self.assertEqual(json.loads(out)['review']['itemsPrepared'], 2)
-        code, out, _ = run_cli('review', '--state-dir', str(self.directory), '--queue-only')
-        self.assertEqual(json.loads(out)['newItems'], len(lines) - 2)
+        review_state = json.loads(out)['review']
+        self.assertEqual((review_state['itemsPrepared'], review_state['instructionsUnchanged']), (2, False))
+        code, _, err = run_cli('review', '--state-dir', str(self.directory), '--queue-only')
+        self.assertEqual((code, err.strip()), (1, 'review-checkpoint-methodology-mismatch'))
+
+    def earlier_review(self):
+        """A finished review whose checkpoint was made with earlier instructions, and a kept copy of it."""
+        collect_with(self, self.directory, Web())
+        review(self, self.directory, StandInBatches(reply_for))
+        with sqlite3.connect(self.directory / 'review.sqlite3') as db:
+            db.execute("UPDATE configuration SET value=? WHERE name='review_key'",
+                       (json.dumps(['use-records-v2', 'claude-haiku-5-5', 'earlier-instructions']),))
+        kept = self.directory / 'earlier-review'
+        kept.mkdir()
+        for name in ('review.sqlite3', 'use-records.jsonl', 'method-advice.jsonl', 'unresolved.jsonl', 'review-status.json'):
+            shutil.copy(self.directory / name, kept)
+        return kept
+
+    def test_a_review_with_earlier_instructions_is_replaced_only_after_its_copy_is_checked(self):
+        kept = self.earlier_review()
+        with Checkpoint(self.directory, readonly=True) as checkpoint:
+            earlier = checkpoint.states()
+        # An item stored before the home-folder fix still holds one; preparing again removes it.
+        path = self.directory / 'items.jsonl'
+        rows = [json.loads(line) for line in path.read_text(encoding='utf-8').splitlines()]
+        rows[0]['body'] += '\nThe files were in "/Users/quill/projects" and `/home/quill/src`.'
+        path.write_text(''.join(json.dumps(row) + '\n' for row in rows), encoding='utf-8')
+        before = (self.directory / 'review.sqlite3').read_bytes()
+        for target, issue in ((self.directory / 'missing', 'kept-copy-missing'), (self.directory, 'kept-copy-missing')):
+            code, _, err = run_cli('review', '--state-dir', str(self.directory), '--queue-only', '--replace-review', str(target))
+            self.assertEqual((code, err.strip()), (1, issue))
+        (kept / 'use-records.jsonl').write_text('', encoding='utf-8')
+        code, _, err = run_cli('review', '--state-dir', str(self.directory), '--queue-only', '--replace-review', str(kept))
+        self.assertEqual((code, err.strip()), (1, 'kept-copy-differs'))
+        self.assertEqual((self.directory / 'review.sqlite3').read_bytes(), before)
+        shutil.copy(self.directory / 'use-records.jsonl', kept)
+        code, out, err = run_cli('review', '--state-dir', str(self.directory), '--queue-only', '--replace-review', str(kept))
+        self.assertEqual(code, 0, err)
+        plan = json.loads(out)
+        self.assertEqual((plan['replacedReview'], plan['newItems'], plan['blockedByPrivacyCheck']), (earlier, 4, 0))
+        with Checkpoint(self.directory, readonly=True) as checkpoint:
+            self.assertEqual(checkpoint.states(), {'queued': plan['queued']})
+            self.assertEqual((checkpoint.batches(), checkpoint.usage()[1]), ({}, 0))
+            payloads = ' '.join(row[0] for row in checkpoint.db.execute('SELECT payload FROM jobs'))
+        self.assertNotIn('quill', payloads)
+        self.assertIn('[redacted]', payloads)
+        with Checkpoint(kept, readonly=True) as copy:
+            self.assertEqual(copy.states(), earlier)
+        code, _, err = run_cli('review', '--state-dir', str(self.directory), '--queue-only', '--replace-review', str(kept))
+        self.assertEqual((code, err.strip()), (1, 'no-earlier-review-to-replace'))
+
+    def test_an_unfinished_earlier_review_is_not_replaced(self):
+        kept = self.earlier_review()
+        for directory in (self.directory, kept):
+            with sqlite3.connect(directory / 'review.sqlite3') as db:
+                db.execute("INSERT INTO batches (remote_id, state) VALUES ('msgbatch_9', 'submitted')")
+        code, _, err = run_cli('review', '--state-dir', str(self.directory), '--queue-only', '--replace-review', str(kept))
+        self.assertEqual((code, err.strip()), (1, 'earlier-review-unfinished'))
 
     def test_status_reads_without_network_or_writes(self):
         collect_with(self, self.directory, Web())
