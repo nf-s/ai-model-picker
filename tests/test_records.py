@@ -234,17 +234,8 @@ class TestJobFile(unittest.TestCase):
                 change(self.jobs)
                 self.refused(message)
 
-    def test_weekly_counts_for_exact_models(self):
-        core, _ = self.build()
+    def test_unknown_aspect_stops_the_build(self):
         hn = hn_export()
-        hn['comments'][0]['assessments'][0]['aspects'] = ['coding']
-        core, _ = build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
-        weeks = core['crowd']['weeks']
-        # 3 September 2026 is a Thursday; its week starts on Monday 31 August.
-        self.assertEqual((weeks['start'], weeks['count']), ('2026-08-31', 5))
-        self.assertEqual(list(weeks['targets']), ['model|' + MODEL])
-        self.assertEqual(weeks['targets']['model|' + MODEL], [[0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0]])
-        self.assertEqual(core['crowd']['aspects'], {'model|' + MODEL: {'coding': [1, 0, 0, 0]}})
         hn['comments'][0]['assessments'][0]['aspects'] = ['typing']
         with self.assertRaises(BuildError):
             build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)

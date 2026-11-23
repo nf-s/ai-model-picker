@@ -172,8 +172,6 @@ function makeCore(): Core {
         },
         'line|Lab': { coding: { '2026-10': { pricing: [0, 3, 0, 0] } } },
       },
-      weeks: { start: '', count: 0, targets: {} },
-      aspects: {},
       comments: { coding: [1, 2], fix: [3] },
     },
     preferences: [

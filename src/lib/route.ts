@@ -8,7 +8,6 @@ export type ModelTarget =
   { kind: 'model'; id: string } | { kind: 'line'; name: string };
 export type Route =
   | { view: 'brief'; job: string | null }
-  | { view: 'board' }
   | {
       view: 'model';
       // null lists the models.
@@ -30,8 +29,8 @@ export type Route =
   | { view: 'account'; error: string | null };
 
 // Hashes from the redesign period (`#/redesign/model/...`) keep working.
-// Those that opened the Board, like the root and unknown hashes, open Brief's
-// job chooser; the Board stays at `#/board` until it is removed.
+// Those that opened the Board (`#/board`, `#/redesign/board`), like the root
+// and unknown hashes, open Brief's job chooser.
 const legacyPrefix = 'redesign/';
 const linePrefix = 'line/';
 
@@ -96,7 +95,6 @@ export function parseRoute(hash: string): Route {
   const value = detail ? decode(detail) : null;
   const job = query.get('job') || null;
   if (view === 'brief') return { view, job: value };
-  if (view === 'board' && !legacy) return { view };
   if (view === 'model') {
     const target = modelTarget(detail);
     const comments = target !== null && query.get('comments') === 'open';
@@ -130,7 +128,6 @@ export function parseRoute(hash: string): Route {
 export function routeHref(route: Route) {
   if (route.view === 'brief')
     return route.job ? `#/brief/${encodeURIComponent(route.job)}` : '#/';
-  if (route.view === 'board') return '#/board';
   if (route.view === 'benchmark')
     return `#/benchmark/${encodeURIComponent(route.id)}`;
   if (route.view === 'apps' || route.view === 'data') return `#/${route.view}`;
@@ -166,16 +163,6 @@ export const lineHref = (name: string, job: string | null = null) =>
 
 export const personHref = (name: string, job: string | null = null) =>
   routeHref({ view: 'people', name, job });
-
-// A link from an older comment-index key (`model:<id>`, `family:<name>`).
-export function keyHref(key: string, comments = false) {
-  return routeHref({
-    view: 'model',
-    target: modelTarget(encodeURIComponent(key)),
-    job: null,
-    comments,
-  });
-}
 
 export function useHash() {
   const [hash, setHash] = useState(window.location.hash);

@@ -212,8 +212,6 @@ function makeCore(): Core {
         'model|c': { planning: { '2026-10': [5, 4, 0, 0] } },
       },
       themes: {},
-      weeks: { start: '', count: 0, targets: {} },
-      aspects: {},
       comments: { planning: [11, 12] },
     },
     preferences: [

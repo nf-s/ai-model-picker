@@ -85,41 +85,6 @@ export function ShareText({
   );
 }
 
-export function Sparkline({
-  values,
-  width = 104,
-  height = 22,
-}: {
-  values: readonly number[];
-  width?: number;
-  height?: number;
-}) {
-  const top = Math.max(1, ...values);
-  const step = width / Math.max(1, values.length);
-  return (
-    <svg
-      className="rd-spark"
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      aria-hidden="true"
-    >
-      {values.map((value, week) => {
-        const bar = value === 0 ? 0 : Math.max(1, (value / top) * height);
-        return (
-          <rect
-            key={week}
-            x={week * step}
-            y={height - bar}
-            width={Math.max(1, step - 1)}
-            height={bar}
-          />
-        );
-      })}
-    </svg>
-  );
-}
-
 export type WeekRange = { from: number; to: number };
 const monthFormat = new Intl.DateTimeFormat('en-AU', {
   month: 'short',

@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  keyHref,
   lineHref,
   modelHref,
   parseRoute,
@@ -130,11 +129,6 @@ test('old model, family and Discussion links land on the model or line page', ()
   ];
   for (const [hash, route] of cases)
     assert.deepEqual(parseRoute(hash), route, hash);
-  assert.equal(keyHref('model:a'), '#/model/a');
-  assert.equal(
-    keyHref('family:Claude Opus', true),
-    '#/model/line/Claude%20Opus?comments=open',
-  );
 });
 
 test('an unknown model id stays in the route for the page to report', () => {
@@ -204,7 +198,6 @@ test('Brief is the home page and the job is in the address', () => {
   for (const route of [
     { view: 'brief', job: null },
     { view: 'brief', job: 'coding' },
-    { view: 'board' },
   ] satisfies Route[])
     assert.deepEqual(parseRoute(routeHref(route)), route);
   assert.equal(routeHref({ view: 'brief', job: null }), '#/');
@@ -223,7 +216,7 @@ test('an unknown job id stays in the route for Brief to report', () => {
   });
 });
 
-test('old Board links land on Brief and the Board keeps its own route', () => {
+test('old Board links land on Brief', () => {
   for (const hash of [
     '',
     '#',
@@ -233,10 +226,10 @@ test('old Board links land on Brief and the Board keeps its own route', () => {
     '#/redesign/board',
     '#/redesign/unknown',
     '#/unknown',
+    '#/board',
+    '#/board?x=1',
   ])
     assert.deepEqual(parseRoute(hash), { view: 'brief', job: null }, hash);
-  assert.deepEqual(parseRoute('#/board'), { view: 'board' });
-  assert.equal(routeHref({ view: 'board' }), '#/board');
   assert.deepEqual(parseRoute('#/redesign/model/model%3Aa'), model('a'));
 });
 

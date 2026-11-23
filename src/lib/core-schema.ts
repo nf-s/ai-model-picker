@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { hnAspectSchema, hnThemeSchema } from './hn-published.ts';
+import { hnThemeSchema } from './hn-published.ts';
 import { recordSchema, stances } from './records.ts';
 
 // build/records/core.json as `npm run records:build` writes it. The app reads
@@ -158,14 +158,6 @@ export const coreSchema = z
           z.record(month, z.partialRecord(hnThemeSchema, tally)),
         ),
       ),
-      // Each exact model's labels per Monday-UTC week from `start`, and per
-      // legacy aspect of the label, for the Board.
-      weeks: z.strictObject({
-        start: z.union([z.literal(''), day]),
-        count,
-        targets: z.record(targetKey, z.array(tally)),
-      }),
-      aspects: z.record(targetKey, z.partialRecord(hnAspectSchema, tally)),
       comments: z.record(
         z.union([z.literal(''), jobId]),
         z.array(z.number().int().positive()),
@@ -202,9 +194,6 @@ export const coreSchema = z
     for (const link of core.jobs.guide)
       if (link.job !== null && !jobs.has(link.job))
         issue(`guide task ${link.task}: unknown job`);
-    for (const [key, weeks] of Object.entries(core.crowd.weeks.targets))
-      if (weeks.length !== core.crowd.weeks.count)
-        issue(`${key}: weeks differ in number`);
     for (const job of core.jobs.list) {
       if (job.parent !== undefined && !jobs.has(job.parent))
         issue(`job ${job.id}: unknown parent`);

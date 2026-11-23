@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Account from './components/Account';
 import AppGuide from './components/AppGuide';
 import Benchmark from './components/Benchmark';
-import Board from './components/Board';
 import Brief from './components/Brief';
 import DataPage from './components/DataPage';
 import EvidenceDrawer, { EvidenceContext } from './components/EvidenceDrawer';
@@ -32,10 +31,10 @@ import {
 } from './lib/site-data';
 
 type View = Route['view'];
-// The Board left the navigation for Brief and stays at #/board until it is
-// removed. Discussion left it for the thread reader under each model's Crowd
-// band; its links open the model page. Expert articles moved onto person
-// pages; their old address opens People.
+// The Board left for Brief; its old address opens Brief. Discussion left for
+// the thread reader under each model's Crowd band; its links open the model
+// page. Expert articles moved onto person pages; their old address opens
+// People.
 const views: { route: Route; label: string; also?: View }[] = [
   { route: { view: 'brief', job: null }, label: 'Brief', also: 'benchmark' },
   {
@@ -110,10 +109,8 @@ export default function App({ access }: { access: Access }) {
           ? route.name
           : route.view === 'account'
             ? 'Account'
-            : route.view === 'board'
-              ? 'Board'
-              : (views.find((view) => view.route.view === route.view)?.label ??
-                'Brief');
+            : (views.find((view) => view.route.view === route.view)?.label ??
+              'Brief');
   // Model, Switch, People and Search keep the job in their own address;
   // elsewhere choosing a job opens its brief.
   const jobHref = (job: string | null) =>
@@ -251,9 +248,6 @@ export default function App({ access }: { access: Access }) {
                 onFilterChange={setFilter}
                 scope={scope}
               />
-            )}
-            {route.view === 'board' && (
-              <Board coreData={coreData} scope={scope} />
             )}
             {route.view === 'model' && (
               <Model

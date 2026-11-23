@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { benchmarks, models, results } from './data';
-import type { Benchmark, BenchmarkResult, Model } from './data';
+import type { Benchmark, BenchmarkResult } from './data';
 import { guide } from './guide';
 import { loadHnIndex } from './hn-index';
 import {
@@ -17,8 +17,7 @@ import {
   relatedNames,
   targetKey,
 } from './hn-insights';
-import { positiveShare, sumWeeks } from './hn-insights';
-import type { CommentIndex, HnInsights, TargetInsight } from './hn-insights';
+import type { CommentIndex, HnInsights } from './hn-insights';
 
 // Each model's best published result per benchmark, ranked within the field.
 export type Standing = {
@@ -100,14 +99,6 @@ export function formatScore(score: number, benchmark: Benchmark) {
     maximumFractionDigits: whole ? 0 : 1,
   }).format(score);
   return percent ? `${text}%` : text;
-}
-
-export function formatPrice(model: Model) {
-  const pricing = model.pricing;
-  if (!pricing) return null;
-  const money = (value: number) =>
-    `$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
-  return `${money(pricing.input)} / ${money(pricing.output)}`;
 }
 
 export function percent(share: number) {
@@ -240,26 +231,4 @@ const dayFormat = new Intl.DateTimeFormat('en-AU', {
 
 export function weekLabel(weekStart: string) {
   return dayFormat.format(new Date(`${weekStart}T00:00:00Z`));
-}
-
-// Positive share in the latest `span` weeks against the `span` weeks before.
-// Null unless both periods have at least `minimum` clearly positive or
-// negative comments.
-export function momentum(
-  insight: Pick<TargetInsight, 'weeks'>,
-  span = 4,
-  minimum = 10,
-) {
-  const last = insight.weeks.length - 1;
-  const recent = positiveShare(
-    sumWeeks(insight.weeks, last - span + 1, last),
-    minimum,
-  );
-  const earlier = positiveShare(
-    sumWeeks(insight.weeks, last - 2 * span + 1, last - span),
-    minimum,
-  );
-  return recent === null || earlier === null
-    ? null
-    : { recent, earlier, change: recent - earlier };
 }

@@ -175,8 +175,6 @@ function makeCore(): Core {
       stances: ['positive', 'critical', 'mixed', 'neutral'],
       counts: {},
       themes: {},
-      weeks: { start: '', count: 0, targets: {} },
-      aspects: {},
       comments: {},
     },
     preferences: [],

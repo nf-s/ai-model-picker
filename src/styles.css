@@ -380,12 +380,6 @@ p {
   margin-right: 5px;
   border-radius: 2px;
 }
-.rd-spark {
-  display: block;
-}
-.rd-spark rect {
-  fill: #8fa1b8;
-}
 
 /* Weekly chart */
 .rd-weeks svg {

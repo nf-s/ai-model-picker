@@ -134,27 +134,11 @@ export function tallyTotal(tally: Tally) {
   );
 }
 
-export function addTally(into: Tally, from: Tally) {
-  into.positive += from.positive;
-  into.negative += from.negative;
-  into.mixed += from.mixed;
-  into.neutral += from.neutral;
-  into.unclear += from.unclear;
-  return into;
-}
-
 // Positive share of comments labelled clearly positive or negative.
 // Null below `minimum` such comments, so thin samples are not shown as a rate.
 export function positiveShare(tally: Tally, minimum = 1) {
   const decided = tally.positive + tally.negative;
   return decided < minimum || decided === 0 ? null : tally.positive / decided;
-}
-
-export function sumWeeks(weeks: readonly Tally[], from: number, to: number) {
-  const total = emptyTally();
-  for (let week = Math.max(0, from); week <= to && week < weeks.length; week++)
-    addTally(total, weeks[week] ?? emptyTally());
-  return total;
 }
 
 // Names share a lineage when every word of the shorter name appears in the

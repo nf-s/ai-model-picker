@@ -9,7 +9,6 @@ import {
   rankTargets,
   relatedNames,
   summariseSlice,
-  sumWeeks,
   targetKey,
 } from '../src/lib/hn-insights.ts';
 import type { HnIndexComment } from '../src/lib/hn-index.ts';
@@ -302,8 +301,6 @@ test('insights tally sentiment by target, week, aspect and unrelated pair', () =
   });
   assert.equal(positiveShare(alpha.tally), 2 / 3);
   assert.equal(positiveShare(alpha.tally, 4), null);
-  assert.equal(sumWeeks(alpha.weeks, 1, 2).negative, 1);
-  assert.equal(sumWeeks(alpha.weeks, 1, 2).positive, 1);
   assert.equal(alpha.aspects.coding.positive, 2);
   assert.equal(alpha.aspects.cost.negative, 1);
   assert.equal(alpha.firstAt, '2026-06-03T10:00:00Z');

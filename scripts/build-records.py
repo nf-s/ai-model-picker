@@ -789,38 +789,6 @@ def hn_key(target):
     return HN_KEY_KINDS[target['kind']] + '|' + target['target']
 
 
-def comment_time(comment):
-    time = datetime.datetime.fromisoformat(comment['createdAt'].replace('Z', '+00:00'))
-    return time.astimezone(datetime.timezone.utc) if time.tzinfo else time.replace(tzinfo=datetime.timezone.utc)
-
-
-def weekly_counts(comments):
-    """Each exact model's labels per week, in Monday-UTC weeks from the Monday on or before the first
-    comment, as the comment index buckets them, and per legacy aspect of the label. The Board reads
-    these, so it needs no comment part."""
-    if not comments:
-        return {'start': '', 'count': 0, 'targets': {}}, {}
-    times = {comment['id']: comment_time(comment) for comment in comments}
-    first = min(times.values())
-    origin = datetime.datetime(first.year, first.month, first.day, tzinfo=datetime.timezone.utc) - datetime.timedelta(days=first.weekday())
-    week = datetime.timedelta(weeks=1)
-    count = (max(times.values()) - origin) // week + 1
-    weeks = {}
-    aspects = collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0, 0, 0]))
-    for comment in comments:
-        number = (times[comment['id']] - origin) // week
-        for assessment in comment['assessments']:
-            key = hn_key(assessment)
-            if not key.startswith('model|'):
-                continue
-            stance = STANCES.index(HN_STANCE[assessment['sentiment']])
-            weeks.setdefault(key, [[0, 0, 0, 0] for _ in range(count)])[number][stance] += 1
-            for aspect in assessment.get('aspects', []):
-                aspects[key][aspect][stance] += 1
-    return ({'start': origin.date().isoformat(), 'count': count, 'targets': dict(sorted(weeks.items()))},
-            {key: {aspect: aspects[key][aspect] for aspect in HN_ASPECTS if aspect in aspects[key]} for key in sorted(aspects)})
-
-
 def crowd(hn, records, model_ids):
     """Hacker News records, counts per target, job and month, the same counts per theme of the
     label, stated preferences, and the item ids of the comments in each job, so the app can open the
@@ -888,8 +856,7 @@ def crowd(hn, records, model_ids):
             })
     need(not unknown_models, 'Hacker News names models that are not in the snapshot:\n  ' + '\n  '.join(
         f'{model}: {", ".join(ids[:LIST_LIMIT])}' for model, ids in sorted(unknown_models.items())))
-    weeks, aspects = weekly_counts(hn['comments'])
-    return rows, {'counts': counts, 'themes': theme_counts, 'weeks': weeks, 'aspects': aspects}, preferences, {
+    return rows, {'counts': counts, 'themes': theme_counts}, preferences, {
         job: sorted(ids) for job, ids in sorted(comment_ids.items())}
 
 
@@ -1207,7 +1174,7 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
         ] + [entry for kind in IMPORTED for entry in imported_benchmarks(kind, imported[kind], jobs)],
         'measured': measured,
         'crowd': {'stances': list(STANCES), 'counts': counts, 'themes': aggregates['themes'],
-                  'weeks': aggregates['weeks'], 'aspects': aggregates['aspects'], 'comments': comment_ids},
+                  'comments': comment_ids},
         'preferences': preferences,
         'coverage': {'sources': list(sources), 'rows': rows},
         'usage': None if usage is None else usage_block(usage, jobs),
