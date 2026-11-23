@@ -1,20 +1,28 @@
-"""Build the shared evidence records into core.json and print job coverage.
+"""Build the shared evidence records into core.json and named-private.json, and print job coverage.
 
 Reads, and never writes: src/lib/snapshot.json (models, benchmark results and published
 reports), research/lmarena.json and research/epoch-runs.json (imported arena ratings and
 Epoch runs), research/openrouter-usage.json (OpenRouter usage), research/app-model-choices.json (App guide tasks), research/jobs.json (jobs,
-crosswalk, keyword rules) and Hacker News, from the local checkpoint when there is one,
-else from the published export in dist/. Restricted benchmarks are not read.
+crosswalk, keyword rules), Hacker News, from the local checkpoint when there is one,
+else from the published export in dist/, and the people review in .local/people/ when it
+exists. Restricted benchmarks are not read.
 
-Writes one ignored file, build/records/core.json by default: models, product lines, jobs,
-benchmarks, measured records, Hacker News counts per target, job and month, stated
-preferences, the coverage table and OpenRouter usage. Usage is not a record: it sits in its
-own block and never enters the measured records, the coverage counts or any ordering. A job
-id the job file does not list, or a source label it does not map, stops the build with the
-records concerned.
+Writes ignored files outside .local, in build/records/ by default:
+
+- core.json: models, product lines, jobs, benchmarks, measured records, Hacker News counts per
+  target, job and month, stated preferences, the coverage table and OpenRouter usage. Usage is
+  not a record: it sits in its own block and never enters the measured records, the coverage
+  counts or any ordering. It names no person and holds no named record or count; its
+  namedBehindSignIn flag says whether named records were built.
+- named-private.json, only when .local/people/ exists: use records and method advice from the
+  people review, with their quotes, and the people list. It is served only behind sign-in.
+
+A job id the job file does not list, or a source label it does not map, stops the build with
+the records concerned.
 
 Usage: python3 scripts/build-records.py [--hn-root DIR] [--hn-source auto|checkpoint|export]
-                                        [--jobs FILE] [--out FILE]
+                                        [--people-root DIR] [--jobs FILE] [--out FILE]
+                                        [--named-out FILE]
 """
 
 import argparse
@@ -30,13 +38,17 @@ from pathlib import Path
 
 from hn_local.sources import PipelineError
 from hn_local.state import DATABASE
+from people_local.review import (
+    ADVICE_FIELDS, ADVICE_SCOPE, BASIS, COMPARISON, JOBS, OUTCOMES, SCALE, USE_FIELDS, EFFORT as REVIEW_EFFORT,
+)
 from records_schema import (
-    DATE_PATTERN, FIELDS, JOB_PATTERN, RUNS, SETTINGS, STANCES, SURFACES, RecordError, check_record, is_date,
-    is_text, is_url,
+    DATE_PATTERN, FIELDS, JOB_PATTERN, RUNS, SETTINGS, STANCES, SURFACES, RecordError, check_people, check_record,
+    is_date, is_text, is_url,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = ROOT / 'build/records/core.json'
+DEFAULT_NAMED_OUT = ROOT / 'build/records/named-private.json'
 LIST_LIMIT = 20
 
 JOB_FILE_FIELDS = {'version', 'status', 'jobs', 'crosswalk', 'keywords', 'surface', 'replaces'}
@@ -49,8 +61,11 @@ CROSSWALK_SOURCES = (
 # Hacker News themes are optional, so a theme without an entry gives no job.
 LOADED_CROSSWALKS = (
     'hn-task', 'hn-theme', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run', 'openrouter-tag',
+    'review-job',
 )
-STRICT_CROSSWALKS = ('hn-task', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run', 'openrouter-tag')
+STRICT_CROSSWALKS = (
+    'hn-task', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run', 'openrouter-tag', 'review-job',
+)
 IMPORTED = {'lmarena': ROOT / 'research/lmarena.json', 'epoch': ROOT / 'research/epoch-runs.json'}
 IMPORT_FIELDS = {
     'lmarena': ({'source', 'fetchedAt', 'checkedAt', 'leaderboards', 'results'}, 'leaderboards', 'leaderboard'),
@@ -83,6 +98,19 @@ METHODOLOGY = {
 }
 HN_STANCE = {'positive': 'positive', 'negative': 'critical', 'mixed': 'mixed', 'neutral': 'neutral', 'unclear': 'neutral'}
 HN_KEY_KINDS = {'model': 'model', 'family': 'line'}
+# The people review's files, read from .local/people/ in the checkout given by --people-root.
+PEOPLE_DIR = ('.local', 'people')
+REVIEW_COMMON_FIELDS = {
+    'source_id', 'person', 'practitioner', 'source_class', 'source_url', 'source_date', 'source_channel',
+    'source_title', 'passage',
+}
+SOURCE_ID = re.compile(r'[0-9a-f]{24}')
+BASIS_SHORT = {'first-hand use': 'first', 'measured': 'measured', 'second-hand': 'second', 'vendor statement': 'vendor'}
+OUTCOME_STANCE = {
+    'worked': 'positive', 'failed': 'critical', 'abandoned': 'critical', 'worked after rework': 'mixed',
+    'no outcome stated': 'neutral',
+}
+REVIEW_JOB_AGREEMENT = {'share': 0.5, 'check': 'the review instructions against a reference set of 100 passages, 23 November 2026'}
 
 TOOLS = [
     (name, re.compile(pattern)) for name, pattern in (
@@ -303,10 +331,10 @@ class Records:
         self.uncovered = set()
         self.coverage = collections.Counter()
 
-    def make(self, label, via, words, **values):
+    def make(self, label, via, words, how='label', **values):
         """A record whose job comes from `label`, the job id a source label maps to (None when the
         source label is not in the crosswalk), refined or filled in by keyword rules over `words`
-        (None: no keyword rules apply)."""
+        (None: no keyword rules apply). `how` says how a job given by the label was assigned."""
         record = dict.fromkeys(FIELDS, '')
         record.update(keys=[], stance='neutral', x=None)
         record.update(values)
@@ -322,7 +350,7 @@ class Records:
         if words is not None:
             job, how, assigned = self.jobs.assign(base, via, words)
         else:
-            job, how, assigned = (base, 'label', via) if base else ('', '', '')
+            job, how, assigned = (base, how, via) if base else ('', '', '')
         record.update(job=job, how=how, via=assigned, setting=setting, run=run)
         record['surface'] = self.jobs.surfaces.get(record['tool'], '')
         try:
@@ -770,13 +798,218 @@ def crowd(hn, records, model_ids):
     return rows, counts, preferences
 
 
+# ---- Named: the people review ------------------------------------------------------------
+
+
+def read_lines(path):
+    return [json.loads(line) for line in Path(path).read_text(encoding='utf-8').splitlines() if line.strip()]
+
+
+def read_people(root):
+    """The people review under `root`/.local/people, read without writing; None when there is none."""
+    directory = Path(root).joinpath(*PEOPLE_DIR)
+    if not directory.is_dir():
+        return None
+    try:
+        data = {
+            'people': read_json(directory / 'people.json'),
+            'use': read_lines(directory / 'use-records.jsonl'),
+            'advice': read_lines(directory / 'method-advice.jsonl'),
+            'unresolved': read_lines(directory / 'unresolved.jsonl'),
+            'status': read_json(directory / 'review-status.json'),
+        }
+    except (OSError, ValueError) as error:
+        raise BuildError(f'Could not read the people review in {directory}: {error}') from None
+    return data
+
+
+def check_named(data, model_ids):
+    """Raise BuildError unless the people review's files are whole, agree with its status file and
+    name only people in the people file and models in the snapshot."""
+    try:
+        check_people(data['people'])
+    except RecordError as error:
+        raise BuildError(f'people.json: {error}') from None
+    names = {person['name'] for person in data['people']['people']}
+    status = data['status']
+    need(type(status) is dict and len(data['use']) == status.get('use_records') and len(data['advice']) == status.get('method_advice')
+         and len(data['unresolved']) == (status.get('passage_states') or {}).get('unresolved', 0),
+         'The people review files differ from review-status.json; run the pipeline\'s export again')
+    for kind, rows, fields in (('use record', data['use'], set(USE_FIELDS)), ('method advice', data['advice'], set(ADVICE_FIELDS))):
+        for row in rows:
+            need(type(row) is dict and set(row) == fields | REVIEW_COMMON_FIELDS, f'A {kind} has other fields')
+            where = f'{kind} from {row["source_id"]}'
+            need(is_text(row['source_id']) and SOURCE_ID.fullmatch(row['source_id']), f'{where}: source id is not 24 hex digits')
+            need(row['practitioner'] in names, f'{where}: its person is not in people.json')
+            need(is_url(row['source_url']) and is_text(row['source_date']) and is_text(row['source_title']), f'{where}: no source link')
+            need(all(is_text(row[field]) for field in fields - {'exact'}), f'{where}: a field is not text')
+    for row in data['use']:
+        where = f'use record from {row["source_id"]}'
+        need(row['job'] in JOBS and row['outcome'] in OUTCOMES and row['basis'] in BASIS and row['scale'] in SCALE
+             and row['effort'] in REVIEW_EFFORT and row['comparison'] in COMPARISON and type(row['exact']) is bool, f'{where}: unknown label')
+        need(row['model_id'] == '' or row['model_id'] in model_ids, f'{where}: model {row["model_id"]} is not in the snapshot')
+        need(row['compared_id'] == '' or row['compared_id'] in model_ids, f'{where}: model {row["compared_id"]} is not in the snapshot')
+        need(row['model_id'] == '' or row['exact'], f'{where}: has a model id but is not exact')
+        need(row['model_named'].strip() != '', f'{where}: names no model')
+    for row in data['advice']:
+        need(row['applies_to'] in ADVICE_SCOPE, f'method advice from {row["source_id"]}: unknown label')
+
+
+def plain(text):
+    return ' '.join(text.split())
+
+
+def use_keys(row, stance):
+    """The model, line or version key of a use record, then its tool. A product line stays a line and
+    an exact version outside the model list keeps its own key."""
+    keys = []
+    if row['model_id']:
+        keys.append(['model|' + row['model_id'], stance])
+    elif row['exact']:
+        keys.append(['version|' + plain(row['model_named']), stance])
+    elif row['model_line'].strip():
+        keys.append(['line|' + plain(row['model_line']), stance])
+    if row['tool'].strip():
+        keys.append(['tool|' + plain(row['tool']), stance])
+    return keys
+
+
+def named_records(data, records):
+    """(use records, method advice, use records left out per person). Ids are `ur:<source id>/<n>`
+    and `ma:<source id>/<n>`, numbered in file order within each source, so they do not change when
+    other sources are reviewed again. Advice-only people's use records are numbered and left out."""
+    people = {person['name']: person for person in data['people']['people']}
+    numbers, use, advice, excluded = collections.Counter(), [], [], collections.Counter()
+    for row in data['use']:
+        numbers['ur', row['source_id']] += 1
+        person = people[row['practitioner']]
+        if person['adviceOnly']:
+            excluded[person['name']] += 1
+            continue
+        stance = OUTCOME_STANCE[row['outcome']]
+        secondary = person['sourceClass'] == 'secondary'
+        basis = BASIS_SHORT[row['basis']]
+        date = row['source_date'][:10]
+        use.append(records.make(
+            records.jobs.label('review-job', row['job']), 'review:' + row['job'], None, how='review',
+            id=f'ur:{row["source_id"]}/{numbers["ur", row["source_id"]]}',
+            cls='named',
+            src='use',
+            keys=use_keys(row, stance),
+            stance=stance,
+            text=row['summary'],
+            quote=row['quote'],
+            cond=' · '.join(value for value in (
+                row['setting'], row['scale'] if row['scale'] != 'not stated' else '', row['sample_size'], row['cost_time'],
+            ) if value),
+            tool=row['tool'],
+            effort='' if row['effort'] == 'other' else row['effort'],
+            date=date if is_date(date) else '',
+            person=person['name'],
+            url=row['source_url'],
+            title=row['source_title'],
+            kind=row['outcome'],
+            x={
+                'named': row['model_named'],
+                'exact': row['exact'],
+                'line': row['model_line'],
+                'task': row['task'],
+                'basis': row['basis'],
+                # A secondary source's "measured" is a figure it reports, filtered as second-hand.
+                'b': 'second' if secondary and basis == 'measured' else basis,
+                'sec': secondary,
+                'cmpNamed': row['compared_named'],
+                'cmpId': row['compared_id'],
+                'cmp': row['comparison'],
+                'channel': row['source_channel'],
+            },
+        ))
+    for row in data['advice']:
+        numbers['ma', row['source_id']] += 1
+        person = people[row['practitioner']]
+        date = row['source_date'][:10]
+        advice.append(records.make(
+            records.jobs.label('review-job', row['applies_to']), 'review:' + row['applies_to'], None, how='review',
+            id=f'ma:{row["source_id"]}/{numbers["ma", row["source_id"]]}',
+            cls='named',
+            src='advice',
+            text=row['advice'],
+            quote=row['quote'],
+            tool=row['tool'],
+            date=date if is_date(date) else '',
+            person=person['name'],
+            url=row['source_url'],
+            title=row['source_title'],
+            kind='method advice',
+            x={'channel': row['source_channel'], 'sec': person['sourceClass'] == 'secondary'},
+        ))
+    return use, advice, excluded
+
+
+def newest_first(rows):
+    def order(record):
+        source, number = record['id'].split(':', 1)[1].split('/')
+        return record['date'], source, int(number)
+    return sorted(rows, key=order, reverse=True)
+
+
+def build_named(snapshot, guide, job_data, imported, data):
+    """named-private.json for the people review `data` (see read_people), or raise BuildError.
+    Method advice never counts toward a model or toward job coverage."""
+    model_ids = {model['id'] for model in snapshot['models']}
+    check_named(data, model_ids)
+    benchmark_ids = {benchmark['id'] for benchmark in snapshot['benchmarks']}
+    imported_ids = {entry['id'] for kind, (_, field, _) in IMPORT_FIELDS.items() for entry in imported[kind][field]}
+    jobs = Jobs(job_data, benchmark_ids | imported_ids, {task['id'] for task in guide['tasks']})
+    records = Records(jobs)
+    use, advice, excluded = named_records(data, records)
+    records.stop_if_uncovered()
+    ids = [record['id'] for record in use + advice]
+    need(len(set(ids)) == len(ids), 'Named record ids are repeated')
+    use_by, advice_by = collections.Counter(r['person'] for r in use), collections.Counter(r['person'] for r in advice)
+    status = data['status']
+    return {
+        'version': 1,
+        'private': 'Served only behind sign-in. Never copy this file into a public build.',
+        'review': {
+            'model': status.get('model', ''),
+            'methodology': status.get('methodology', ''),
+            'passages': status.get('passage_states', {}),
+            'unresolvedByIssue': status.get('issues', {}),
+            'jobAgreement': REVIEW_JOB_AGREEMENT,
+            'note': "Summaries, outcome, basis and job were written by a model review; the quote is the source's own words.",
+        },
+        'people': [
+            {
+                'name': person['name'],
+                'sourceClass': person['sourceClass'],
+                'adviceOnly': person['adviceOnly'],
+                'trusted': person['trusted'],
+                'added': person['added'],
+                'dropped': person['dropped'],
+                'use': use_by[person['name']],
+                'advice': advice_by[person['name']],
+                'useLeftOut': excluded[person['name']],
+            }
+            for person in data['people']['people']
+        ],
+        'coverage': [
+            {'job': job_id, 'use': sum(r['job'] == job_id for r in use), 'advice': sum(r['job'] == job_id for r in advice)}
+            for job_id in [*jobs.ids, '']
+        ],
+        'use': newest_first(use),
+        'advice': newest_first(advice),
+    }
+
+
 # ---- Core ------------------------------------------------------------------------------
 
 
-def build_core(snapshot, guide, job_data, hn, imported, usage=None):
+def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False):
     """Return (core, records) for the given inputs, or raise BuildError. `imported` holds the
     reviewed LMArena and Epoch files by kind (see IMPORTED); `usage` is the reviewed OpenRouter
-    usage file, which adds the usage block and changes nothing else."""
+    usage file, which adds the usage block and changes nothing else. `named` says whether named
+    records were built (into named-private.json); core.json carries only that flag about them."""
     model_ids = {model['id'] for model in snapshot['models']}
     names = {model['id']: model['name'] for model in snapshot['models']}
     for kind in IMPORTED:
@@ -872,21 +1105,28 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None):
         'preferences': preferences,
         'coverage': {'sources': list(sources), 'rows': rows},
         'usage': None if usage is None else usage_block(usage, jobs),
+        'namedBehindSignIn': named,
     }
     return core, measured + hn_rows
 
 
-def coverage_table(core):
+def coverage_table(core, named=None):
+    """Records per job and source. With named records, a column of use records (jobs by review)."""
     labels = {job['id']: ('↳ ' if job.get('parent') else '') + job['label'] for job in core['jobs']['list']}
     labels[''] = 'No job'
-    sources = core['coverage']['sources']
-    headings = {'benchmark': 'Benchmark', 'arena': 'Arena', 'report': 'Report', 'hn': 'Hacker News'}
+    sources = list(core['coverage']['sources'])
+    headings = {'benchmark': 'Benchmark', 'arena': 'Arena', 'report': 'Report', 'hn': 'Hacker News', 'use': 'Use (review)'}
+    rows = [dict(row['counts']) for row in core['coverage']['rows']]
+    if named is not None:
+        sources.append('use')
+        for counts, row in zip(rows, named['coverage']):
+            counts['use'] = row['use']
     width = max(len(label) for label in labels.values())
     lines = [f'{"Job":{width}} ' + ' '.join(f'{headings[source]:>12}' for source in sources)]
     totals = collections.Counter()
-    for row in core['coverage']['rows']:
-        totals.update(row['counts'])
-        lines.append(f'{labels[row["job"]]:{width}} ' + ' '.join(f'{row["counts"][source]:>12,}' for source in sources))
+    for row, counts in zip(core['coverage']['rows'], rows):
+        totals.update(counts)
+        lines.append(f'{labels[row["job"]]:{width}} ' + ' '.join(f'{counts[source]:>12,}' for source in sources))
     lines.append(f'{"Total":{width}} ' + ' '.join(f'{totals[source]:>12,}' for source in sources))
     return '\n'.join(lines)
 
@@ -896,22 +1136,30 @@ def main(argv=None):
         description='Build core.json from the snapshot, the reports, LMArena, Epoch runs, OpenRouter usage and Hacker News.')
     parser.add_argument('--hn-root', type=Path, default=ROOT, help='checkout whose .local/hn or dist/ holds Hacker News')
     parser.add_argument('--hn-source', choices=('auto', 'checkpoint', 'export'), default='auto')
+    parser.add_argument('--people-root', type=Path,
+                        help='checkout whose .local/people holds the people review (default: the --hn-root checkout)')
     parser.add_argument('--jobs', type=Path, default=ROOT / 'research/jobs.json')
     parser.add_argument('--out', type=Path, default=DEFAULT_OUT)
+    parser.add_argument('--named-out', type=Path, default=DEFAULT_NAMED_OUT)
     args = parser.parse_args(argv)
+    people_root = args.people_root or args.hn_root
     try:
-        need(not within(args.out, '.local'), f'refusing to write under .local: {args.out}')
+        for out in (args.out, args.named_out):
+            need(not within(out, '.local'), f'refusing to write under .local: {out}')
         snapshot = read_json(ROOT / 'src/lib/snapshot.json')
         guide = read_json(ROOT / 'research/app-model-choices.json')
         job_data = read_json(args.jobs)
         imported = {kind: read_json(path) for kind, path in IMPORTED.items()}
         usage = read_json(USAGE)
         hn = read_hn(args.hn_root, args.hn_source)
-        core, _ = build_core(snapshot, guide, job_data, hn, imported, usage)
+        people = read_people(people_root)
+        named = None if people is None else build_named(snapshot, guide, job_data, imported, people)
+        core, _ = build_core(snapshot, guide, job_data, hn, imported, usage, named is not None)
         size, packed = write_json(args.out, core)
+        named_size = None if named is None else write_json(args.named_out, named)[0]
     except BuildError as error:
         raise SystemExit(str(error)) from None
-    print(coverage_table(core))
+    print(coverage_table(core, named))
     for kind, label in (('lmarena', 'LMArena'), ('epoch', 'Epoch runs')):
         source = core['sources'][kind]
         print(f'{label}: {source["records"]:,} records, fetched {source["fetchedAt"]}, checked {source["checkedAt"]}.')
@@ -921,10 +1169,17 @@ def main(argv=None):
         f'{usage["tokens"]["asOf"]}, {len(usage["tasks"]["tags"]):,} task tags as of {usage["tasks"]["asOf"]}, '
         f'checked {usage["checkedAt"]}.'
     )
-    print(
-        f'Hacker News from the {core["sources"]["hn"]["from"]}: {core["sources"]["hn"]["comments"]:,} comments. '
-        f'Wrote {args.out}: {size:,} bytes, {packed:,} gzipped.'
-    )
+    print(f'Hacker News from the {core["sources"]["hn"]["from"]}: {core["sources"]["hn"]["comments"]:,} comments.')
+    if named is None:
+        print(f'No people review under {people_root / ".local/people"}: no named records; core.json says none exist.')
+    else:
+        left_out = sum(person['useLeftOut'] for person in named['people'])
+        print(
+            f'Named records (private, behind sign-in): {len(named["use"]):,} use records ({left_out:,} left out as '
+            f'advice-only), {len(named["advice"]):,} method advice, {len(named["people"])} people. '
+            f'Wrote {args.named_out}: {named_size:,} bytes.'
+        )
+    print(f'Wrote {args.out}: {size:,} bytes, {packed:,} gzipped.')
 
 
 if __name__ == '__main__':

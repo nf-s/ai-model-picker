@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "people": [
+    {
+      "name": "Ada Example",
+      "feeds": [
+        "https://ada.example.com/feed.xml",
+        "https://ada.example.com/sitemap.xml"
+      ],
+      "sourceClass": "first-hand",
+      "adviceOnly": false,
+      "trusted": true,
+      "added": { "date": "2026-11-01", "reason": "Dated first-hand use." },
+      "dropped": null
+    },
+    {
+      "name": "Basil Sample",
+      "feeds": ["https://basil.example.net/p/survey-results"],
+      "sourceClass": "secondary",
+      "adviceOnly": false,
+      "trusted": false,
+      "added": { "date": "2026-11-01", "reason": "Survey posts." },
+      "dropped": null
+    },
+    {
+      "name": "Cora Placeholder",
+      "feeds": [
+        "https://cora.example.org/series.html",
+        "https://cora.example.org/feed.atom"
+      ],
+      "sourceClass": "first-hand",
+      "adviceOnly": true,
+      "trusted": false,
+      "added": { "date": "2026-11-01", "reason": "Method advice." },
+      "dropped": null
+    },
+    {
+      "name": "Example Weekly",
+      "feeds": ["https://weekly.example.com/review/feed"],
+      "sourceClass": "first-hand",
+      "adviceOnly": false,
+      "trusted": false,
+      "added": { "date": "2026-11-01", "reason": "Outlet reviews." },
+      "dropped": null
+    },
+    {
+      "name": "Dov Dropped",
+      "feeds": ["https://dov.example.com/feed.xml"],
+      "sourceClass": "first-hand",
+      "adviceOnly": false,
+      "trusted": false,
+      "added": { "date": "2026-11-01", "reason": "Earlier list." },
+      "dropped": { "date": "2026-11-20", "reason": "Left collection." }
+    }
+  ]
+}

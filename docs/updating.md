@@ -11,11 +11,12 @@ Nothing updates on its own. Each source is updated separately, and the published
 | Benchmarks, prices, reports, the app guide | [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide) | Free, but someone has to read the sources     | Yes                  |
 | LMArena ratings and Epoch runs             | [LMArena and Epoch runs](#lmarena-and-epoch-runs)                                             | Free                                          | Yes                  |
 | OpenRouter usage                           | [OpenRouter usage](#openrouter-usage)                                                         | Free; needs the owner's OpenRouter key        | Yes                  |
+| People: practitioners' use records         | [People](#people)                                                                             | Paid: about 10 US cents per 1,000 passages    | No                   |
 | Practitioner findings                      | [Practitioner findings](#practitioner-findings)                                               | Free for existing reviewed findings           | Yes                  |
 | Expert articles                            | [Expert articles](#expert-articles)                                                           | Free for existing verified articles           | No                   |
 | Published site                             | [Publish](#publish)                                                                           | Free                                          | No                   |
 
-The Hacker News and arXiv data live in the ignored `.local/` directory, and the published site carries its own publication time. An update of either therefore leaves nothing to commit. Do not edit the documentation to restate their counts: the app's Data page and the `status` commands below are the record.
+The Hacker News, arXiv and people data live in the ignored `.local/` directory, and the published site carries its own publication time. An update of either therefore leaves nothing to commit. Do not edit the documentation to restate their counts: the app's Data page and the `status` commands below are the record.
 
 ## How to use these procedures
 
@@ -31,7 +32,7 @@ git status --short
 ```
 
 ```sh
-pgrep -f '[h]n_pipeline|[a]rxiv_pipeline'
+pgrep -f '[h]n_pipeline|[a]rxiv_pipeline|[p]eople_pipeline'
 ```
 
 Both must print nothing. Output from the first means someone has uncommitted work: leave those files alone and never stage them with yours. Output from the second is the process ID of a pipeline that is still running: wait for it to end. Each state directory takes one command at a time, and a second one stops with `already-running`.
@@ -417,6 +418,111 @@ npm run format && npm run format:check
 
 Commit `research/openrouter-usage.json`, any changed alias table, `research/jobs.json` if you changed it, and `src/lib/attribution.ts` by name. The site shows the new usage only after it is built and published.
 
+## People
+
+This collects new writing from the practitioners and outlets in `.local/people/people.json` and reviews it into use records and method advice. Collection is free; the review is paid and sends redacted passages to the Anthropic API. Nothing tracked changes. The named records are private: the build writes them only to the ignored `build/records/named-private.json`. How each step works is in the [people pipeline](people-pipeline.md).
+
+### 1. Check the state
+
+```sh
+python3 -B scripts/people_pipeline.py status
+```
+
+Expected: JSON with `people`, `items` and `review`. `review.instructionsUnchanged` is `true`, `queued` is 0 and `batches` has only `collected` entries. `itemsNotPrepared` is 0 unless a collection ran without a review since.
+
+| Output                                                | Meaning                                                     | What to do                                                                                     |
+| ----------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `missing-people.json`                                 | There is no `.local/people/` on this machine.               | Stop and report. Only the owner restores it.                                                   |
+| `people-file-invalid: …` or `sources-file-invalid: …` | A local file breaks its format; the message names the rule. | Fix the file as [Adding or dropping a person](#adding-or-dropping-a-person) says, then repeat. |
+| `queued` above 0, or a `submitted` batch              | A review was stopped before it finished.                    | Go to step 3, then step 4, which finishes it.                                                  |
+| `instructionsUnchanged` is `false`                    | The review instructions changed in code.                    | Stop and report. A changed prompt needs a new review of every passage.                         |
+
+### 2. Collect
+
+```sh
+python3 -B scripts/people_pipeline.py collect >> .local/people/collect.log 2>&1; echo "exit $?"
+```
+
+It makes one request every 3 seconds, so a run takes from a few minutes to about half an hour. If your tool limits how long a command may run, start it in the background and read the log:
+
+```sh
+tail -n 5 .local/people/collect.log
+```
+
+Expected: exit 0, `Found N links, M already handled`, progress lines, then a JSON summary with `new_items`, `exclusions` and `discovery_notes`. `new_items` may be 0. Exclusions for `outside window` and `byline unverified` are normal.
+
+| Output                                                     | Meaning                                                   | What to do                                                                  |
+| ---------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------- |
+| A discovery note ending in `403`, `robots` or `not a feed` | A feed refused the request, is closed to robots or moved. | Report the feed. Do not change the client name or work around `robots.txt`. |
+| Most links of one person excluded with `page status …`     | That site refused the pages.                              | Report it; the next run tries them again.                                   |
+| `already-running`                                          | Another command uses `.local/people/`.                    | Wait for it to end.                                                         |
+| `Stopped at the request limit`                             | `--max-requests` was given.                               | Run it again without the limit; it continues.                               |
+
+### 3. Queue the new passages and read the estimate
+
+```sh
+python3 -B scripts/people_pipeline.py review --queue-only
+```
+
+Expected: JSON with `newItems`, `newPassages`, `blockedByPrivacyCheck`, `queued` and `estimatedUsd`. It sends nothing and needs no sign-in. Running it twice queues nothing new.
+
+- If `estimatedUsd` is above 1, report `queued` and `estimatedUsd` and ask the owner before step 4.
+- `blockedByPrivacyCheck` counts items whose redacted text still matched a private pattern; they are not sent. Report a number above 0.
+- With `queued` at 0 there is nothing to review: go to step 5.
+
+### 4. Review the new passages
+
+```sh
+.local/hn/venv/bin/python -B scripts/people_pipeline.py review --backend anthropic >> .local/people/review.log 2>&1; echo "exit $?"
+```
+
+This is the paid step. It uses the Hacker News environment's Python, which has Anthropic's package, and the same sign-in as the [Hacker News review](#4-review-the-new-comments). It waits for its batches, usually under an hour, writing a line per batch. If your tool limits how long a command may run, start it in the background and read the log:
+
+```sh
+tail -n 3 .local/people/review.log
+```
+
+Do not start a second copy. Stopping it is safe; batches already sent stay charged and are read by the next run.
+
+| Exit code | Last lines of the log                                                     | Meaning                                                            | What to do                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0         | `{"passage_states": …, "use_records": …}`                                 | Every batch ended and its replies are stored.                      | Go to step 5.                                                                                                                              |
+| 1         | `anthropic-api-credential-missing` or `anthropic-api-credential-failed`   | There is no usable sign-in. Nothing was sent.                      | Ask the owner to run `ant auth login` in a terminal, which opens a browser. Then repeat step 4. Never ask for a key or token in a message. |
+| 1         | `anthropic-package-missing`                                               | The command ran with the system `python3`.                         | Run it exactly as above.                                                                                                                   |
+| 1         | `anthropic-api-unreachable` or `anthropic-api-status-5…`                  | The API could not be reached.                                      | Repeat step 4 later.                                                                                                                       |
+| 1         | `previous-submission-unconfirmed`                                         | A run stopped while creating a batch, which may have been charged. | Stop and report.                                                                                                                           |
+| 1         | `review-checkpoint-methodology-mismatch` or `review-instructions-changed` | The checkpoint was made with other instructions.                   | Stop and report.                                                                                                                           |
+| 1         | `already-running`                                                         | Another command uses `.local/people/`.                             | Wait for it to end.                                                                                                                        |
+| 1         | `interrupted; …`                                                          | The command was stopped.                                           | Repeat step 4.                                                                                                                             |
+
+### 5. Check the result
+
+Run the command from step 1 again. Expected: `queued` 0, every batch `collected`, and `useRecords` and `methodAdvice` at least what they were before. Compare `review.passages.unresolved` with step 1: on 23 November 2026, 335 of 18,345 passages (1.8%) were unresolved. If the unresolved passages grew by more than 3% of the passages sent in step 4, stop and report before anyone builds for publishing.
+
+```sh
+npm run records:build
+```
+
+Expected: the coverage table with a `Use (review)` column, then `Named records (private, behind sign-in): N use records (N left out as advice-only), N method advice, N people.` In a worktree, add `-- --hn-root <main checkout>`.
+
+| Output                                                   | Meaning                                                            | What to do                                                             |
+| -------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `The people review files differ from review-status.json` | The result files were written by another run than the status file. | Run `python3 -B scripts/people_pipeline.py export`, then build again.  |
+| `… its person is not in people.json`                     | A person was removed from `people.json`.                           | Put them back with a `dropped` date and reason; never delete a person. |
+| `… is not in the snapshot`                               | The model list changed since the review.                           | Stop and report.                                                       |
+| `review:<label> is not in the crosswalk`                 | The job list changed without the `review-job` table.               | Add the label to `review-job` in `research/jobs.json` and build again. |
+
+There is nothing to commit. Never copy `build/records/named-private.json` into `dist/` or a commit.
+
+### Adding or dropping a person
+
+People are added and dropped only in the two local files, never in a tracked file, a test or a commit message.
+
+- To add one, append them to `.local/people/people.json` with their feeds, `sourceClass`, `adviceOnly`, `trusted` and `added` (today's date and the reason), and to `.local/people/sources.json` with a new `key`, their `byline` words, `redact` (their name and handles) and a `discover` entry for each feed to read. The format is in the [people pipeline](people-pipeline.md#who-is-collected).
+- To drop one, set `dropped` to today's date and the reason. Keep the entry: their records stay and the build needs their name.
+
+Then run step 1, which checks both files, and the remaining steps.
+
 ## Practitioner findings
 
 Update [the reviewed selection](../research/practitioner-findings.json) by hand from existing reviewed findings. Check each summary, condition, date, attribution and match against the original public comment and the reply context. Keep family or tool mentions at the level the source supports. Use short paraphrases, and check the public download for text or identifiers that should stay private. Set `checkedAt` to the date of the source check. Run `npm test` and `npm run build`, then open an affected page and verify the original and context links. The Data download carries the same selection.
@@ -528,8 +634,9 @@ If a browser is available, open https://ai-model-picker.pages.dev/ and check tha
 
 Nothing is scheduled today. These notes are for whoever sets that up.
 
-- **Safe to run unattended:** [Before any update](#before-any-update), the Hacker News steps 1 to 5, the arXiv steps 1 to 3 and step 1 of [LMArena and Epoch runs](#lmarena-and-epoch-runs). Every decision in them is a comparison of printed values. The review in its step 3 needs a person.
+- **Safe to run unattended:** [Before any update](#before-any-update), the Hacker News steps 1 to 5, the arXiv steps 1 to 3, the [People](#people) steps 1 to 3 and step 1 of [LMArena and Epoch runs](#lmarena-and-epoch-runs). Every decision in them is a comparison of printed values. The review in its step 3 needs a person.
 - **Order:** arXiv and Hacker News are independent and can run one after the other in either order. Do not build for publishing while the Hacker News update is between steps 3 and 5.
+- **People review:** step 4 of [People](#people) is paid and follows the same rules as the Hacker News review: an unattended job needs an API key for that one command and a cost limit the owner set, checked against step 3's estimate.
 - **Exit codes:** for the Hacker News review, exit code 1 with `classification-unresolved` is success. Decide from the step 1 command, not from the exit code alone.
 - **Sign-in:** the `ant auth login` sign-in needs a browser to renew, and the one made on 18 November 2026 stopped working two days later. An unattended job needs an API key supplied through the environment for that one command, as the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api) show with the macOS keychain. Wrangler's sign-in can expire too.
 - **Cost and time:** an update pays for the new comments and for one more attempt at the unresolved ones, so a weekly update costs about the same as seven daily ones. Each update also walks the threads of the last 30 days again and sends two batches, whatever the number of new comments, so frequent small updates repeat that work. Only one update has been timed.

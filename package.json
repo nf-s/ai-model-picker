@@ -11,7 +11,7 @@
     "preview": "vite preview --host 127.0.0.1 --port 5186",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --experimental-strip-types --test tests/*.test.ts tests/*.test.mjs && python3 -B -m unittest discover -s tests -p \"test_records*.py\"",
+    "test": "node --experimental-strip-types --test tests/*.test.ts tests/*.test.mjs && python3 -B -m unittest discover -s tests -p \"test_records*.py\" && python3 -B -m unittest discover -s tests -p \"test_people*.py\"",
     "data:build": "python3 scripts/build-snapshot.py",
     "records:build": "python3 -B scripts/build-records.py",
     "hn:setup": "bash scripts/setup-hn.sh",

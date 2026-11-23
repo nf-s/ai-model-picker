@@ -99,6 +99,8 @@ npm run format:check
 - `src/lib/attribution.ts`: source licences and credits.
 - `scripts/import_lmarena.py`, `scripts/import_epoch.py`, `research/lmarena.json`, `research/epoch-runs.json`, `research/aliases/`: imported LMArena ratings and Epoch runs, and the exact model names each maps to a model id.
 - `scripts/import_openrouter.py`, `research/openrouter-usage.json`: imported OpenRouter usage, which orders nothing.
+- `scripts/people_pipeline.py`, `scripts/people_local/`: collection of practitioners' public writing and its review into use records and method advice, with state in `.local/people/` (not in Git). See [people pipeline](docs/people-pipeline.md).
+- `scripts/build-records.py`, `scripts/records_schema.py`, `src/lib/records.ts`, `research/jobs.json`: the shared record schema, the job list and the records build, which writes `core.json` and, from `.local/people/`, the private `named-private.json`.
 - `src/components/parts.tsx`: shared sentiment bars, weekly chart and comment stream.
 - `src/components/comment-views/`, `src/lib/hn-threads.ts`: the Discussion comment section, which lists comments under their stories and nests them by reply, with its thread loader.
 - `src/lib/site-data.ts`: benchmark standings joined to HN aggregates.

@@ -455,6 +455,87 @@
           "job": null
         }
       ]
+    },
+    "review-job": {
+      "version": 1,
+      "labels": [
+        {
+          "label": "coding",
+          "job": "coding"
+        },
+        {
+          "label": "bug-fix",
+          "job": "bug-fix"
+        },
+        {
+          "label": "refactor",
+          "job": "refactor"
+        },
+        {
+          "label": "review",
+          "job": "review"
+        },
+        {
+          "label": "tests",
+          "job": "tests"
+        },
+        {
+          "label": "interface",
+          "job": "interface"
+        },
+        {
+          "label": "agents",
+          "job": "agents"
+        },
+        {
+          "label": "delegation",
+          "job": "delegation"
+        },
+        {
+          "label": "planning",
+          "job": "planning"
+        },
+        {
+          "label": "extraction",
+          "job": "extraction"
+        },
+        {
+          "label": "research",
+          "job": "research"
+        },
+        {
+          "label": "analysis",
+          "job": "analysis"
+        },
+        {
+          "label": "writing",
+          "job": "writing"
+        },
+        {
+          "label": "reasoning",
+          "job": "reasoning"
+        },
+        {
+          "label": "chat",
+          "job": "chat"
+        },
+        {
+          "label": "images",
+          "job": "images"
+        },
+        {
+          "label": "local",
+          "job": "local"
+        },
+        {
+          "label": "other",
+          "job": null
+        },
+        {
+          "label": "general",
+          "job": null
+        }
+      ]
     }
   },
   "keywords": {

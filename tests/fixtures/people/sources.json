@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "people": [
+    {
+      "name": "Ada Example",
+      "key": "ada",
+      "byline": ["Example"],
+      "bylineInPage": false,
+      "pageByline": false,
+      "bylineNames": false,
+      "redact": ["Ada Example", "adaex"],
+      "discover": [
+        {
+          "kind": "feed",
+          "url": "https://ada.example.com/feed.xml",
+          "channel": "site"
+        },
+        {
+          "kind": "sitemap",
+          "url": "https://ada.example.com/sitemap.xml",
+          "channel": "site",
+          "include": "/posts/",
+          "index": "posts"
+        }
+      ]
+    },
+    {
+      "name": "Basil Sample",
+      "key": "basil",
+      "byline": ["Sample"],
+      "bylineInPage": false,
+      "pageByline": false,
+      "bylineNames": false,
+      "redact": ["Basil Sample"],
+      "discover": [
+        {
+          "kind": "page",
+          "url": "https://basil.example.net/p/survey-results",
+          "channel": "newsletter"
+        }
+      ]
+    },
+    {
+      "name": "Cora Placeholder",
+      "key": "cora",
+      "byline": ["Placeholder"],
+      "bylineInPage": false,
+      "pageByline": true,
+      "bylineNames": false,
+      "redact": ["Cora Placeholder"],
+      "discover": [
+        {
+          "kind": "series",
+          "url": "https://cora.example.org/series.html",
+          "channel": "site",
+          "include": "^https://cora\\.example\\.org/articles/[^#]+\\.html$"
+        },
+        {
+          "kind": "feed",
+          "url": "https://cora.example.org/feed.atom",
+          "channel": "site",
+          "author": "Placeholder"
+        }
+      ]
+    },
+    {
+      "name": "Example Weekly",
+      "key": "weekly",
+      "byline": ["Weekly Review"],
+      "bylineInPage": true,
+      "pageByline": false,
+      "bylineNames": true,
+      "redact": ["Dana Writer", "Eli Editor"],
+      "discover": [
+        {
+          "kind": "feed",
+          "url": "https://weekly.example.com/review/feed",
+          "channel": "outlet article"
+        }
+      ]
+    },
+    {
+      "name": "Dov Dropped",
+      "key": "dov",
+      "byline": ["Dropped"],
+      "bylineInPage": false,
+      "pageByline": false,
+      "bylineNames": false,
+      "redact": ["Dov Dropped"],
+      "discover": [
+        {
+          "kind": "feed",
+          "url": "https://dov.example.com/feed.xml",
+          "channel": "site"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Ada's notes</title>
+    <item>
+      <title>Porting a renderer with Claude Opus 5.5</title>
+      <link>https://ada.example.com/posts/porting-renderer</link>
+      <pubDate>Mon, 09 Nov 2026 22:00:00 -0800</pubDate>
+      <dc:creator>Ada Example</dc:creator>
+      <description>A short excerpt of the post.</description>
+    </item>
+    <item>
+      <title>A guest post</title>
+      <link>https://ada.example.com/posts/guest-post</link>
+      <pubDate>Tue, 10 Nov 2026 09:00:00 +0000</pubDate>
+      <dc:creator>Someone Else</dc:creator>
+      <description>Written by a guest.</description>
+    </item>
+    <item>
+      <title>An unpublished draft</title>
+      <link>https://ada.example.com/drafts/secret</link>
+      <pubDate>Tue, 10 Nov 2026 09:00:00 +0000</pubDate>
+      <description>Not for robots.</description>
+    </item>
+  </channel>
+</rss>
