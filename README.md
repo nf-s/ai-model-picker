@@ -2,6 +2,8 @@
 
 A reference for choosing an AI model. It joins published benchmark results with six months of Hacker News discussion, so a model can be judged on both in one place.
 
+The question it exists to answer is which model to use for a given job. [Goal](docs/goal.md) states what counts as an answer and what the project does not try to do.
+
 - **Board** (home): choose a task. One table ranks models on that task's benchmarks beside HN comment volume, sentiment, its four-week change and sentiment on the matching topic.
 - **Models**: one page per model or family, with its rank on every benchmark, API price, app selections, published reports, selected practitioner findings, weekly sentiment, what people say by theme, which models commenters prefer it to, sentiment by task, and the comments.
 - **Discussion**: every collected comment, filtered by model, sentiment, theme, task, label confidence and period, with a ranking of models inside the current filter. Comments are listed under their stories as one-sentence claims or in full.

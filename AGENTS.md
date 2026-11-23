@@ -2,6 +2,8 @@
 
 This repository is public. The app's data comes from local pipelines and from reviewed research files. [README.md](README.md) describes the layout and [docs/](docs/) the details.
 
+The project's purpose is to help someone decide which model to use for a given job. [docs/goal.md](docs/goal.md) states what counts as an answer. Check a new view, source or review step against it.
+
 To update any data or to publish the site, follow [docs/updating.md](docs/updating.md) step by step. Each step states the command, the expected result and what to do when the result differs. When a step fails in a way it does not cover, stop and report the command and its output.
 
 ## Rules

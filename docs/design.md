@@ -2,6 +2,8 @@
 
 ## Purpose
 
+[Goal](goal.md) states the question the project answers and what counts as an answer. This page describes the current views.
+
 The site answers which model to use by putting two kinds of evidence side by side: published benchmark results and what people on Hacker News report. Every view joins the two. A third, thinner kind sits beside them: which tracked model the abstract of an arXiv evaluation paper ranks first or behind, extracted automatically. There is no synthetic aggregate score; benchmarks keep their own scales and HN labels keep their stated limits.
 
 ## Views
