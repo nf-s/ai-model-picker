@@ -83,6 +83,7 @@ function benchmark(
     source: 'snapshot',
     publishedAt: '',
     attribution: '',
+    rows: null,
   };
 }
 
@@ -125,6 +126,7 @@ function makeCore(): Core {
         { id: 'writing', label: 'Writing', benchmarks: ['arena', 'eci'] },
       ],
       categories: { general: '', coding: 'coding' },
+      guide: [],
     },
     models: ['a', 'b', 'c'].map((id, i) => ({
       id,
@@ -170,6 +172,8 @@ function makeCore(): Core {
         },
         'line|Lab': { coding: { '2026-10': { pricing: [0, 3, 0, 0] } } },
       },
+      weeks: { start: '', count: 0, targets: {} },
+      aspects: {},
       comments: { coding: [1, 2], fix: [3] },
     },
     preferences: [

@@ -67,13 +67,10 @@ export default function App({ access }: { access: Access }) {
   // Named records are requested only with a session (or on the dev server).
   const named = useNamedView(access, core ? core.jobs.list : null);
   const [evidence, setEvidence] = useState<EvidenceSpec | null>(null);
-  // The comment index is requested only by views that list comments; Brief,
-  // Model and Switch count from core.json.
-  const hn = useHnData(
-    route.view === 'board' ||
-      route.view === 'apps' ||
-      evidence?.kind === 'comments',
-  );
+  // The comment index is requested only when a drawer lists comments; every
+  // view counts from core.json, and the model page's thread reader loads it
+  // itself.
+  const hn = useHnData(evidence?.kind === 'comments');
   const closeEvidence = useCallback(() => setEvidence(null), []);
   const setSelection = useCallback(
     (next: ModelFilter) => setFilter({ ...filter, ...next }),
@@ -100,7 +97,9 @@ export default function App({ access }: { access: Access }) {
   );
   const title =
     route.view === 'benchmark'
-      ? (benchmarkById.get(route.id)?.name ?? 'Benchmark')
+      ? (benchmarkById.get(route.id)?.name ??
+        core?.benchmarks.find((entry) => entry.id === route.id)?.name ??
+        'Benchmark')
       : route.view === 'model' && route.target
         ? route.target.kind === 'model'
           ? (modelById.get(route.target.id)?.name ?? 'Model')
@@ -246,7 +245,9 @@ export default function App({ access }: { access: Access }) {
                 scope={scope}
               />
             )}
-            {route.view === 'board' && <Board hn={hn} scope={scope} />}
+            {route.view === 'board' && (
+              <Board coreData={coreData} scope={scope} />
+            )}
             {route.view === 'model' && (
               <Model
                 route={route}
@@ -271,9 +272,16 @@ export default function App({ access }: { access: Access }) {
               />
             )}
             {route.view === 'benchmark' && (
-              <Benchmark key={route.id} id={route.id} scope={scope} />
+              <Benchmark
+                key={route.id}
+                id={route.id}
+                scope={scope}
+                coreData={coreData}
+              />
             )}
-            {route.view === 'apps' && <AppGuide hn={hn} scope={scope} />}
+            {route.view === 'apps' && (
+              <AppGuide coreData={coreData} scope={scope} />
+            )}
             {route.view === 'people' && (
               <People
                 route={route}

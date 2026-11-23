@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { hnThemeSchema } from './hn-published.ts';
+import { hnAspectSchema, hnThemeSchema } from './hn-published.ts';
 import { recordSchema, stances } from './records.ts';
 
 // build/records/core.json as `npm run records:build` writes it. The app reads
@@ -43,7 +43,16 @@ export const coreBenchmarkSchema = z.strictObject({
   source: text,
   publishedAt: z.union([z.literal(''), day]),
   attribution: z.string(),
+  // The rows the source lists, for an imported leaderboard or run; null for
+  // the snapshot's benchmarks.
+  rows: count.nullable(),
 });
+
+// The brief each App guide task links to: a job, or none with the reason.
+export const guideLinkSchema = z.union([
+  z.strictObject({ task: text, job: jobId }),
+  z.strictObject({ task: text, job: z.null(), note: text }),
+]);
 
 const usageTop = z.strictObject({
   modelId: z.string(),
@@ -113,6 +122,7 @@ export const coreSchema = z
       status: z.enum(['draft', 'approved']),
       list: z.array(coreJobSchema).min(1),
       categories: z.record(z.string(), z.union([z.literal(''), jobId])),
+      guide: z.array(guideLinkSchema),
     }),
     models: z.array(
       z.strictObject({
@@ -148,6 +158,14 @@ export const coreSchema = z
           z.record(month, z.partialRecord(hnThemeSchema, tally)),
         ),
       ),
+      // Each exact model's labels per Monday-UTC week from `start`, and per
+      // legacy aspect of the label, for the Board.
+      weeks: z.strictObject({
+        start: z.union([z.literal(''), day]),
+        count,
+        targets: z.record(targetKey, z.array(tally)),
+      }),
+      aspects: z.record(targetKey, z.partialRecord(hnAspectSchema, tally)),
       comments: z.record(
         z.union([z.literal(''), jobId]),
         z.array(z.number().int().positive()),
@@ -181,6 +199,12 @@ export const coreSchema = z
     const benchmarks = new Set(core.benchmarks.map((entry) => entry.id));
     const models = new Set(core.models.map((model) => model.id));
     if (jobs.size !== core.jobs.list.length) issue('a job id is repeated');
+    for (const link of core.jobs.guide)
+      if (link.job !== null && !jobs.has(link.job))
+        issue(`guide task ${link.task}: unknown job`);
+    for (const [key, weeks] of Object.entries(core.crowd.weeks.targets))
+      if (weeks.length !== core.crowd.weeks.count)
+        issue(`${key}: weeks differ in number`);
     for (const job of core.jobs.list) {
       if (job.parent !== undefined && !jobs.has(job.parent))
         issue(`job ${job.id}: unknown parent`);

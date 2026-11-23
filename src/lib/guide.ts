@@ -118,3 +118,37 @@ export function taskOptions(task: GuideTask, mode: ChoiceMode) {
     return chat === (mode === 'chat') ? [{ ...option, choice }] : [];
   });
 }
+
+// The job file's guide table (`jobs.json` → `guide`) and its jobs, as
+// core.json carries them.
+type GuideLinkLike = { task: string; job: string | null };
+type GuideJobLike = { id: string; label: string; guideTask?: string };
+
+// The brief an App guide task links to, or null for a task that describes a
+// way of running rather than a job.
+export function guideBrief(
+  links: readonly GuideLinkLike[],
+  jobs: readonly GuideJobLike[],
+  taskId: string,
+) {
+  const link = links.find((entry) => entry.task === taskId);
+  if (!link || link.job === null) return null;
+  const jobId = link.job;
+  return jobs.find((job) => job.id === jobId) ?? null;
+}
+
+// Guide tasks that link to no brief, and jobs whose brief shows no guide
+// selection.
+export function guideGaps(
+  links: readonly GuideLinkLike[],
+  jobs: readonly GuideJobLike[],
+) {
+  return {
+    tasksWithoutJob: links
+      .filter((link) => link.job === null)
+      .map((link) => link.task),
+    jobsWithoutTask: jobs
+      .filter((job) => job.guideTask === undefined)
+      .map((job) => job.id),
+  };
+}

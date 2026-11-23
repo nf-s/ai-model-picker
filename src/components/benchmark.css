@@ -146,3 +146,29 @@
     gap: 0;
   }
 }
+.rd-bm-nav {
+  flex-direction: column;
+  align-items: stretch;
+}
+.rd-bm-group {
+  display: grid;
+  gap: 4px;
+}
+.rd-bm-group > span,
+.rd-bm-group > summary {
+  color: var(--rd-ink3);
+  font-size: 12px;
+}
+.rd-bm-group > summary {
+  width: fit-content;
+  cursor: pointer;
+}
+.rd-bm-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rd-bm-scale {
+  color: var(--rd-ink);
+  font-weight: 600;
+}

@@ -141,7 +141,9 @@ export function costUnit(benchmarkId: string) {
 }
 
 // A short name for the kind of number a benchmark gives.
-export function benchmarkKind(benchmark: Benchmark) {
+export function benchmarkKind(
+  benchmark: Pick<Benchmark, 'general' | 'scale' | 'unit'>,
+) {
   if (benchmark.general) return 'general index';
   if (benchmark.scale === 'rating')
     return benchmark.unit.includes('IPS')

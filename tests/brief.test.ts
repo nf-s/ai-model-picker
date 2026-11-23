@@ -54,6 +54,7 @@ function benchmark(
     source: scale === 'rating' ? 'lmarena' : 'snapshot',
     publishedAt: scale === 'rating' ? '2026-11-01' : '',
     attribution: '',
+    rows: null,
   };
 }
 
@@ -161,6 +162,7 @@ function makeCore(): Core {
         { id: 'planning', label: 'Planning', benchmarks: [] },
       ],
       categories: { general: '', coding: 'coding', writing: 'writing' },
+      guide: [],
     },
     models: models.map((id) => ({
       id,
@@ -210,6 +212,8 @@ function makeCore(): Core {
         'model|c': { planning: { '2026-10': [5, 4, 0, 0] } },
       },
       themes: {},
+      weeks: { start: '', count: 0, targets: {} },
+      aspects: {},
       comments: { planning: [11, 12] },
     },
     preferences: [

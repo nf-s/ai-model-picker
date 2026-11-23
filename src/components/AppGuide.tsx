@@ -1,6 +1,10 @@
 import { Fragment, useState } from 'react';
 import { ArrowUpRight, ChevronDown, ChevronRight } from 'lucide-react';
-import { guide, taskOptions } from '../lib/guide';
+import { modelKey, plural } from '../lib/brief';
+import type { CoreData } from '../lib/core-client';
+import type { Core } from '../lib/core-schema';
+import { labelTotal } from '../lib/crowd-totals';
+import { guide, guideBrief, taskOptions } from '../lib/guide';
 import type { AppChoice, AppFilter, ChoiceMode, GuideTask } from '../lib/guide';
 import {
   benchmarks,
@@ -9,16 +13,14 @@ import {
   restrictedEvidence,
   results,
 } from '../lib/data';
-import { modelHref } from '../lib/route';
+import { canLoadNamed, useNamedAdvice } from '../lib/named-client';
+import { codingAdviceGroups, namedOrder } from '../lib/named';
+import { modelHref, routeHref } from '../lib/route';
 import { adviceForTask } from '../lib/practitioner';
-import {
-  benchmarkLabel,
-  formatScore,
-  insightFor,
-  modelKey,
-} from '../lib/site-data';
-import type { HnData } from '../lib/site-data';
+import { benchmarkLabel, formatScore } from '../lib/site-data';
 import type { Scope } from '../lib/model-filter';
+import { EvidenceButton } from './EvidenceDrawer';
+import { AdviceCard, NamedUnavailable, namedNote, useNamed } from './Named';
 import PractitionerFindings from './PractitionerFindings';
 import './app-guide.css';
 
@@ -65,15 +67,16 @@ function sourceFor(id: string) {
   return guide.sources.find((entry) => entry.id === id);
 }
 
-function ModelLink({ choice, hn }: { choice: AppChoice; hn: HnData }) {
+// Comment totals come from core.json, so the App guide loads no comment part.
+function ModelLink({ choice, core }: { choice: AppChoice; core: Core | null }) {
   const modelId = choice.modelId;
   if (!modelId) return null;
   const model = models.find((entry) => entry.id === modelId);
-  const total = insightFor(hn, modelKey(modelId))?.total;
+  const total = core ? labelTotal(core, modelKey(modelId)) : 0;
   return (
     <span className="rd-ag-model">
       <a href={modelHref(modelId)}>{model?.name ?? modelId}</a>
-      {hn.status === 'ready' && total ? (
+      {total ? (
         <span className="rd-muted">
           {' '}
           · {total.toLocaleString()} HN comments
@@ -86,11 +89,11 @@ function ModelLink({ choice, hn }: { choice: AppChoice; hn: HnData }) {
 function Choice({
   choice,
   note,
-  hn,
+  core,
 }: {
   choice: AppChoice | undefined;
   note?: string;
-  hn: HnData;
+  core: Core | null;
 }) {
   if (!choice) return <span className="rd-muted">No verified option</span>;
   return (
@@ -98,7 +101,7 @@ function Choice({
       <strong>{choice.name}</strong>
       <span className="rd-ag-setting">{settingText(choice)}</span>
       {note && <span className="rd-ag-setting">{note}</span>}
-      <ModelLink choice={choice} hn={hn} />
+      <ModelLink choice={choice} core={core} />
     </div>
   );
 }
@@ -174,15 +177,16 @@ function Detail({
   task,
   mode,
   app,
-  hn,
+  core,
   onCoding,
 }: {
   task: GuideTask;
   mode: ChoiceMode;
   app: AppFilter;
-  hn: HnData;
+  core: Core | null;
   onCoding: () => void;
 }) {
+  const { access } = useNamed();
   const options = taskOptions(task, mode).filter(
     (option) => app === 'both' || option.choice.planId === app,
   );
@@ -212,7 +216,7 @@ function Detail({
               {option.preferred && (
                 <span className="rd-ag-tag">Suggested start</span>
               )}
-              <ModelLink choice={option.choice} hn={hn} />
+              <ModelLink choice={option.choice} core={core} />
             </div>
             <div>
               <p>{option.when}</p>
@@ -256,7 +260,9 @@ function Detail({
           aria-labelledby={`rd-ag-advice-${task.id}`}
         >
           <h4 className="rd-h" id={`rd-ag-advice-${task.id}`}>
-            Practitioner advice
+            {canLoadNamed(access)
+              ? 'Practitioner advice · hand-checked'
+              : 'Practitioner advice'}
           </h4>
           <PractitionerFindings findings={advice} heading="h5" />
         </section>
@@ -281,7 +287,14 @@ function Detail({
   );
 }
 
-export default function AppGuide({ hn, scope }: { hn: HnData; scope: Scope }) {
+export default function AppGuide({
+  coreData,
+  scope,
+}: {
+  coreData: CoreData;
+  scope: Scope;
+}) {
+  const core = coreData.status === 'ready' ? coreData.core : null;
   const [mode, setMode] = useState<ChoiceMode>('chat');
   const [chosenApp, setApp] = useState<AppFilter>('both');
   const [openTask, setOpenTask] = useState<string | null>(null);
@@ -443,10 +456,11 @@ export default function AppGuide({ hn, scope }: { hn: HnData; scope: Scope }) {
                           )}
                           {task.label}
                         </button>
+                        <BriefLink core={core} taskId={task.id} />
                       </th>
                       {app !== 'claude' && (
                         <td data-label={appName('chatgpt', mode)}>
-                          <Choice choice={chatgpt?.choice} hn={hn} />
+                          <Choice choice={chatgpt?.choice} core={core} />
                         </td>
                       )}
                       {app !== 'chatgpt' && (
@@ -458,7 +472,7 @@ export default function AppGuide({ hn, scope }: { hn: HnData; scope: Scope }) {
                                 ? 'Research only; no manual worker controls'
                                 : undefined
                             }
-                            hn={hn}
+                            core={core}
                           />
                         </td>
                       )}
@@ -483,7 +497,7 @@ export default function AppGuide({ hn, scope }: { hn: HnData; scope: Scope }) {
                             task={task}
                             mode={mode}
                             app={app}
-                            hn={hn}
+                            core={core}
                             onCoding={() => chooseMode('coding')}
                           />
                         </td>
@@ -496,6 +510,114 @@ export default function AppGuide({ hn, scope }: { hn: HnData; scope: Scope }) {
           </table>
         </div>
       </section>
+      {mode === 'coding' && <MethodAdvice core={core} />}
     </div>
+  );
+}
+
+// The brief of the job the task maps to in the job file. A task that
+// describes a way of running links to none.
+function BriefLink({ core, taskId }: { core: Core | null; taskId: string }) {
+  const job = core ? guideBrief(core.jobs.guide, core.jobs.list, taskId) : null;
+  if (!job) return null;
+  return (
+    <a className="rd-ag-brief" href={routeHref({ view: 'brief', job: job.id })}>
+      Brief: {job.label}
+    </a>
+  );
+}
+
+const chatOnlyTasks = new Set(
+  guide.tasks.filter((task) => !task.codingDefault).map((task) => task.id),
+);
+const shownAdvice = 2;
+
+// Practitioners' method advice, for signed-in, granted accounts only. Without
+// a session nothing is requested and one line says it needs sign-in.
+function MethodAdvice({ core }: { core: Core | null }) {
+  const { access, state, trusted, jobLabel } = useNamed();
+  const advice = useNamedAdvice(access, true);
+  const heading = (
+    <h2 className="rd-h" id="rd-ag-method">
+      Method advice
+    </h2>
+  );
+  if (advice.status === 'none' || advice.status === 'sign-in')
+    return (
+      <p className="rd-section">
+        <NamedUnavailable what="Method advice records from more practitioners" />
+      </p>
+    );
+  if (advice.status !== 'ready' || !core)
+    return (
+      <section className="rd-section" aria-labelledby="rd-ag-method">
+        {heading}
+        {advice.status === 'failed' ? (
+          <p className="rd-note" role="alert">
+            Method advice could not be loaded.
+          </p>
+        ) : (
+          <p className="rd-note">Loading method advice…</p>
+        )}
+      </section>
+    );
+  const groups = codingAdviceGroups(
+    advice.value,
+    core.jobs.list,
+    chatOnlyTasks,
+    trusted,
+  );
+  const all = namedOrder(
+    groups.flatMap((group) => group.records),
+    trusted,
+  );
+  const note = `Advice that names no model, grouped by the job the review applied it to: jobs whose App guide task has coding-agent choices or no guide task, then any job. It never counts toward a model or a job. ${namedNote(state)}`;
+  return (
+    <section className="rd-section" aria-labelledby="rd-ag-method">
+      {heading}
+      <p className="rd-note">
+        <EvidenceButton
+          spec={() => ({
+            kind: 'named',
+            title: 'Method advice · coding agents',
+            note,
+            records: all,
+          })}
+        >
+          {plural(all.length, 'piece', 'pieces')} of method advice
+        </EvidenceButton>
+        . {note}
+      </p>
+      <div className="rd-ag-advice">
+        {groups.map((group) => {
+          const label = group.job ? jobLabel(group.job) : 'Any job';
+          return (
+            <section
+              key={group.job || 'any'}
+              className="rd-panel rd-ag-advice-group"
+              aria-label={`Method advice: ${label}`}
+            >
+              <h3 className="rd-h">
+                Applies to: {label}
+                {group.job && <span className="rd-note"> (by review)</span>}
+              </h3>
+              <EvidenceButton
+                spec={() => ({
+                  kind: 'named',
+                  title: `Method advice · ${label}`,
+                  note,
+                  records: group.records,
+                })}
+              >
+                {plural(group.records.length, 'piece', 'pieces')} of advice
+              </EvidenceButton>
+              {group.records.slice(0, shownAdvice).map((record) => (
+                <AdviceCard key={record.id} record={record} />
+              ))}
+            </section>
+          );
+        })}
+      </div>
+    </section>
   );
 }

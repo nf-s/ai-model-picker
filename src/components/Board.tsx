@@ -10,20 +10,21 @@ import { benchmarks, models } from '../lib/data';
 import type { Benchmark, Category, Model } from '../lib/data';
 import { positiveShare, sumWeeks, tallyTotal } from '../lib/hn-insights';
 import type { HnAspect } from '../lib/hn-index';
-import type { TargetInsight } from '../lib/hn-insights';
+import { crowdSummaries } from '../lib/crowd-totals';
+import type { CrowdSummary } from '../lib/crowd-totals';
+import type { CoreData } from '../lib/core-client';
 import { SentimentBar, ShareText, Sparkline } from './parts';
 import {
   benchmarkLabel,
   formatPrice,
   formatScore,
-  insightFor,
   modelKey,
   momentum,
   percent,
   standing,
   standings,
 } from '../lib/site-data';
-import type { HnData, Standing } from '../lib/site-data';
+import type { Standing } from '../lib/site-data';
 import type { Scope } from '../lib/model-filter';
 import { RankNote } from './ModelFilter';
 import { keyHref, modelHref, routeHref } from '../lib/route';
@@ -32,6 +33,11 @@ import './board.css';
 type Task = 'all' | Category;
 type Direction = 'asc' | 'desc';
 type Momentum = ReturnType<typeof momentum>;
+// Each model's Hacker News labels from core.json, so the Board loads no
+// comment part.
+type CrowdState =
+  | { status: 'loading' | 'failed' }
+  | { status: 'ready'; summaries: ReadonlyMap<string, CrowdSummary> };
 
 const categoryOrder: Category[] = [
   'general',
@@ -93,7 +99,7 @@ function topicOf(task: Task) {
 type Fact = {
   model: Model;
   key: string;
-  insight: TargetInsight | null;
+  insight: CrowdSummary | null;
   weekly: number[];
   recent: number;
   change: Momentum;
@@ -101,12 +107,13 @@ type Fact = {
 };
 
 function buildFacts(
-  hn: HnData,
+  crowd: CrowdState,
   results: ReadonlyMap<string, AreaTallies> | null,
 ): Fact[] {
   return models.map((model) => {
     const key = modelKey(model.id);
-    const insight = insightFor(hn, key);
+    const insight =
+      crowd.status === 'ready' ? (crowd.summaries.get(key) ?? null) : null;
     const last = (insight?.weeks.length ?? 0) - 1;
     return {
       model,
@@ -308,12 +315,12 @@ function topInScope(leaders: Omit<Leader, 'rank'>[], scope: Scope): Leader[] {
 function Leaders({
   task,
   facts,
-  hn,
+  crowd,
   scope,
 }: {
   task: Task;
   facts: Fact[];
-  hn: HnData;
+  crowd: CrowdState;
   scope: Scope;
 }) {
   const shown = taskBenchmarks(task);
@@ -374,7 +381,7 @@ function Leaders({
           />
         ))
       )}
-      {hn.status === 'ready' && (
+      {crowd.status === 'ready' && (
         <>
           <LeaderPanel
             title="Most discussed, last 4 weeks"
@@ -477,18 +484,18 @@ function BenchmarkCell({
 }
 
 function HnCell({
-  hn,
+  crowd,
   className,
   children,
 }: {
-  hn: HnData;
+  crowd: CrowdState;
   className: string;
   children: ReactNode;
 }) {
-  if (hn.status !== 'ready')
+  if (crowd.status !== 'ready')
     return (
       <td className={`rd-board-num rd-muted ${className}`}>
-        {hn.status === 'loading' ? '…' : '—'}
+        {crowd.status === 'loading' ? '…' : '—'}
       </td>
     );
   return <td className={`rd-board-num ${className}`}>{children}</td>;
@@ -542,19 +549,19 @@ function PaperCell({
 }
 
 function TopicCell({
-  hn,
+  crowd,
   insight,
   aspect,
 }: {
-  hn: HnData;
-  insight: TargetInsight | null;
+  crowd: CrowdState;
+  insight: CrowdSummary | null;
   aspect: HnAspect;
 }) {
   const tally = insight?.aspects[aspect];
   const count = tally ? tallyTotal(tally) : 0;
   const share = tally ? positiveShare(tally, topicMinimum) : null;
   return (
-    <HnCell hn={hn} className="rd-board-topic">
+    <HnCell crowd={crowd} className="rd-board-topic">
       {count === 0 || !tally ? (
         <Dash />
       ) : (
@@ -577,12 +584,12 @@ function TopicCell({
 function BoardRow({
   fact,
   columns,
-  hn,
+  crowd,
   arxiv,
 }: {
   fact: Fact;
   columns: Column[];
-  hn: HnData;
+  crowd: CrowdState;
   arxiv: ArxivData;
 }) {
   const { model, insight } = fact;
@@ -627,7 +634,11 @@ function BoardRow({
             );
           case 'comments':
             return (
-              <HnCell key={column.id} hn={hn} className="rd-board-comments">
+              <HnCell
+                key={column.id}
+                crowd={crowd}
+                className="rd-board-comments"
+              >
                 {insight ? (
                   <span className="rd-board-pair">
                     <Sparkline values={fact.weekly} width={64} height={18} />
@@ -645,7 +656,11 @@ function BoardRow({
             );
           case 'sentiment':
             return (
-              <HnCell key={column.id} hn={hn} className="rd-board-sentiment">
+              <HnCell
+                key={column.id}
+                crowd={crowd}
+                className="rd-board-sentiment"
+              >
                 {insight ? (
                   <span className="rd-board-pair">
                     <span className="rd-board-sentbar">
@@ -663,7 +678,7 @@ function BoardRow({
               ? Math.round(fact.change.change * 100)
               : 0;
             return (
-              <HnCell key={column.id} hn={hn} className="rd-board-change">
+              <HnCell key={column.id} crowd={crowd} className="rd-board-change">
                 {fact.change ? (
                   <span
                     className={
@@ -687,7 +702,7 @@ function BoardRow({
             return (
               <TopicCell
                 key={column.id}
-                hn={hn}
+                crowd={crowd}
                 insight={insight}
                 aspect={column.aspect}
               />
@@ -698,7 +713,20 @@ function BoardRow({
   );
 }
 
-export default function Board({ hn, scope }: { hn: HnData; scope: Scope }) {
+export default function Board({
+  coreData,
+  scope,
+}: {
+  coreData: CoreData;
+  scope: Scope;
+}) {
+  const crowd = useMemo(
+    (): CrowdState =>
+      coreData.status === 'ready'
+        ? { status: 'ready', summaries: crowdSummaries(coreData.core) }
+        : { status: coreData.status },
+    [coreData],
+  );
   const [task, setTask] = useState<Task>('coding');
   const [query, setQuery] = useState('');
   const [currentOnly, setCurrentOnly] = useState(false);
@@ -715,7 +743,7 @@ export default function Board({ hn, scope }: { hn: HnData; scope: Scope }) {
       arxiv.status === 'ready' ? tallyResults(arxiv.snapshot.papers) : null,
     [arxiv],
   );
-  const facts = useMemo(() => buildFacts(hn, results), [hn, results]);
+  const facts = useMemo(() => buildFacts(crowd, results), [crowd, results]);
   const columns = useMemo(() => buildColumns(task), [task]);
   const eligible = useMemo(
     () =>
@@ -831,7 +859,7 @@ export default function Board({ hn, scope }: { hn: HnData; scope: Scope }) {
         </p>
       </div>
 
-      <Leaders task={task} facts={facts} hn={hn} scope={scope} />
+      <Leaders task={task} facts={facts} crowd={crowd} scope={scope} />
 
       {scope.active && <RankNote />}
 
@@ -876,7 +904,7 @@ export default function Board({ hn, scope }: { hn: HnData; scope: Scope }) {
                   key={fact.model.id}
                   fact={fact}
                   columns={columns}
-                  hn={hn}
+                  crowd={crowd}
                   arxiv={arxiv}
                 />
               ))

@@ -27,6 +27,7 @@ Usage: python3 scripts/build-records.py [--hn-root DIR] [--hn-source auto|checkp
 
 import argparse
 import collections
+import datetime
 import gzip
 import json
 import math
@@ -36,7 +37,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from hn_local.classify import THEMES as HN_THEMES
+from hn_local.classify import ASPECTS as HN_ASPECTS, THEMES as HN_THEMES
 from hn_local.sources import PipelineError
 from hn_local.state import DATABASE
 from people_local.review import (
@@ -52,7 +53,7 @@ DEFAULT_OUT = ROOT / 'build/records/core.json'
 DEFAULT_NAMED_OUT = ROOT / 'build/records/named-private.json'
 LIST_LIMIT = 20
 
-JOB_FILE_FIELDS = {'version', 'status', 'jobs', 'crosswalk', 'keywords', 'surface', 'replaces'}
+JOB_FILE_FIELDS = {'version', 'status', 'jobs', 'crosswalk', 'keywords', 'surface', 'replaces', 'guide'}
 JOB_FIELDS = {'id', 'label', 'parent', 'benchmarks', 'guideTask'}
 CROSSWALK_SOURCES = (
     'hn-task', 'hn-theme', 'report-category', 'benchmark',
@@ -234,6 +235,7 @@ class Jobs:
                     check(benchmark in benchmark_ids, f'job {job_id}: benchmark {benchmark} does not exist')
             if 'guideTask' in job:
                 check(job['guideTask'] in guide_tasks, f'job {job_id}: App guide task {job["guideTask"]} does not exist')
+        self.guide = self.check_guide(data['guide'], guide_tasks, check)
 
         replaces = data['replaces']
         need(type(replaces) is dict, 'replaces is not an object')
@@ -298,6 +300,40 @@ class Jobs:
 
         need(not problems, 'The job file is not valid:\n  ' + '\n  '.join(problems))
         self.current = current
+
+    def check_guide(self, guide, guide_tasks, check):
+        """The brief each App guide task links to. Every guide task is listed once, with the job whose
+        guideTask names it, or with no job and a note saying why; a task with no job is never the guide
+        task of a job."""
+        need(type(guide) is dict and set(guide) == {'version', 'tasks'} and type(guide['tasks']) is list,
+             'guide is not a version and a list of tasks')
+        check(type(guide['version']) is int, 'guide version is not an integer')
+        by_id = {job.get('id'): job for job in self.jobs}
+        pointed = collections.defaultdict(list)
+        for job in self.jobs:
+            if 'guideTask' in job:
+                pointed[job['guideTask']].append(job.get('id'))
+        out, listed = [], set()
+        for entry in guide['tasks']:
+            if not check(type(entry) is dict and {'task', 'job'} <= set(entry) <= {'task', 'job', 'note'}
+                         and is_text(entry['task']), 'guide: an entry is not a task, a job and an optional note'):
+                continue
+            task, job_id = entry['task'], entry['job']
+            check(task in guide_tasks, f'guide: App guide task {task} does not exist')
+            check(task not in listed, f'guide: {task} is listed twice')
+            listed.add(task)
+            if job_id is None:
+                check(is_text(entry.get('note')) and entry['note'].strip(), f'guide: {task} has no job and no note')
+                check(not pointed[task], f'guide: {task} has no job, but {", ".join(pointed[task])} names it as guide task')
+                out.append({'task': task, 'job': None, 'note': entry.get('note', '')})
+                continue
+            check('note' not in entry, f'guide: {task} has a job and a note')
+            if check(job_id in by_id, f'guide: {task} links to {job_id}, which is not a job'):
+                check(by_id[job_id].get('guideTask') == task, f'guide: {task} links to {job_id}, whose guide task is {by_id[job_id].get("guideTask")}')
+            out.append({'task': task, 'job': job_id})
+        for task in sorted(guide_tasks - listed):
+            check(False, f'guide: App guide task {task} is not listed')
+        return out
         self.parents = {job['id']: job.get('parent', '') for job in jobs}
 
     def label(self, source, value):
@@ -515,6 +551,7 @@ def imported_benchmarks(kind, data, jobs):
             'source': kind,
             'publishedAt': entry.get('publishedAt', ''),
             'attribution': data['source']['attribution'],
+            'rows': entry['rows'],
         })
     return out
 
@@ -734,6 +771,8 @@ def check_comment(comment):
         need(assessment.get('sentiment') in HN_STANCE, f'hn:{comment["id"]}: unknown sentiment')
         themes = assessment.get('themes', [])
         need(type(themes) is list and all(theme in HN_THEMES for theme in themes), f'hn:{comment["id"]}: unknown theme')
+        aspects = assessment.get('aspects', [])
+        need(type(aspects) is list and all(aspect in HN_ASPECTS for aspect in aspects), f'hn:{comment["id"]}: unknown aspect')
     for preference in comment.get('prefers', []):
         for side in ('winner', 'loser'):
             need(preference[side].get('kind') in HN_KEY_KINDS, f'hn:{comment["id"]}: unknown preference target')
@@ -741,6 +780,38 @@ def check_comment(comment):
 
 def hn_key(target):
     return HN_KEY_KINDS[target['kind']] + '|' + target['target']
+
+
+def comment_time(comment):
+    time = datetime.datetime.fromisoformat(comment['createdAt'].replace('Z', '+00:00'))
+    return time.astimezone(datetime.timezone.utc) if time.tzinfo else time.replace(tzinfo=datetime.timezone.utc)
+
+
+def weekly_counts(comments):
+    """Each exact model's labels per week, in Monday-UTC weeks from the Monday on or before the first
+    comment, as the comment index buckets them, and per legacy aspect of the label. The Board reads
+    these, so it needs no comment part."""
+    if not comments:
+        return {'start': '', 'count': 0, 'targets': {}}, {}
+    times = {comment['id']: comment_time(comment) for comment in comments}
+    first = min(times.values())
+    origin = datetime.datetime(first.year, first.month, first.day, tzinfo=datetime.timezone.utc) - datetime.timedelta(days=first.weekday())
+    week = datetime.timedelta(weeks=1)
+    count = (max(times.values()) - origin) // week + 1
+    weeks = {}
+    aspects = collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0, 0, 0]))
+    for comment in comments:
+        number = (times[comment['id']] - origin) // week
+        for assessment in comment['assessments']:
+            key = hn_key(assessment)
+            if not key.startswith('model|'):
+                continue
+            stance = STANCES.index(HN_STANCE[assessment['sentiment']])
+            weeks.setdefault(key, [[0, 0, 0, 0] for _ in range(count)])[number][stance] += 1
+            for aspect in assessment.get('aspects', []):
+                aspects[key][aspect][stance] += 1
+    return ({'start': origin.date().isoformat(), 'count': count, 'targets': dict(sorted(weeks.items()))},
+            {key: {aspect: aspects[key][aspect] for aspect in HN_ASPECTS if aspect in aspects[key]} for key in sorted(aspects)})
 
 
 def crowd(hn, records, model_ids):
@@ -810,7 +881,8 @@ def crowd(hn, records, model_ids):
             })
     need(not unknown_models, 'Hacker News names models that are not in the snapshot:\n  ' + '\n  '.join(
         f'{model}: {", ".join(ids[:LIST_LIMIT])}' for model, ids in sorted(unknown_models.items())))
-    return rows, {'counts': counts, 'themes': theme_counts}, preferences, {
+    weeks, aspects = weekly_counts(hn['comments'])
+    return rows, {'counts': counts, 'themes': theme_counts, 'weeks': weeks, 'aspects': aspects}, preferences, {
         job: sorted(ids) for job, ids in sorted(comment_ids.items())}
 
 
@@ -1091,7 +1163,8 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
                 'labels': sum(len(record['keys']) for record in hn_rows),
             },
         },
-        'jobs': {'version': job_data['version'], 'status': job_data['status'], 'list': jobs.jobs, 'categories': categories},
+        'jobs': {'version': job_data['version'], 'status': job_data['status'], 'list': jobs.jobs, 'categories': categories,
+                 'guide': jobs.guide},
         'models': [
             {
                 'id': model['id'],
@@ -1121,12 +1194,13 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
                 'source': 'snapshot',
                 'publishedAt': '',
                 'attribution': '',
+                'rows': None,
             }
             for benchmark in snapshot['benchmarks']
         ] + [entry for kind in IMPORTED for entry in imported_benchmarks(kind, imported[kind], jobs)],
         'measured': measured,
         'crowd': {'stances': list(STANCES), 'counts': counts, 'themes': aggregates['themes'],
-                  'comments': comment_ids},
+                  'weeks': aggregates['weeks'], 'aspects': aggregates['aspects'], 'comments': comment_ids},
         'preferences': preferences,
         'coverage': {'sources': list(sources), 'rows': rows},
         'usage': None if usage is None else usage_block(usage, jobs),

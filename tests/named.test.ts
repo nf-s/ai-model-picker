@@ -8,6 +8,7 @@ import { evidenceByJob, findTarget } from '../src/lib/model-page.ts';
 import {
   articlesOf,
   basisText,
+  codingAdviceGroups,
   indexNamed,
   moveTrusted,
   namedAdviceSchema,
@@ -92,6 +93,7 @@ function makeCore(): Core {
         { id: 'writing', label: 'Writing', benchmarks: [] },
       ],
       categories: { coding: 'coding' },
+      guide: [],
     },
     models: ['a', 'b', 'c'].map((id) => ({
       id,
@@ -119,6 +121,7 @@ function makeCore(): Core {
         source: 'snapshot',
         publishedAt: '',
         attribution: '',
+        rows: null,
       },
     ],
     measured: [result('a', 70), result('b', 60), result('c', 40)],
@@ -126,6 +129,8 @@ function makeCore(): Core {
       stances: ['positive', 'critical', 'mixed', 'neutral'],
       counts: {},
       themes: {},
+      weeks: { start: '', count: 0, targets: {} },
+      aspects: {},
       comments: {},
     },
     preferences: [],
@@ -651,5 +656,48 @@ test('a visitor without a session requests nothing', async () => {
   await assert.rejects(
     requestNamed(signedIn, async () => new Response('{}', { status: 500 })) ??
       Promise.resolve(),
+  );
+});
+
+test('App guide method advice: grouped by what it applies to, trusted people first', () => {
+  const jobs = [
+    { id: 'coding', guideTask: 'bug-fixes' },
+    { id: 'bug-fix', guideTask: 'bug-fixes' },
+    { id: 'writing', guideTask: 'writing' },
+    { id: 'planning' },
+  ];
+  const records = [
+    { ...advice(1, ada, 'bug-fix'), date: '2026-10-01' },
+    { ...advice(2, cleo, 'bug-fix'), date: '2026-11-01' },
+    advice(3, cleo, 'writing'),
+    advice(4, ada, ''),
+    advice(5, cleo, 'planning'),
+    advice(6, ada, 'coding'),
+  ];
+  const groups = codingAdviceGroups(
+    namedAdviceSchema.parse({ version: 1, advice: records }).advice,
+    jobs,
+    new Set(['writing']),
+    [ada],
+  );
+  // Job file order; a job answered in chat apps only is left out; any job last.
+  assert.deepEqual(
+    groups.map((group) => group.job),
+    ['coding', 'bug-fix', 'planning', ''],
+  );
+  // The trusted person comes first even with older advice.
+  assert.deepEqual(
+    groups[1]?.records.map((record) => record.person),
+    [ada, cleo],
+  );
+  const untrusted = codingAdviceGroups(
+    namedAdviceSchema.parse({ version: 1, advice: records }).advice,
+    jobs,
+    new Set(['writing']),
+    [],
+  );
+  assert.deepEqual(
+    untrusted[1]?.records.map((record) => record.person),
+    [cleo, ada],
   );
 });

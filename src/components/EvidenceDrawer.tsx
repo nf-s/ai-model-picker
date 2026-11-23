@@ -24,7 +24,7 @@ import { emptyFilter } from '../lib/hn-insights';
 import { dollars } from '../lib/metrics';
 import type { NamedRecord } from '../lib/named';
 import type { EvidenceRecord } from '../lib/records';
-import { modelHref } from '../lib/route';
+import { modelHref, routeHref } from '../lib/route';
 import type { HnData } from '../lib/site-data';
 import { NamedCard } from './Named';
 import { CommentStream } from './parts';
@@ -270,7 +270,10 @@ function MeasuredRecord({
       <p>{record.text}</p>
       {benchmark && (
         <p className="rd-note">
-          Measures: {benchmark.what} ({benchmarkKind(benchmark)})
+          <a href={routeHref({ view: 'benchmark', id: benchmark.id })}>
+            {benchmark.name}
+          </a>{' '}
+          measures: {benchmark.what} ({benchmarkKind(benchmark)})
         </p>
       )}
       {details.length > 0 && <p className="rd-note">{details.join(' · ')}</p>}

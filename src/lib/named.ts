@@ -573,6 +573,31 @@ export function personAdvice(
   );
 }
 
+// Method advice for the App guide's Coding agents mode, grouped by what the
+// review applied it to: each job in the job file's order, except jobs whose
+// App guide task is answered in chat apps only, then advice for any job.
+// Within a group, trusted people first (see namedOrder).
+export function codingAdviceGroups(
+  advice: readonly AdviceRecord[],
+  jobs: readonly { id: string; guideTask?: string }[],
+  chatOnlyTasks: ReadonlySet<string>,
+  trusted: readonly string[],
+) {
+  const shown = jobs
+    .filter((job) => !job.guideTask || !chatOnlyTasks.has(job.guideTask))
+    .map((job) => job.id);
+  const byJob = new Map<string, AdviceRecord[]>();
+  for (const record of advice) {
+    const list = byJob.get(record.job);
+    if (list) list.push(record);
+    else byJob.set(record.job, [record]);
+  }
+  return [...shown, ''].flatMap((job) => {
+    const records = byJob.get(job);
+    return records ? [{ job, records: namedOrder(records, trusted) }] : [];
+  });
+}
+
 // ---- Trusted people --------------------------------------------------------------
 
 export const trustedStorageKey = 'model-picker:trusted-people';

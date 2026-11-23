@@ -255,7 +255,7 @@ function preferenceIn(insight: TargetInsight, other: string) {
   return tally;
 }
 
-function emptyAspects(): Record<HnAspect, Tally> {
+export function emptyAspects(): Record<HnAspect, Tally> {
   return {
     coding: emptyTally(),
     reliability: emptyTally(),

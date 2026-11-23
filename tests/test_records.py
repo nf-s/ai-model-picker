@@ -35,6 +35,7 @@ JOBS = json.loads((ROOT / 'research/jobs.json').read_text(encoding='utf-8'))
 CLASSIFIER = json.loads((ROOT / 'research/hn-classifier-check.json').read_text(encoding='utf-8'))['classifierId']
 IMPORTED = {kind: json.loads(path.read_text(encoding='utf-8')) for kind, path in build['IMPORTED'].items()}
 IMPORTED_COUNT = sum(len(data['results']) for data in IMPORTED.values())
+IMPORTED_LIST = {'lmarena': 'leaderboards', 'epoch': 'files'}
 USAGE = json.loads(build['USAGE'].read_text(encoding='utf-8'))
 MODEL = 'gpt-6-astra'
 START = 1_780_000_000
@@ -200,6 +201,54 @@ class TestJobFile(unittest.TestCase):
                 change(self.jobs)
                 self.refused(message)
 
+    def test_every_guide_task_is_listed_once_and_agrees_with_the_jobs(self):
+        core, _ = self.build()
+        tasks = [task['id'] for task in GUIDE['tasks']]
+        self.assertEqual([entry['task'] for entry in core['jobs']['guide']], tasks)
+        by_id = {entry['id']: entry for entry in core['jobs']['list']}
+        for entry in core['jobs']['guide']:
+            with self.subTest(task=entry['task']):
+                if entry['job'] is None:
+                    self.assertTrue(entry['note'].strip())
+                    self.assertFalse([j['id'] for j in core['jobs']['list'] if j.get('guideTask') == entry['task']])
+                else:
+                    self.assertEqual(by_id[entry['job']].get('guideTask'), entry['task'])
+
+    def test_broken_guide_table(self):
+        def entry(data, task):
+            return next(item for item in data['guide']['tasks'] if item['task'] == task)
+        cases = [
+            (lambda d: d['guide']['tasks'].pop(0), 'guide: App guide task quick-answers is not listed'),
+            (lambda d: d['guide']['tasks'].append({'task': 'novels', 'job': None, 'note': 'x'}), 'guide: App guide task novels does not exist'),
+            (lambda d: d['guide']['tasks'].append(dict(entry(d, 'writing'))), 'guide: writing is listed twice'),
+            (lambda d: entry(d, 'writing').update(job='chat'), 'guide: writing links to chat, whose guide task is quick-answers'),
+            (lambda d: entry(d, 'writing').update(job='poems'), 'guide: writing links to poems, which is not a job'),
+            (lambda d: entry(d, 'writing').update(job=None, note='x'), 'guide: writing has no job, but writing names it as guide task'),
+            (lambda d: entry(d, 'subagents').pop('note'), 'guide: subagents has no job and no note'),
+            (lambda d: entry(d, 'writing').update(note='x'), 'guide: writing has a job and a note'),
+            (lambda d: job(d, 'agents').update(guideTask='subagents'), 'guide: subagents has no job, but agents names it as guide task'),
+        ]
+        for change, message in cases:
+            with self.subTest(message=message):
+                self.jobs = copy.deepcopy(JOBS)
+                change(self.jobs)
+                self.refused(message)
+
+    def test_weekly_counts_for_exact_models(self):
+        core, _ = self.build()
+        hn = hn_export()
+        hn['comments'][0]['assessments'][0]['aspects'] = ['coding']
+        core, _ = build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
+        weeks = core['crowd']['weeks']
+        # 3 September 2026 is a Thursday; its week starts on Monday 31 August.
+        self.assertEqual((weeks['start'], weeks['count']), ('2026-08-31', 5))
+        self.assertEqual(list(weeks['targets']), ['model|' + MODEL])
+        self.assertEqual(weeks['targets']['model|' + MODEL], [[0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0]])
+        self.assertEqual(core['crowd']['aspects'], {'model|' + MODEL: {'coding': [1, 0, 0, 0]}})
+        hn['comments'][0]['assessments'][0]['aspects'] = ['typing']
+        with self.assertRaises(BuildError):
+            build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
+
 
 class TestImported(unittest.TestCase):
     """The LMArena and Epoch files as records."""
@@ -233,6 +282,11 @@ class TestImported(unittest.TestCase):
                     self.assertIn(record['x']['b'], benchmarks)
                     self.assertTrue(benchmarks[record['x']['b']]['what'])
                     self.assertEqual(len(record['keys']), 1)
+                listed = {entry['id']: entry for entry in IMPORTED[kind][IMPORTED_LIST[kind]]}
+                for benchmark_id, entry in listed.items():
+                    self.assertEqual(benchmarks[benchmark_id]['rows'], entry['rows'])
+                    self.assertEqual(sum(record['x']['b'] == benchmark_id for record in rows), entry['kept'])
+        self.assertTrue(all(benchmark['rows'] is None for benchmark in core['benchmarks'] if benchmark['source'] == 'snapshot'))
         arena = [record for record in records.values() if record['src'] == 'arena']
         self.assertTrue(all('Preference votes, not a pass rate' in record['cond'] for record in arena))
         self.assertTrue(all(record['x']['interval'] and record['x']['trials'] for record in arena))

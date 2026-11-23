@@ -45,15 +45,13 @@
     {
       "id": "agents",
       "label": "Long agent runs",
-      "benchmarks": ["terminal-bench-4-1"],
-      "guideTask": "subagents"
+      "benchmarks": ["terminal-bench-4-1"]
     },
     {
       "id": "delegation",
       "label": "Parallel agents and delegation",
       "parent": "agents",
-      "benchmarks": [],
-      "guideTask": "subagents"
+      "benchmarks": []
     },
     {
       "id": "planning",
@@ -688,5 +686,22 @@
       "ChatGPT": "chat-app"
     }
   },
-  "replaces": {}
+  "replaces": {},
+  "guide": {
+    "version": 1,
+    "tasks": [
+      { "task": "quick-answers", "job": "chat" },
+      { "task": "writing", "job": "writing" },
+      { "task": "research", "job": "research" },
+      { "task": "web-apps", "job": "interface" },
+      { "task": "bug-fixes", "job": "bug-fix" },
+      { "task": "reasoning", "job": "reasoning" },
+      { "task": "images", "job": "images" },
+      {
+        "task": "subagents",
+        "job": null,
+        "note": "A way of running: several agents at once. It is not a job, so it links to no brief."
+      }
+    ]
+  }
 }

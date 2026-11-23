@@ -19,16 +19,16 @@ import {
 } from '../lib/brief';
 import type { Benchmark, BriefData, BriefFilters, Tally } from '../lib/brief';
 import type { CoreData } from '../lib/core-client';
+import { hnTally } from '../lib/crowd-totals';
 import type { HnTheme } from '../lib/hn-index';
 import { themeLabel } from '../lib/hn-insights';
-import type { Tally as HnTally } from '../lib/hn-insights';
 import { dollars } from '../lib/metrics';
 import { keyLabel, preferencePairs } from '../lib/model-page';
 import { namedBand, outcomeTally } from '../lib/named';
 import type { NamedRecord } from '../lib/named';
 import type { EvidenceRecord } from '../lib/records';
 import { routeHref } from '../lib/route';
-import { benchmarkById as pageBenchmarks, percent } from '../lib/site-data';
+import { percent } from '../lib/site-data';
 import { EvidenceButton } from './EvidenceDrawer';
 import type { EvidenceSpec } from './EvidenceDrawer';
 import {
@@ -58,15 +58,7 @@ export const allJobs: BandJob = { id: null, label: 'All jobs' };
 export const indexKey = (key: string) =>
   key.startsWith('line|') ? `family:${key.slice(5)}` : key.replace('|', ':');
 
-export function hnTally(tally: Tally): HnTally {
-  return {
-    positive: tally[0],
-    negative: tally[1],
-    mixed: tally[2],
-    neutral: tally[3],
-    unclear: 0,
-  };
-}
+export { hnTally };
 
 export function tallyNote(tally: Tally) {
   const [positive, critical, mixed, neutral] = tally;
@@ -105,13 +97,11 @@ export function commentSpec(
 export const preferenceIds = (preferences: readonly { id: string }[]) =>
   new Set(preferences.map((preference) => Number(preference.id.slice(3))));
 
+// Every benchmark in the records, and every restricted one shown to an
+// approved account, has a Benchmark page.
 export function BenchmarkName({ benchmark }: { benchmark: Benchmark }) {
-  return pageBenchmarks.has(benchmark.id) ? (
+  return (
     <a href={routeHref({ view: 'benchmark', id: benchmark.id })}>
-      {benchmark.name}
-    </a>
-  ) : (
-    <a href={benchmark.url} target="_blank" rel="noopener noreferrer">
       {benchmark.name}
     </a>
   );
@@ -318,6 +308,7 @@ export function MeasuredBand({
             return (
               <li key={record.id}>
                 <span className="rd-band-line">
+                  <BenchmarkName benchmark={benchmark} />
                   <EvidenceButton
                     spec={() =>
                       measuredSpec(
@@ -327,9 +318,8 @@ export function MeasuredBand({
                       )
                     }
                   >
-                    {benchmark.name}
+                    <strong>{scoreText(score, benchmark)}</strong>
                   </EvidenceButton>
-                  <strong>{scoreText(score, benchmark)}</strong>
                 </span>
                 <span className="rd-note">
                   {[

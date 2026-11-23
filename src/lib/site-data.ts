@@ -232,12 +232,6 @@ export function useModelFilter() {
   return { filter, setFilter: change };
 }
 
-export function insightFor(data: HnData, key: string): TargetInsight | null {
-  return data.status === 'ready'
-    ? (data.insights.targets.get(key) ?? null)
-    : null;
-}
-
 const dayFormat = new Intl.DateTimeFormat('en-AU', {
   day: 'numeric',
   month: 'short',
@@ -251,7 +245,11 @@ export function weekLabel(weekStart: string) {
 // Positive share in the latest `span` weeks against the `span` weeks before.
 // Null unless both periods have at least `minimum` clearly positive or
 // negative comments.
-export function momentum(insight: TargetInsight, span = 4, minimum = 10) {
+export function momentum(
+  insight: Pick<TargetInsight, 'weeks'>,
+  span = 4,
+  minimum = 10,
+) {
   const last = insight.weeks.length - 1;
   const recent = positiveShare(
     sumWeeks(insight.weeks, last - span + 1, last),

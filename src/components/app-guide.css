@@ -147,6 +147,27 @@
   align-items: center;
   gap: 8px 12px;
 }
+.rd-ag-brief {
+  display: block;
+  margin: 3px 0 0 18px;
+  font-size: 12px;
+  font-weight: 400;
+}
+.rd-ag-advice {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  gap: 12px;
+}
+.rd-ag-advice-group {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-width: 0;
+  padding: 12px 14px;
+}
+.rd-ag-advice-group > .rd-evidence {
+  justify-self: start;
+}
 @media (max-width: 760px) {
   .rd-ag-plans {
     grid-template-columns: minmax(0, 1fr);

@@ -154,6 +154,8 @@ class TestNamed(unittest.TestCase):
         for rule in jobs['keywords']['rules']:
             rule['job'] = 'web-interface' if rule['job'] == 'interface' else rule['job']
             rule['within'] = ['web-interface' if job == 'interface' else job for job in rule['within']]
+        for entry in jobs['guide']['tasks']:
+            entry['job'] = 'web-interface' if entry['job'] == 'interface' else entry['job']
         jobs['replaces'] = {'interface': {'job': 'web-interface'}}
         records = by_id(named(jobs=jobs))
         self.assertEqual((records[f'ur:{ADA}/1']['job'], records[f'ur:{ADA}/1']['via']), ('web-interface', 'review:interface'))
