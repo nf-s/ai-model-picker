@@ -97,6 +97,7 @@ npm run format:check
 - `server/`, `functions/`: Google sign-in and `/api/restricted` as Pages Functions. See [Google sign-in](server/auth/README.md).
 - `.local/restricted/` (not in Git): benchmarks that cannot be republished. Without it the app shows public data only; `npm run data:build` and the Pages deploy need it.
 - `src/lib/attribution.ts`: source licences and credits.
+- `scripts/import_lmarena.py`, `scripts/import_epoch.py`, `research/lmarena.json`, `research/epoch-runs.json`, `research/aliases/`: imported LMArena ratings and Epoch runs, and the exact model names each maps to a model id.
 - `src/components/parts.tsx`: shared sentiment bars, weekly chart and comment stream.
 - `src/components/comment-views/`, `src/lib/hn-threads.ts`: the Discussion comment section, which lists comments under their stories and nests them by reply, with its thread loader.
 - `src/lib/site-data.ts`: benchmark standings joined to HN aggregates.
@@ -120,18 +121,20 @@ The code, documentation, app guide and report summaries were generated almost en
 
 Original code and documentation are dedicated to the public domain under [CC0 1.0](LICENSE), without warranty. Data from other publishers keeps its own terms, and its credit must stay with it when reused:
 
-| Source                                                                           | Material                                                              | Terms                                                         |
-| -------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------- |
-| [Epoch AI](https://epoch.ai/eci)                                                 | Epoch Capabilities Index scores                                       | CC BY 4.0                                                     |
-| [SWE-rebench](https://huggingface.co/datasets/nebius/SWE-rebench-leaderboard)    | Leaderboard results (Badertdinov et al., 2025, arXiv:2505.20411)      | CC BY 4.0                                                     |
-| [TokenSave](https://tokensave.app/data/claude-effort-cost)                       | Effort, cost and coding experiment datasets                           | CC BY 4.0                                                     |
-| [Terminal-Bench](https://www.tbench.ai/)                                         | Leaderboard runs                                                      | Apache-2.0 (benchmark code)                                   |
-| [Plato Web Clone Bench](https://plato.so/research/web-clone-bench/)              | Results                                                               | No data licence stated; cited with a link                     |
-| [Contra Labs](https://contralabs.com/research) and other report publishers       | Findings from published reports                                       | Summarised in this project's words with a link to each report |
-| [Hacker News](https://github.com/HackerNews/API)                                 | Comment and story IDs, timestamps, and comment text loaded on request | Provided by Y Combinator; comments belong to their authors    |
-| [open-index/hacker-news](https://huggingface.co/datasets/open-index/hacker-news) | Archive used to find comments                                         | ODC-By 1.0                                                    |
-| [arXiv](https://info.arxiv.org/help/api/tou.html)                                | Paper titles, identifiers, dates and categories                       | CC0 1.0 (metadata)                                            |
-| OpenAI, Anthropic, Google, DeepSeek and xAI                                      | API prices, model specifications and app documentation                | Quoted from public documentation with links                   |
-| Instrument Sans, Newsreader                                                      | Typefaces in `public/fonts/`                                          | SIL Open Font License 1.1                                     |
+| Source                                                                           | Material                                                                     | Terms                                                         |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| [Epoch AI](https://epoch.ai/eci)                                                 | Epoch Capabilities Index scores                                              | CC BY 4.0                                                     |
+| [Epoch AI](https://epoch.ai/benchmarks/use-this-data)                            | Results of Epoch's own benchmark runs (not the external results it copies)   | CC BY 4.0                                                     |
+| [LMArena](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset)        | Arena leaderboard dataset: ratings, confidence bounds, vote counts and ranks | CC BY 4.0                                                     |
+| [SWE-rebench](https://huggingface.co/datasets/nebius/SWE-rebench-leaderboard)    | Leaderboard results (Badertdinov et al., 2025, arXiv:2505.20411)             | CC BY 4.0                                                     |
+| [TokenSave](https://tokensave.app/data/claude-effort-cost)                       | Effort, cost and coding experiment datasets                                  | CC BY 4.0                                                     |
+| [Terminal-Bench](https://www.tbench.ai/)                                         | Leaderboard runs                                                             | Apache-2.0 (benchmark code)                                   |
+| [Plato Web Clone Bench](https://plato.so/research/web-clone-bench/)              | Results                                                                      | No data licence stated; cited with a link                     |
+| [Contra Labs](https://contralabs.com/research) and other report publishers       | Findings from published reports                                              | Summarised in this project's words with a link to each report |
+| [Hacker News](https://github.com/HackerNews/API)                                 | Comment and story IDs, timestamps, and comment text loaded on request        | Provided by Y Combinator; comments belong to their authors    |
+| [open-index/hacker-news](https://huggingface.co/datasets/open-index/hacker-news) | Archive used to find comments                                                | ODC-By 1.0                                                    |
+| [arXiv](https://info.arxiv.org/help/api/tou.html)                                | Paper titles, identifiers, dates and categories                              | CC0 1.0 (metadata)                                            |
+| OpenAI, Anthropic, Google, DeepSeek and xAI                                      | API prices, model specifications and app documentation                       | Quoted from public documentation with links                   |
+| Instrument Sans, Newsreader                                                      | Typefaces in `public/fonts/`                                                 | SIL Open Font License 1.1                                     |
 
 The full credit lines and the changes made to each source are in [`src/lib/attribution.ts`](src/lib/attribution.ts) and on the app's Data page. Thank you to arXiv for use of its open access interoperability. This project was not reviewed or approved by arXiv. Product names are trademarks of their owners.

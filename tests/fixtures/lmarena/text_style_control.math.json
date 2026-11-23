@@ -1,0 +1,54 @@
+[
+  {
+    "model_name": "DeepSeek-V4.1-Flash-20260910 (Max)",
+    "organization": "deepseek",
+    "license": "MIT",
+    "rating": 1494.8312593163541,
+    "rating_lower": 1472.9217724213981,
+    "rating_upper": 1516.7407462113101,
+    "variance": 124.95919868106596,
+    "vote_count": 687.0,
+    "rank": 27,
+    "category": "math",
+    "leaderboard_publish_date": "2026-11-22"
+  },
+  {
+    "model_name": "GPT-6.2 Sol (Max)",
+    "organization": "openai",
+    "license": "Proprietary",
+    "rating": 1482.5675832923566,
+    "rating_lower": 1446.0914745924138,
+    "rating_upper": 1519.0436919922995,
+    "variance": 346.35448874853154,
+    "vote_count": 244.0,
+    "rank": 38,
+    "category": "math",
+    "leaderboard_publish_date": "2026-11-22"
+  },
+  {
+    "model_name": "Claude Opus 4.8",
+    "organization": "anthropic",
+    "license": "Proprietary",
+    "rating": 1474.8475811609487,
+    "rating_lower": 1463.81723315287,
+    "rating_upper": 1485.877929169028,
+    "variance": 31.67249288835227,
+    "vote_count": 3018.0,
+    "rank": 52,
+    "category": "math",
+    "leaderboard_publish_date": "2026-11-22"
+  },
+  {
+    "model_name": "DeepSeek-V4-Pro (High, 20260813)",
+    "organization": "deepseek",
+    "license": "MIT",
+    "rating": 1448.33371849394,
+    "rating_lower": 1419.948805218361,
+    "rating_upper": 1476.718631769519,
+    "variance": 209.73888808121126,
+    "vote_count": 391.0,
+    "rank": 89,
+    "category": "math",
+    "leaderboard_publish_date": "2026-11-22"
+  }
+]

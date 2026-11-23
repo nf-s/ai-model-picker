@@ -1,6 +1,7 @@
 """Check the records build: the record validator, the job file checks, stable ids and read-only inputs."""
 
 import builtins
+import collections
 import contextlib
 import copy
 import hashlib
@@ -26,11 +27,14 @@ BuildError = build['BuildError']
 build_core = build['build_core']
 main = build['main']
 read_json = build['read_json']
+slug = build['slug']
 
 SNAPSHOT = json.loads((ROOT / 'src/lib/snapshot.json').read_text(encoding='utf-8'))
 GUIDE = json.loads((ROOT / 'research/app-model-choices.json').read_text(encoding='utf-8'))
 JOBS = json.loads((ROOT / 'research/jobs.json').read_text(encoding='utf-8'))
 CLASSIFIER = json.loads((ROOT / 'research/hn-classifier-check.json').read_text(encoding='utf-8'))['classifierId']
+IMPORTED = {kind: json.loads(path.read_text(encoding='utf-8')) for kind, path in build['IMPORTED'].items()}
+IMPORTED_COUNT = sum(len(data['results']) for data in IMPORTED.values())
 MODEL = 'gpt-6-astra'
 START = 1_780_000_000
 END = START + 1000
@@ -96,8 +100,8 @@ class TestValidator(unittest.TestCase):
                         self.assertRaises(RecordError, check, value)
 
     def test_every_built_record_is_valid(self):
-        _core, records = build_core(SNAPSHOT, GUIDE, JOBS, hn_export())
-        self.assertEqual(len(records), len(SNAPSHOT['results']) + len(SNAPSHOT['reports']) + 3)
+        _core, records = build_core(SNAPSHOT, GUIDE, JOBS, hn_export(), IMPORTED)
+        self.assertEqual(len(records), len(SNAPSHOT['results']) + len(SNAPSHOT['reports']) + IMPORTED_COUNT + 3)
         for record in records:
             check_record(record)
 
@@ -107,7 +111,7 @@ class TestJobFile(unittest.TestCase):
         self.jobs = copy.deepcopy(JOBS)
 
     def build(self):
-        core, records = build_core(SNAPSHOT, GUIDE, self.jobs, hn_export())
+        core, records = build_core(SNAPSHOT, GUIDE, self.jobs, hn_export(), IMPORTED)
         return core, {record['id']: record for record in records}
 
     def refused(self, *expected):
@@ -188,21 +192,111 @@ class TestJobFile(unittest.TestCase):
                 self.refused(message)
 
 
+class TestImported(unittest.TestCase):
+    """The LMArena and Epoch files as records."""
+
+    def setUp(self):
+        self.imported = copy.deepcopy(IMPORTED)
+        self.jobs = copy.deepcopy(JOBS)
+
+    def build(self):
+        core, records = build_core(SNAPSHOT, GUIDE, self.jobs, hn_export(), self.imported)
+        return core, {record['id']: record for record in records}
+
+    def refused(self, *expected):
+        with self.assertRaises(BuildError) as raised:
+            self.build()
+        for text in expected:
+            self.assertIn(text, str(raised.exception))
+
+    def test_imported_records(self):
+        core, records = self.build()
+        benchmarks = {benchmark['id']: benchmark for benchmark in core['benchmarks']}
+        for kind, prefix, src in (('lmarena', 'la:', 'arena'), ('epoch', 'ep:', 'benchmark')):
+            with self.subTest(source=kind):
+                rows = [record for record in records.values() if record['id'].startswith(prefix)]
+                self.assertEqual(len(rows), len(IMPORTED[kind]['results']))
+                self.assertEqual(core['sources'][kind]['records'], len(rows))
+                for record in rows:
+                    self.assertEqual((record['cls'], record['src'], record['how']), ('measured', src, 'label'))
+                    self.assertEqual(record['checked'], IMPORTED[kind]['checkedAt'])
+                    self.assertTrue(record['date'] or kind == 'epoch')
+                    self.assertIn(record['x']['b'], benchmarks)
+                    self.assertTrue(benchmarks[record['x']['b']]['what'])
+                    self.assertEqual(len(record['keys']), 1)
+        arena = [record for record in records.values() if record['src'] == 'arena']
+        self.assertTrue(all('Preference votes, not a pass rate' in record['cond'] for record in arena))
+        self.assertTrue(all(record['x']['interval'] and record['x']['trials'] for record in arena))
+
+    def test_ratings_and_percentages_never_share_a_benchmark(self):
+        core, _records = self.build()
+        for benchmark in core['benchmarks']:
+            with self.subTest(benchmark=benchmark['id']):
+                if benchmark['source'] == 'lmarena':
+                    self.assertEqual(benchmark['scale'], 'rating')
+                    self.assertNotIn('%', benchmark['unit'])
+                    self.assertIn('Preference votes, not a pass rate', benchmark['what'])
+                else:
+                    self.assertNotEqual(benchmark['scale'], 'rating')
+
+    def test_jobs_follow_the_crosswalk(self):
+        core, records = self.build()
+        for kind, prefix, table, field in (('lmarena', 'la:', 'arena-leaderboard', 'leaderboard'), ('epoch', 'ep:', 'epoch-run', 'file')):
+            with self.subTest(source=kind):
+                crosswalk = {entry['label']: entry['job'] for entry in JOBS['crosswalk'][table]['labels']}
+                expected = collections.Counter(crosswalk[result[field]] for result in IMPORTED[kind]['results'])
+                actual = collections.Counter(record['job'] for record in records.values() if record['id'].startswith(prefix))
+                self.assertEqual(actual, expected)
+        arena = sum(row['counts']['arena'] for row in core['coverage']['rows'])
+        self.assertEqual(arena, len(IMPORTED['lmarena']['results']))
+
+    def test_unreviewed_import_stops_the_build(self):
+        self.imported['lmarena']['checkedAt'] = ''
+        self.refused('lmarena.json: checkedAt is not set')
+
+    def test_a_model_outside_the_snapshot_stops_the_build(self):
+        self.imported['epoch']['results'][0]['modelId'] = 'new-model'
+        self.refused('model new-model is not in the snapshot')
+
+    def test_unmapped_leaderboard_or_file_stops_the_build(self):
+        for table, label, expected in (
+            ('arena-leaderboard', 'agent/overall', ('arena:agent/overall is not in the crosswalk', 'la:agent/overall/')),
+            ('epoch-run', 'mirrorcode', ('epoch-run:mirrorcode is not in the crosswalk', 'ep:mirrorcode/')),
+        ):
+            with self.subTest(label=label):
+                self.jobs = copy.deepcopy(JOBS)
+                self.jobs['crosswalk'][table]['labels'].remove(crosswalk_entry(self.jobs, table, label))
+                self.refused(*expected)
+
+    def test_arena_benchmark_must_say_it_is_not_a_pass_rate(self):
+        self.imported['lmarena']['leaderboards'][0]['what'] = 'Ratings from votes.'
+        self.refused('does not say its ratings are preference votes, not a pass rate')
+
+    def test_job_benchmarks_must_be_imported(self):
+        board = 'lmarena-search_style_control-overall'
+        data = self.imported['lmarena']
+        data['leaderboards'] = [entry for entry in data['leaderboards'] if entry['id'] != board]
+        data['results'] = [result for result in data['results'] if result['leaderboard'] != 'search_style_control/overall']
+        self.refused(f'job research: benchmark {board} does not exist')
+
+
 class TestStableIds(unittest.TestCase):
     def test_ids_come_from_the_sources(self):
-        core, records = build_core(SNAPSHOT, GUIDE, JOBS, hn_export())
+        core, records = build_core(SNAPSHOT, GUIDE, JOBS, hn_export(), IMPORTED)
         expected = (
             ['bm:' + result['id'] for result in SNAPSHOT['results']]
             + ['rp:' + report['id'] for report in SNAPSHOT['reports']]
+            + [f'la:{r["leaderboard"]}/{slug(r["model"])}/{r["date"]}' for r in IMPORTED['lmarena']['results']]
+            + [f'ep:{r["file"]}/{r["model"]}' for r in IMPORTED['epoch']['results']]
         )
         self.assertEqual([record['id'] for record in core['measured']], expected)
         self.assertEqual(sorted(record['id'] for record in records if record['src'] == 'hn'), ['hn:101', 'hn:102', 'hn:103'])
 
     def test_input_order_does_not_change_the_output(self):
-        first, _ = build_core(SNAPSHOT, GUIDE, JOBS, hn_export())
+        first, _ = build_core(SNAPSHOT, GUIDE, JOBS, hn_export(), IMPORTED)
         hn = hn_export()
         hn['comments'].reverse()
-        second, _ = build_core(SNAPSHOT, GUIDE, copy.deepcopy(JOBS), hn)
+        second, _ = build_core(SNAPSHOT, GUIDE, copy.deepcopy(JOBS), hn, IMPORTED)
         self.assertEqual(json.dumps(first), json.dumps(second))
 
 

@@ -9,6 +9,7 @@ Nothing updates on its own. Each source is updated separately, and the published
 | Hacker News comments                       | [Hacker News comments](#hacker-news-comments)                                                 | Paid: about 5 US cents per 1,000 new comments | No                   |
 | arXiv papers                               | [arXiv papers](#arxiv-papers)                                                                 | Free                                          | No                   |
 | Benchmarks, prices, reports, the app guide | [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide) | Free, but someone has to read the sources     | Yes                  |
+| LMArena ratings and Epoch runs             | [LMArena and Epoch runs](#lmarena-and-epoch-runs)                                             | Free                                          | Yes                  |
 | Practitioner findings                      | [Practitioner findings](#practitioner-findings)                                               | Free for existing reviewed findings           | Yes                  |
 | Expert articles                            | [Expert articles](#expert-articles)                                                           | Free for existing verified articles           | No                   |
 | Published site                             | [Publish](#publish)                                                                           | Free                                          | No                   |
@@ -232,6 +233,7 @@ The model list is the `models` array in `src/lib/snapshot.json`. It changes when
 
 - **arXiv:** the next `npm run arxiv:run` matches every stored paper again, without reading arXiv, in a few minutes. A paper whose matched models change loses its label until labelling runs again: on 21 November 2026, 22 new models left 18 labelled papers unlabelled. Nothing else is needed.
 - **Hacker News:** the reviewed run keeps being served, but `extend` refuses it with `checkpoint-configuration-mismatch` until it is retargeted, because it was scanned for the old names. Retargeting keeps every review, scans the six months again for the new names (free) and reviews only the comments that are new or that name a new model (paid). It does not work if a model `id` that some comment was reviewed for was removed: keep such models in the list.
+- **LMArena and Epoch runs:** an imported result or alias that names a model no longer in the list stops `npm run records:build` and the importers. A new model has no imported results until its exact source name is added as an alias. In both cases, run [LMArena and Epoch runs](#lmarena-and-epoch-runs) again after the change.
 
 To retarget the Hacker News run, first make sure it is finished (step 1 of [Hacker News comments](#hacker-news-comments)) and copy the checkpoint (step 2). Then:
 
@@ -266,6 +268,83 @@ To retarget the Hacker News run, first make sure it is finished (step 1 of [Hack
 Until step 3 finishes, the local app shows the older analysis kept in `.local/hn/` and `npm run build:pages` stops with "Could not export the current Hacker News checkpoint." Do not publish in between.
 
 A new full run, which reviews every comment again, is needed only after a change to the review itself, such as its prompt or classifier. Through the Anthropic API the first one cost about US$7 and took about two hours. Start one only when the owner asks; the steps are in the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api).
+
+## LMArena and Epoch runs
+
+This imports the latest Arena leaderboard dataset from Hugging Face and the results of Epoch AI's own benchmark runs. Both are free, need no key and no sign-in, and change only tracked files: `research/lmarena.json`, `research/epoch-runs.json` and, when you add names, `research/aliases/lmarena.json` and `research/aliases/epoch.json`. Neither importer adds a model or changes `src/lib/snapshot.json`: a name that has no alias is listed and left out. What each file holds is in [data provenance](data.md#lmarena-and-epoch-runs).
+
+### 1. Import
+
+```sh
+python3 -B scripts/import_lmarena.py
+```
+
+```sh
+python3 -B scripts/import_epoch.py
+```
+
+Expected for each: `Downloading into` and a new folder under `.local/imports/`, a table with the rows read and the results kept per leaderboard or file, `Wrote … N results.`, then the names that matched no alias, one per line. The LMArena import makes about 50 requests to the Hugging Face datasets server, half a second apart; the Epoch import downloads one ZIP of about 2 MB. On 23 November 2026 the LMArena import kept 391 results from 16 leaderboards and the Epoch import 193 from 8 files. Leave the download folders in place; the owner removes old ones.
+
+| Output                                                                                                                   | Meaning                                                                        | What to do                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `HTTP 429`, `HTTP 5xx` or a connection error                                                                             | The source could not be read after four tries. Nothing was written.            | Run it again later.                                                                 |
+| `the row count changed while paging`                                                                                     | The dataset was republished during the import. Nothing was written.            | Run it again. If it repeats, stop and report.                                       |
+| `the dataset licence is now …`, `the README no longer gives the CC BY 4.0 licence` or `the README citation has changed`  | The source's terms or citation changed. Nothing was written.                   | Stop and report.                                                                    |
+| `columns missing`, `is not a number`, `rows from N publish dates`, `no rows` or any other message naming a row or a file | The source's format changed. Nothing was written.                              | Stop and report.                                                                    |
+| `… names <id>, which is not in the snapshot`                                                                             | An alias points to a model that has left the model list. Nothing was written.  | Remove that alias, or put the model back through the benchmark refresh, and repeat. |
+| `… has an alias but is listed N times`                                                                                   | The leaderboard lists one name twice, so the alias cannot say which row it is. | Stop and report.                                                                    |
+
+### 2. Add aliases for exact matches
+
+Read the unmatched names. Add a name to the `aliases` table of `research/aliases/lmarena.json` or `research/aliases/epoch.json` only when it names exactly a model in `src/lib/snapshot.json`, read with the table's `rule`. The importer itself takes out the effort setting and harness of an LMArena name (`GPT-6.2 Sol (Max)` is looked up as `GPT-6.2 Sol`) and the reasoning setting of an Epoch version (`gpt-6.2-astra_high` as `gpt-6.2-astra`). Never take out anything else: a date, a version, a size, a quantisation, a provider suffix or a resolution marks a different release, which stays out. A model that is not in the model list stays out too. Adding one goes through [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide) and then [When the model list changes](#when-the-model-list-changes).
+
+After changing an alias table, run the importer again on the same download, without fetching:
+
+```sh
+python3 -B scripts/import_lmarena.py --from .local/imports/lmarena/<folder from step 1>
+```
+
+```sh
+python3 -B scripts/import_epoch.py --from .local/imports/epoch/<folder from step 1>
+```
+
+Expected: the same table, with more results kept and the added names gone from the unmatched list.
+
+### 3. Review the import
+
+```sh
+git diff --stat research/lmarena.json research/epoch-runs.json
+```
+
+Read the diff. Each leaderboard's `publishedAt` and `rows`, and each file's `rows`, say what the source published; a result that appears or disappears should follow from a new publication date, a new run or an alias you changed. Open three or more changed results at their source (each leaderboard's `url` opens the dataset viewer; each Epoch result has its `log` link or the file's `url`) and compare the score, interval, count, rank and date. Then set `checkedAt` at the top of each file you reviewed to today's date. The importer leaves it empty, and `npm run records:build` stops on an empty one.
+
+### 4. Update the attribution lines
+
+Each file's `source.attribution` must appear word for word as the `credit` of its entry in `src/lib/attribution.ts`: LMArena's names the publication dates of the leaderboards read, Epoch's the date of the download. Copy the new line into `src/lib/attribution.ts` when it changed. `npm test` fails until they agree.
+
+### 5. Build and check
+
+```sh
+npm run records:build
+```
+
+Expected: the coverage table, which has an Arena column, then `LMArena: N records, fetched <date>, checked <date>.` and `Epoch runs: N records, …` with the counts from step 1 or 2. In a worktree, add `-- --hn-root <main checkout>` (see [data provenance](data.md#shared-records-and-the-job-list)).
+
+| Output                                             | Meaning                                                                 | What to do                                                                                                                                                    |
+| -------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkedAt is not set`                             | Step 3 was skipped.                                                     | Do step 3.                                                                                                                                                    |
+| `arena:… is not in the crosswalk` or `epoch-run:…` | The importer now reads a leaderboard or file the job file does not map. | Add it to `arena-leaderboard` or `epoch-run` in `research/jobs.json` with its job (or `null`), and to a job's `benchmarks` if it should set that job's order. |
+| `model … is not in the snapshot`                   | The model list changed after the import.                                | Run step 1 again.                                                                                                                                             |
+
+```sh
+npm test
+```
+
+```sh
+npm run format && npm run format:check
+```
+
+Commit the changed files under `research/` and `src/lib/attribution.ts` by name. The site shows the new ratings and runs only after it is built and published.
 
 ## Practitioner findings
 
@@ -378,7 +457,7 @@ If a browser is available, open https://ai-model-picker.pages.dev/ and check tha
 
 Nothing is scheduled today. These notes are for whoever sets that up.
 
-- **Safe to run unattended:** [Before any update](#before-any-update), the Hacker News steps 1 to 5 and the arXiv steps 1 to 3. Every decision in them is a comparison of printed values.
+- **Safe to run unattended:** [Before any update](#before-any-update), the Hacker News steps 1 to 5, the arXiv steps 1 to 3 and step 1 of [LMArena and Epoch runs](#lmarena-and-epoch-runs). Every decision in them is a comparison of printed values. The review in its step 3 needs a person.
 - **Order:** arXiv and Hacker News are independent and can run one after the other in either order. Do not build for publishing while the Hacker News update is between steps 3 and 5.
 - **Exit codes:** for the Hacker News review, exit code 1 with `classification-unresolved` is success. Decide from the step 1 command, not from the exit code alone.
 - **Sign-in:** the `ant auth login` sign-in needs a browser to renew, and the one made on 18 November 2026 stopped working two days later. An unattended job needs an API key supplied through the environment for that one command, as the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api) show with the macOS keychain. Wrangler's sign-in can expire too.

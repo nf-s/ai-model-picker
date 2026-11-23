@@ -1,0 +1,47 @@
+[
+  {
+    "model_name": "Claude Fable 5.2 (Max)",
+    "organization": "anthropic",
+    "license": "Proprietary",
+    "score": 0.27443718394748495,
+    "score_ci_lower": 0.2444369856893015,
+    "score_ci_upper": 0.3044373822056684,
+    "observation_count": 2888793.0,
+    "session_count": 12418.0,
+    "rank": 1,
+    "category": "overall",
+    "leaderboard_publish_date": "2026-11-22",
+    "cost_per_task_p50": 9.1481334,
+    "output_tokens_per_task_p50": 127542.0
+  },
+  {
+    "model_name": "Kimi K3.1 Pro (Max)",
+    "organization": "moonshot",
+    "license": "Kimi K3.1 Pro License",
+    "score": 0.03922965546904197,
+    "score_ci_lower": 0.027946658950558673,
+    "score_ci_upper": 0.05051265198752526,
+    "observation_count": 6307520.0,
+    "session_count": 22066.0,
+    "rank": 24,
+    "category": "overall",
+    "leaderboard_publish_date": "2026-11-22",
+    "cost_per_task_p50": null,
+    "output_tokens_per_task_p50": null
+  },
+  {
+    "model_name": "Gemini 3.1 Pro Preview",
+    "organization": "google",
+    "license": "Proprietary",
+    "score": -0.05613495356719122,
+    "score_ci_lower": -0.07367853386124842,
+    "score_ci_upper": -0.038591373273134014,
+    "observation_count": 3000921.0,
+    "session_count": 87227.0,
+    "rank": 52,
+    "category": "overall",
+    "leaderboard_publish_date": "2026-11-22",
+    "cost_per_task_p50": 0.6731065,
+    "output_tokens_per_task_p50": 13679.0
+  }
+]

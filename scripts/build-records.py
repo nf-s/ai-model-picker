@@ -1,7 +1,8 @@
 """Build the shared evidence records into core.json and print job coverage.
 
 Reads, and never writes: src/lib/snapshot.json (models, benchmark results and published
-reports), research/app-model-choices.json (App guide tasks), research/jobs.json (jobs,
+reports), research/lmarena.json and research/epoch-runs.json (imported arena ratings and
+Epoch runs), research/app-model-choices.json (App guide tasks), research/jobs.json (jobs,
 crosswalk, keyword rules) and Hacker News, from the local checkpoint when there is one,
 else from the published export in dist/. Restricted benchmarks are not read.
 
@@ -18,6 +19,7 @@ import argparse
 import collections
 import gzip
 import json
+import math
 import re
 import runpy
 import sqlite3
@@ -28,7 +30,7 @@ from hn_local.sources import PipelineError
 from hn_local.state import DATABASE
 from records_schema import (
     DATE_PATTERN, FIELDS, JOB_PATTERN, RUNS, SETTINGS, STANCES, SURFACES, RecordError, check_record, is_date,
-    is_text,
+    is_text, is_url,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,8 +45,29 @@ CROSSWALK_SOURCES = (
 )
 # The sources this build loads. A label missing from a strict table stops the build;
 # Hacker News themes are optional, so a theme without an entry gives no job.
-LOADED_CROSSWALKS = ('hn-task', 'hn-theme', 'report-category', 'benchmark')
-STRICT_CROSSWALKS = ('hn-task', 'report-category', 'benchmark')
+LOADED_CROSSWALKS = ('hn-task', 'hn-theme', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run')
+STRICT_CROSSWALKS = ('hn-task', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run')
+IMPORTED = {'lmarena': ROOT / 'research/lmarena.json', 'epoch': ROOT / 'research/epoch-runs.json'}
+IMPORT_FIELDS = {
+    'lmarena': ({'source', 'fetchedAt', 'checkedAt', 'leaderboards', 'results'}, 'leaderboards', 'leaderboard'),
+    'epoch': ({'source', 'fetchedAt', 'checkedAt', 'files', 'results'}, 'files', 'file'),
+}
+BENCHMARK_FIELDS = {
+    'lmarena': {'id', 'leaderboard', 'name', 'what', 'unit', 'scale', 'countOf', 'url', 'publishedAt', 'rows', 'kept'},
+    'epoch': {'id', 'file', 'name', 'what', 'unit', 'scale', 'url', 'rows', 'kept'},
+}
+RESULT_FIELDS = {
+    'lmarena': {'leaderboard', 'model', 'modelId', 'effort', 'tool', 'score', 'lower', 'upper', 'count', 'rank', 'date'},
+    'epoch': {'file', 'model', 'modelId', 'effort', 'score', 'mean', 'stderr', 'date', 'log', 'run'},
+}
+AGENT_FIELDS = {'sessions', 'costPerTask'}
+METHODOLOGY = {
+    'lmarena': 'Bradley-Terry rating from pairwise votes between anonymous models on visitors\' own prompts, '
+               'latest published leaderboard; compares models on the same leaderboard and date only.',
+    'lmarena-agent': 'Inverse-propensity score from real agent sessions; compares models on the same leaderboard '
+                     'and date only.',
+    'epoch': "Epoch AI's own run; best score across scorers; the interval is 1.96 standard errors either side.",
+}
 HN_STANCE = {'positive': 'positive', 'negative': 'critical', 'mixed': 'mixed', 'neutral': 'neutral', 'unclear': 'neutral'}
 HN_KEY_KINDS = {'model': 'model', 'family': 'line'}
 
@@ -121,6 +144,11 @@ def effort_in(text):
 
 def tokens(name):
     return re.findall(r'[a-z]+|[0-9]+(?:\.[0-9]+)*', name.lower())
+
+
+def slug(name):
+    """A source's model name as it appears in a record id: 'GPT-6.2 Sol (Max)' -> 'gpt-6.2-sol-max'."""
+    return re.sub(r'[^a-z0-9.]+', '-', name.lower()).strip('-')
 
 
 # ---- The job file ---------------------------------------------------------------------
@@ -361,6 +389,167 @@ def measured_records(snapshot, records):
     return out
 
 
+# ---- Imported measured sources -----------------------------------------------------------
+
+
+def number(value):
+    return type(value) in (int, float) and math.isfinite(value)
+
+
+def check_imported(kind, data, model_ids):
+    """Raise BuildError unless `data` is a reviewed import of `kind` whose models are all in the snapshot."""
+    name = IMPORTED[kind].name
+    fields, list_field, label_field = IMPORT_FIELDS[kind]
+    need(type(data) is dict and set(data) == fields, f'{name}: fields differ from {sorted(fields)}')
+    source = data['source']
+    need(type(source) is dict and is_text(source.get('attribution')) and source['attribution'].endswith('Licensed under CC BY 4.0.'),
+         f'{name}: no CC BY 4.0 attribution line')
+    need(is_date(data['fetchedAt']), f'{name}: fetchedAt is not a date')
+    need(is_date(data['checkedAt']), f'{name}: checkedAt is not set; review the import and set it (docs/updating.md)')
+    entries = data[list_field]
+    need(type(entries) is list and entries, f'{name}: no {list_field}')
+    labels, agent_labels = set(), set()
+    for entry in entries:
+        need(type(entry) is dict and set(entry) == BENCHMARK_FIELDS[kind], f'{name}: a {label_field} entry has other fields')
+        for field in ('id', 'name', 'what', 'unit', 'scale', 'url', label_field):
+            need(is_text(entry[field]) and entry[field], f'{name}: {entry.get("id")} has no {field}')
+        need(entry['id'] not in labels and entry[label_field] not in labels, f'{name}: {entry["id"]} is listed twice')
+        labels.update((entry['id'], entry[label_field]))
+        if kind == 'lmarena':
+            need(entry['scale'] == 'rating' and 'Preference votes, not a pass rate' in entry['what'],
+                 f'{name}: {entry["id"]} does not say its ratings are preference votes, not a pass rate')
+            need(is_date(entry['publishedAt']), f'{name}: {entry["id"]} has no publish date')
+            need(entry['countOf'] in ('votes', 'observations'), f'{name}: {entry["id"]} counts neither votes nor observations')
+            if entry['countOf'] == 'observations':
+                agent_labels.add(entry[label_field])
+        else:
+            need(entry['scale'] == 'percent', f'{name}: {entry["id"]} is not a percentage')
+    results = data['results']
+    need(type(results) is list, f'{name}: results is not a list')
+    for result in results:
+        need(type(result) is dict, f'{name}: a result is not an object')
+        where = f'{name}: {result.get(label_field)} {result.get("model")}'
+        expected = RESULT_FIELDS[kind] | (AGENT_FIELDS if result.get(label_field) in agent_labels else set())
+        need(set(result) == expected, f'{where}: fields differ')
+        need(result[label_field] in labels, f'{where}: unknown {label_field}')
+        need(result['modelId'] in model_ids, f'{where}: model {result["modelId"]} is not in the snapshot')
+        need(is_text(result['model']) and result['model'] and is_text(result['effort']), f'{where}: no model name')
+        if kind == 'lmarena':
+            need(is_text(result['tool']), f'{where}: tool is not text')
+        else:
+            need(number(result['mean']) and is_text(result['run']) and result['run'], f'{where}: mean or run missing')
+        if AGENT_FIELDS <= set(result):
+            need(type(result['sessions']) is int and (result['costPerTask'] is None or number(result['costPerTask'])),
+                 f'{where}: sessions or cost per task is not a number')
+        need(number(result['score']), f'{where}: score is not a number')
+        need(result['date'] == '' or is_date(result['date']), f'{where}: date is not a date')
+        if kind == 'lmarena':
+            need(number(result['lower']) and number(result['upper']) and result['lower'] <= result['score'] <= result['upper'],
+                 f'{where}: the score is outside its interval')
+            need(type(result['count']) is int and type(result['rank']) is int and is_date(result['date']),
+                 f'{where}: count, rank or date missing')
+        else:
+            need(result['stderr'] is None or number(result['stderr']), f'{where}: stderr is not a number')
+            need(result['log'] == '' or is_url(result['log']), f'{where}: the log link is not a link')
+
+
+def imported_benchmarks(kind, data, jobs):
+    crosswalk = 'arena-leaderboard' if kind == 'lmarena' else 'epoch-run'
+    label_field = IMPORT_FIELDS[kind][2]
+    out = []
+    for entry in data[IMPORT_FIELDS[kind][1]]:
+        agent = entry.get('countOf') == 'observations'
+        out.append({
+            'id': entry['id'],
+            'name': entry['name'],
+            'category': jobs.label(crosswalk, entry[label_field]) or '',
+            'general': False,
+            'unit': entry['unit'],
+            'scale': entry['scale'],
+            'what': entry['what'],
+            'methodology': METHODOLOGY['lmarena-agent' if agent else kind],
+            'costMethod': "Median cost per task from the arena's sessions." if agent else '',
+            'url': entry['url'],
+            'source': kind,
+            'publishedAt': entry.get('publishedAt', ''),
+            'attribution': data['source']['attribution'],
+        })
+    return out
+
+
+def arena_records(data, records, names):
+    boards = {board['leaderboard']: board for board in data['leaderboards']}
+    out = []
+    for result in data['results']:
+        board = boards[result['leaderboard']]
+        effort = f' ({result["effort"]})' if result['effort'] else ''
+        counted = f'{result["count"]:,} {board["countOf"]}'
+        if 'sessions' in result:
+            counted += f' in {result["sessions"]:,} sessions'
+        out.append(records.make(
+            records.jobs.label('arena-leaderboard', board['leaderboard']), 'arena:' + board['leaderboard'], None,
+            id=f'la:{board["leaderboard"]}/{slug(result["model"])}/{result["date"]}',
+            cls='measured',
+            src='arena',
+            keys=[['model|' + result['modelId'], 'neutral']],
+            text=f'{names[result["modelId"]]}{effort}: {board["unit"]} {result["score"]}, rank {result["rank"]} on {board["name"]}',
+            cond=f'Preference votes, not a pass rate; relative to this leaderboard on {result["date"]}. '
+                 f'{counted}. Listed as {result["model"]}.',
+            tool=result['tool'],
+            effort=result['effort'],
+            date=result['date'],
+            url=board['url'],
+            title=board['name'],
+            kind='arena rating',
+            checked=data['checkedAt'],
+            x={
+                'b': board['id'],
+                'score': result['score'],
+                'unit': board['unit'],
+                'config': result['model'],
+                'interval': f'{result["lower"]}–{result["upper"]} · confidence bounds from the dataset',
+                'trials': result['count'],
+                'rank': result['rank'],
+                **({'sessions': result['sessions'], 'cost': result['costPerTask']} if 'sessions' in result else {}),
+            },
+        ))
+    return out
+
+
+def epoch_records(data, records, names):
+    files = {entry['file']: entry for entry in data['files']}
+    out = []
+    for result in data['results']:
+        entry = files[result['file']]
+        effort = f' ({result["effort"]})' if result['effort'] else ''
+        stderr = result['stderr']
+        out.append(records.make(
+            records.jobs.label('epoch-run', entry['file']), 'epoch-run:' + entry['file'], None,
+            id=f'ep:{entry["file"]}/{result["model"]}',
+            cls='measured',
+            src='benchmark',
+            keys=[['model|' + result['modelId'], 'neutral']],
+            text=f'{names[result["modelId"]]}{effort}: {result["score"]}% on {entry["name"]}',
+            cond="Epoch AI's own run" + ('' if result['effort'] else '; reasoning setting not stated'),
+            effort=result['effort'],
+            date=result['date'],
+            url=result['log'] or entry['url'],
+            title=entry['name'],
+            kind='benchmark result',
+            checked=data['checkedAt'],
+            x={
+                'b': entry['id'],
+                'score': result['score'],
+                'unit': '%',
+                'config': result['model'],
+                'interval': '' if stderr is None else f'±{round(stderr * 1.96, 1)} · 95% interval from the standard error',
+                'mean': result['mean'],
+                'run': result['run'],
+            },
+        ))
+    return out
+
+
 # ---- Hacker News -----------------------------------------------------------------------
 
 
@@ -465,13 +654,24 @@ def crowd(hn, records, model_ids):
 # ---- Core ------------------------------------------------------------------------------
 
 
-def build_core(snapshot, guide, job_data, hn):
-    """Return (core, records) for the given inputs, or raise BuildError."""
-    benchmark_ids = {benchmark['id'] for benchmark in snapshot['benchmarks']}
-    jobs = Jobs(job_data, benchmark_ids, {task['id'] for task in guide['tasks']})
-    records = Records(jobs)
+def build_core(snapshot, guide, job_data, hn, imported):
+    """Return (core, records) for the given inputs, or raise BuildError. `imported` holds the
+    reviewed LMArena and Epoch files by kind (see IMPORTED)."""
     model_ids = {model['id'] for model in snapshot['models']}
-    measured = measured_records(snapshot, records)
+    names = {model['id']: model['name'] for model in snapshot['models']}
+    for kind in IMPORTED:
+        check_imported(kind, imported[kind], model_ids)
+    imported_ids = [entry['id'] for kind, (_, field, _) in IMPORT_FIELDS.items() for entry in imported[kind][field]]
+    benchmark_ids = {benchmark['id'] for benchmark in snapshot['benchmarks']}
+    need(not benchmark_ids & set(imported_ids), 'An imported benchmark id is also in the snapshot: '
+         + ', '.join(sorted(benchmark_ids & set(imported_ids))))
+    jobs = Jobs(job_data, benchmark_ids | set(imported_ids), {task['id'] for task in guide['tasks']})
+    records = Records(jobs)
+    measured = (
+        measured_records(snapshot, records)
+        + arena_records(imported['lmarena'], records, names)
+        + epoch_records(imported['epoch'], records, names)
+    )
     hn_rows, counts, preferences = crowd(hn, records, model_ids)
     records.stop_if_uncovered()
     ids = [record['id'] for record in measured + hn_rows]
@@ -485,7 +685,7 @@ def build_core(snapshot, guide, job_data, hn):
         lines.append({'name': name, 'models': [
             model['id'] for model in snapshot['models'] if own and all(t in tokens(model['name']) for t in own)
         ]})
-    sources = ('benchmark', 'report', 'hn')
+    sources = ('benchmark', 'arena', 'report', 'hn')
     rows = [
         {'job': job_id, 'counts': {source: records.coverage[job_id, source] for source in sources}}
         for job_id in [*jobs.ids, '']
@@ -493,6 +693,15 @@ def build_core(snapshot, guide, job_data, hn):
     core = {
         'sources': {
             'snapshot': snapshot['checkedAt'],
+            **{
+                kind: {
+                    'fetchedAt': imported[kind]['fetchedAt'],
+                    'checkedAt': imported[kind]['checkedAt'],
+                    'attribution': imported[kind]['source']['attribution'],
+                    'records': sum(record['id'].startswith(prefix) for record in measured),
+                }
+                for kind, prefix in (('lmarena', 'la:'), ('epoch', 'ep:'))
+            },
             'hn': {
                 'from': hn['from'],
                 'publishedAt': hn['publishedAt'],
@@ -525,13 +734,17 @@ def build_core(snapshot, guide, job_data, hn):
                 'category': benchmark['category'],
                 'general': benchmark['category'] == 'general',
                 'unit': benchmark['unit'],
+                'scale': 'percent' if '%' in benchmark['unit'] else 'index',
                 'what': benchmark['description'],
                 'methodology': benchmark['methodology'],
                 'costMethod': benchmark.get('costMethod', ''),
                 'url': benchmark['url'],
+                'source': 'snapshot',
+                'publishedAt': '',
+                'attribution': '',
             }
             for benchmark in snapshot['benchmarks']
-        ],
+        ] + [entry for kind in IMPORTED for entry in imported_benchmarks(kind, imported[kind], jobs)],
         'measured': measured,
         'crowd': {'stances': list(STANCES), 'counts': counts},
         'preferences': preferences,
@@ -544,7 +757,7 @@ def coverage_table(core):
     labels = {job['id']: ('↳ ' if job.get('parent') else '') + job['label'] for job in core['jobs']['list']}
     labels[''] = 'No job'
     sources = core['coverage']['sources']
-    headings = {'benchmark': 'Benchmark', 'report': 'Report', 'hn': 'Hacker News'}
+    headings = {'benchmark': 'Benchmark', 'arena': 'Arena', 'report': 'Report', 'hn': 'Hacker News'}
     width = max(len(label) for label in labels.values())
     lines = [f'{"Job":{width}} ' + ' '.join(f'{headings[source]:>12}' for source in sources)]
     totals = collections.Counter()
@@ -556,7 +769,8 @@ def coverage_table(core):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='Build core.json from the snapshot, the reports and Hacker News.')
+    parser = argparse.ArgumentParser(
+        description='Build core.json from the snapshot, the reports, LMArena, Epoch runs and Hacker News.')
     parser.add_argument('--hn-root', type=Path, default=ROOT, help='checkout whose .local/hn or dist/ holds Hacker News')
     parser.add_argument('--hn-source', choices=('auto', 'checkpoint', 'export'), default='auto')
     parser.add_argument('--jobs', type=Path, default=ROOT / 'research/jobs.json')
@@ -567,12 +781,16 @@ def main(argv=None):
         snapshot = read_json(ROOT / 'src/lib/snapshot.json')
         guide = read_json(ROOT / 'research/app-model-choices.json')
         job_data = read_json(args.jobs)
+        imported = {kind: read_json(path) for kind, path in IMPORTED.items()}
         hn = read_hn(args.hn_root, args.hn_source)
-        core, _ = build_core(snapshot, guide, job_data, hn)
+        core, _ = build_core(snapshot, guide, job_data, hn, imported)
         size, packed = write_json(args.out, core)
     except BuildError as error:
         raise SystemExit(str(error)) from None
     print(coverage_table(core))
+    for kind, label in (('lmarena', 'LMArena'), ('epoch', 'Epoch runs')):
+        source = core['sources'][kind]
+        print(f'{label}: {source["records"]:,} records, fetched {source["fetchedAt"]}, checked {source["checkedAt"]}.')
     print(
         f'Hacker News from the {core["sources"]["hn"]["from"]}: {core["sources"]["hn"]["comments"]:,} comments. '
         f'Wrote {args.out}: {size:,} bytes, {packed:,} gzipped.'

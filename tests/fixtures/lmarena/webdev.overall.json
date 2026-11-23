@@ -1,0 +1,54 @@
+[
+  {
+    "model_name": "Claude Fable 5.2 (xHigh)",
+    "organization": "anthropic",
+    "license": "Proprietary",
+    "rating": 1822.1334535572094,
+    "rating_lower": 1806.6489424224105,
+    "rating_upper": 1837.6179646920082,
+    "variance": 62.41641425180838,
+    "vote_count": 2124,
+    "rank": 1,
+    "category": "overall",
+    "leaderboard_publish_date": "2026-11-22"
+  },
+  {
+    "model_name": "GPT-5.6 Sol (xHigh, Codex Harness)",
+    "organization": "openai",
+    "license": "Proprietary",
+    "rating": 1615.661193106478,
+    "rating_lower": 1609.9436081855783,
+    "rating_upper": 1621.3787780273778,
+    "variance": 8.509990306701686,
+    "vote_count": 18756,
+    "rank": 39,
+    "category": "overall",
+    "leaderboard_publish_date": "2026-11-22"
+  },
+  {
+    "model_name": "GPT-5.3-Codex (Codex Harness)",
+    "organization": "openai",
+    "license": "Proprietary",
+    "rating": 1406.1594322629041,
+    "rating_lower": 1392.4449971283982,
+    "rating_upper": 1419.8738673974099,
+    "variance": 48.962058384002766,
+    "vote_count": 2631,
+    "rank": 107,
+    "category": "overall",
+    "leaderboard_publish_date": "2026-11-22"
+  },
+  {
+    "model_name": "GPT-5.3-Codex (Codex Harness)",
+    "organization": "openai",
+    "license": "Proprietary",
+    "rating": 1371.0405418109306,
+    "rating_lower": 1359.6865456762002,
+    "rating_upper": 1382.3945379456607,
+    "variance": 33.558404305418144,
+    "vote_count": 3636,
+    "rank": 122,
+    "category": "overall",
+    "leaderboard_publish_date": "2026-11-22"
+  }
+]

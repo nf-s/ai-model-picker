@@ -29,6 +29,27 @@ export const attributions: Attribution[] = [
       'A subset of models, with names matched to this site’s model list and scores reformatted.',
   },
   {
+    source: 'Epoch AI benchmarking hub',
+    material: 'Results of Epoch AI’s own benchmark runs',
+    url: 'https://epoch.ai/benchmarks/use-this-data',
+    licence: ccBy,
+    credit:
+      'Epoch AI, ‘Capabilities & benchmarking’. Published online at epoch.ai. Retrieved from ‘https://epoch.ai/benchmarks’ [online resource]. Accessed 23 November 2026. Licensed under CC BY 4.0.',
+    changes:
+      'Epoch’s own runs of selected benchmarks only; results Epoch copies from other sources are not used. Models matched to this site’s model list by exact name, scores shown as percentages with a 95% interval from the standard error.',
+  },
+  {
+    source: 'LMArena',
+    material:
+      'Arena leaderboard dataset: ratings, confidence bounds, vote counts and ranks',
+    url: 'https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset',
+    licence: ccBy,
+    credit:
+      'Source: Arena leaderboard dataset (huggingface.co/datasets/lmarena-ai/leaderboard-dataset), latest split as published 9–22 November 2026. Licensed under CC BY 4.0.',
+    changes:
+      'Selected leaderboards from the latest split. Models matched to this site’s model list by exact name, with the effort setting and harness read from the name; ratings rounded.',
+  },
+  {
     source: 'SWE-rebench Team',
     material: 'SWE-rebench leaderboard results, 15 May–1 July 2026',
     url: 'https://huggingface.co/datasets/nebius/SWE-rebench-leaderboard',

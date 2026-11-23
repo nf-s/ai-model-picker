@@ -68,19 +68,25 @@
     {
       "id": "research",
       "label": "Research with web search",
-      "benchmarks": ["epoch-eci"],
+      "benchmarks": ["lmarena-search_style_control-overall", "epoch-eci"],
       "guideTask": "research"
     },
     {
       "id": "analysis",
       "label": "Analysis of documents or data",
-      "benchmarks": [],
+      "benchmarks": [
+        "lmarena-text_style_control-longer_query",
+        "lmarena-document_style_control-overall"
+      ],
       "guideTask": "research"
     },
     {
       "id": "writing",
       "label": "Writing and editing",
-      "benchmarks": [],
+      "benchmarks": [
+        "lmarena-text_style_control-industry_writing_and_literature_and_language",
+        "lmarena-text_style_control-creative_writing"
+      ],
       "guideTask": "writing"
     },
     {
@@ -98,7 +104,14 @@
     {
       "id": "images",
       "label": "Images and vision",
-      "benchmarks": [],
+      "benchmarks": [
+        "lmarena-vision_style_control-overall",
+        "lmarena-vision_style_control-ocr",
+        "lmarena-vision_style_control-diagram",
+        "epoch-furniture_assembly",
+        "lmarena-text_to_image-overall",
+        "lmarena-image_edit-overall"
+      ],
       "guideTask": "images"
     },
     {
@@ -213,6 +226,112 @@
         {
           "label": "epoch-eci",
           "job": null
+        }
+      ]
+    },
+    "arena-leaderboard": {
+      "version": 1,
+      "labels": [
+        {
+          "label": "webdev/overall",
+          "job": "interface"
+        },
+        {
+          "label": "agent/overall",
+          "job": "agents"
+        },
+        {
+          "label": "text_style_control/overall",
+          "job": "chat"
+        },
+        {
+          "label": "text_style_control/instruction_following",
+          "job": "chat"
+        },
+        {
+          "label": "text_style_control/creative_writing",
+          "job": "writing"
+        },
+        {
+          "label": "text_style_control/industry_writing_and_literature_and_language",
+          "job": "writing"
+        },
+        {
+          "label": "text_style_control/longer_query",
+          "job": "analysis"
+        },
+        {
+          "label": "text_style_control/coding",
+          "job": "coding"
+        },
+        {
+          "label": "text_style_control/math",
+          "job": "reasoning"
+        },
+        {
+          "label": "vision_style_control/overall",
+          "job": "images"
+        },
+        {
+          "label": "vision_style_control/ocr",
+          "job": "images"
+        },
+        {
+          "label": "vision_style_control/diagram",
+          "job": "images"
+        },
+        {
+          "label": "document_style_control/overall",
+          "job": "analysis"
+        },
+        {
+          "label": "search_style_control/overall",
+          "job": "research"
+        },
+        {
+          "label": "text_to_image/overall",
+          "job": "images"
+        },
+        {
+          "label": "image_edit/overall",
+          "job": "images"
+        }
+      ]
+    },
+    "epoch-run": {
+      "version": 1,
+      "labels": [
+        {
+          "label": "otis_mock_aime_2024_2025",
+          "job": "reasoning"
+        },
+        {
+          "label": "gpqa_diamond",
+          "job": "reasoning"
+        },
+        {
+          "label": "frontiermath_tiers_1_3_v2",
+          "job": "reasoning"
+        },
+        {
+          "label": "frontiermath_tier_4_v2",
+          "job": "reasoning"
+        },
+        {
+          "label": "chess_puzzles",
+          "job": "reasoning"
+        },
+        {
+          "label": "simpleqa_verified",
+          "job": "chat"
+        },
+        {
+          "label": "furniture_assembly",
+          "job": "images"
+        },
+        {
+          "label": "mirrorcode",
+          "job": "coding"
         }
       ]
     }
