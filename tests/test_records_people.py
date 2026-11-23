@@ -232,7 +232,8 @@ class TestMain(unittest.TestCase):
         return output.getvalue()
 
     def outputs(self, name):
-        return ['--out', str(self.root / name / 'core.json'), '--named-out', str(self.root / name / 'named-private.json')]
+        return ['--out', str(self.root / name / 'core.json'), '--named-out', str(self.root / name / 'named-private.json'),
+                '--search-out', str(self.root / name / 'search'), '--search-local', str(self.root / name / 'search.sqlite')]
 
     def test_core_names_nobody_and_differs_only_by_the_flag(self):
         printed = self.run_main(*self.outputs('with'))
@@ -250,6 +251,13 @@ class TestMain(unittest.TestCase):
         for private in ('ur:', 'ma:', 'A quote from the source itself', 'Write down what done looks like', '"named"', '"person":"A'):
             self.assertNotIn(private, text)
         self.assertNotIn('"person":"', text.replace('"person":""', ''))
+        search = ''.join(path.read_text(encoding='utf-8') for path in sorted((self.root / 'with/search').rglob('*.json')))
+        self.assertEqual(search, ''.join(
+            path.read_text(encoding='utf-8') for path in sorted((self.root / 'without/search').rglob('*.json'))))
+        for person in PEOPLE['people']:
+            self.assertNotIn(person['name'], search)
+        for private in ('ur:', 'ma:', 'A quote from the source itself', 'Write down what done looks like', '"quote"', '"person"'):
+            self.assertNotIn(private, search)
         private = json.loads((self.root / 'with/named-private.json').read_text(encoding='utf-8'))
         self.assertEqual(len(private['use']), 5)
         self.assertEqual(private['use'][0]['quote'], 'A quote from the source itself.')

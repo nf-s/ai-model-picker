@@ -22,6 +22,8 @@ export type Route =
   | { view: 'papers'; key: string | null; area: ArxivArea | null }
   // The people list, or one person's page; the job filters their records.
   | { view: 'people'; name: string | null; job: string | null }
+  // Word search; the job filters the results.
+  | { view: 'search'; words: string; job: string | null }
   | { view: 'benchmark'; id: string }
   | { view: 'apps' }
   | { view: 'data' }
@@ -117,6 +119,7 @@ export function parseRoute(hash: string): Route {
   if (view === 'benchmark' && value) return { view, id: value };
   if (view === 'apps') return { view };
   if (view === 'people') return { view, name: value, job };
+  if (view === 'search') return { view, words: value ?? '', job };
   // Expert articles moved onto person pages.
   if (view === 'expert-articles') return { view: 'people', name: null, job };
   if (view === 'data') return { view };
@@ -133,6 +136,8 @@ export function routeHref(route: Route) {
   if (route.view === 'apps' || route.view === 'data') return `#/${route.view}`;
   if (route.view === 'people')
     return `#/people${route.name === null ? '' : `/${encodeURIComponent(route.name)}`}${jobQuery(route.job)}`;
+  if (route.view === 'search')
+    return `#/search${route.words ? `/${encodeURIComponent(route.words)}` : ''}${jobQuery(route.job)}`;
   if (route.view === 'account')
     return `#/account${route.error ? `?${new URLSearchParams({ error: route.error })}` : ''}`;
   if (route.view === 'papers')

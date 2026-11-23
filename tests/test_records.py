@@ -582,8 +582,9 @@ class TestReadOnly(unittest.TestCase):
                 )
 
     def run_main(self, *arguments):
+        search = ['--search-out', str(self.root / 'build/search'), '--search-local', str(self.root / 'build/search.sqlite')]
         with contextlib.redirect_stdout(io.StringIO()) as output:
-            main(['--hn-root', str(self.root), *arguments])
+            main(['--hn-root', str(self.root), *search, *arguments])
         return output.getvalue()
 
     def test_the_build_reads_the_checkpoint_and_changes_nothing_under_local(self):

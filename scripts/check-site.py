@@ -9,15 +9,23 @@ from urllib.parse import urlsplit
 from hn_local.classify import PII
 
 ROOT = Path(__file__).resolve().parent.parent
-# Cloudflare Pages accepts at most 25 MiB for one file.
+# Cloudflare Pages accepts at most 25 MiB for one file and 20,000 files on the Free plan.
 FILE_BYTES = 25 * 1024 * 1024
-MUST_BE_ZERO = ('mixedReleases', 'oversizeFiles', 'personalDetails', 'restrictedIdentifiers',
-                'expertArticleLeaks', 'localPaths', 'namedRecords', 'namedFiles', 'personNames')
+SITE_FILES = 20_000
+# A search for the index's commonest word reads the manifest, that word's shard, every fact file and
+# a page of record files in each public band (src/lib/search.ts: searchLimits.page, 10). It must stay
+# under this many bytes before compression.
+SEARCH_WORD_BYTES = 4 * 1024 * 1024
+SEARCH_PAGE = 10
+MUST_BE_ZERO = ('mixedReleases', 'oversizeFiles', 'tooManyFiles', 'personalDetails', 'restrictedIdentifiers',
+                'expertArticleLeaks', 'localPaths', 'namedRecords', 'namedFiles', 'personNames',
+                'searchIndexMissing', 'searchMixedReleases', 'searchOverBudget')
 # Practitioners' use records and method advice stay behind sign-in: their ids, and the file
 # the records build writes them to, must not reach a static build.
 NAMED_ID = re.compile(r'\b(?:ur|ma):[0-9a-f]{24}/\d+')
 NAMED_FILE = 'named-private.json'
-# Hacker News comment files hold public story titles and claims, which may name anyone.
+# Hacker News comment files hold public story titles and claims, which may name anyone. The search
+# index's record files hold the same claims and titles on its Hacker News records.
 COMMENT_FILE = re.compile(r'hn-comments-\d+\.json')
 
 
@@ -84,7 +92,47 @@ def person_names(people_file):
     return names
 
 
-def site_report(dist, restricted, public, local_paths, expert_catalog, people_file, file_bytes=FILE_BYTES):
+def without_hn_text(path):
+    """A search record file's text with the claims and story titles of its Hacker News records left out."""
+    data = load(path)
+    for record in data['records']:
+        if record.get('src') == 'hn':
+            record.pop('text', None)
+            record.pop('title', None)
+    return json.dumps(data, ensure_ascii=False)
+
+
+def search_report(search, word_bytes):
+    """The search index's files, its largest file and what a search for its commonest word reads."""
+    if not (search / 'index.json').is_file():
+        return {'searchFiles': 0, 'searchBytes': 0, 'searchLargestFile': 0, 'searchWordBytes': 0,
+                'searchIndexMissing': 1, 'searchMixedReleases': 0, 'searchOverBudget': 0}
+    files = [path for path in search.rglob('*') if path.is_file()]
+    manifest = load(search / 'index.json')
+    parts = [path for path in files if path.parent != search]
+    shards = [(len(gaps), path) for path in (search / 't').glob('*.json') for gaps in load(path)['terms'].values()]
+    commonest = max(shards, key=lambda item: item[0])[1] if shards else None
+    records = sorted(path.stat().st_size for path in (search / 'r').glob('*.json'))
+    read = (
+        (search / 'index.json').stat().st_size
+        + (commonest.stat().st_size if commonest else 0)
+        + sum(path.stat().st_size for path in (search / 'a').glob('*.json'))
+        + sum(records[-2 * SEARCH_PAGE:])
+    )
+    return {
+        'searchRecords': manifest['records'],
+        'searchFiles': len(files),
+        'searchBytes': sum(path.stat().st_size for path in files),
+        'searchLargestFile': max((path.stat().st_size for path in files), default=0),
+        'searchWordBytes': read,
+        'searchIndexMissing': 0,
+        'searchMixedReleases': sum(load(path).get('release') != manifest.get('builtAt') for path in parts),
+        'searchOverBudget': int(read > word_bytes),
+    }
+
+
+def site_report(dist, restricted, public, local_paths, expert_catalog, people_file, file_bytes=FILE_BYTES,
+                site_files=SITE_FILES, word_bytes=SEARCH_WORD_BYTES):
     """Totals for the build, and the counts in MUST_BE_ZERO, which block an upload when above zero."""
     snapshot = load(dist / 'hn-snapshot.json')
     core = load(dist / 'core.json')
@@ -99,8 +147,10 @@ def site_report(dist, restricted, public, local_paths, expert_catalog, people_fi
     article_urls = expert_article_urls(expert_catalog)
     article_links = re.compile('|'.join(map(re.escape, sorted(article_urls, key=len, reverse=True))))
     # Named records stay behind sign-in, so no person's name belongs in a static file.
+    search_records = dist / 'search' / 'r'
     outside_comments = ''.join(
-        path.read_text(encoding='utf-8', errors='ignore') for path in files if not COMMENT_FILE.fullmatch(path.name)
+        without_hn_text(path) if path.parent == search_records else path.read_text(encoding='utf-8', errors='ignore')
+        for path in files if not COMMENT_FILE.fullmatch(path.name)
     )
     return {
         'commentFiles': len(parts),
@@ -109,7 +159,9 @@ def site_report(dist, restricted, public, local_paths, expert_catalog, people_fi
         'measuredRecords': len(core['measured']),
         'restrictedOnlyIdentifiers': len(restricted_only),
         'mixedReleases': len({snapshot['publishedAt'], *(part['publishedAt'] for part in parts)}) - 1,
+        'siteFiles': len(files),
         'oversizeFiles': sum(path.stat().st_size > file_bytes for path in files),
+        'tooManyFiles': int(len(files) > site_files),
         'personalDetails': sum(bool(PII.search(text)) for text in texts),
         'restrictedIdentifiers': sum(identifier in bundle for identifier in restricted_only),
         'expertArticleLeaks': len(set(article_links.findall(bundle))) + sum(
@@ -122,6 +174,7 @@ def site_report(dist, restricted, public, local_paths, expert_catalog, people_fi
         ),
         'namedFiles': sum(path.name == NAMED_FILE for path in files),
         'personNames': sum(name in outside_comments for name in person_names(people_file)),
+        **search_report(dist / 'search', word_bytes),
     }
 
 

@@ -24,17 +24,19 @@ import { emptyFilter } from '../lib/hn-insights';
 import { dollars } from '../lib/metrics';
 import type { NamedRecord } from '../lib/named';
 import type { EvidenceRecord } from '../lib/records';
-import { modelHref, routeHref } from '../lib/route';
+import { lineHref, modelHref, routeHref } from '../lib/route';
 import type { HnData } from '../lib/site-data';
 import { NamedCard } from './Named';
 import { CommentStream } from './parts';
 import './evidence-drawer.css';
 
 // What a count opens: the measured records behind it, the named records
-// (in the order the band shows them), or the Hacker News comments behind a
-// crowd count or a stated preference.
+// (in the order the band shows them), Hacker News records as the search
+// index holds them, or the Hacker News comments behind a crowd count or a
+// stated preference.
 export type EvidenceSpec = { title: string; note?: string } & (
   | { kind: 'measured'; data: BriefData; records: EvidenceRecord[] }
+  | { kind: 'crowd'; data: BriefData; records: EvidenceRecord[] }
   | { kind: 'named'; records: NamedRecord[] }
   | {
       kind: 'comments';
@@ -133,6 +135,13 @@ export default function EvidenceDrawer({
           {spec.note && <p className="rd-note">{spec.note}</p>}
           {spec.kind === 'measured' ? (
             <MeasuredList data={spec.data} records={spec.records} />
+          ) : spec.kind === 'crowd' ? (
+            <RecordPages
+              records={spec.records}
+              render={(record) => (
+                <CrowdRecord key={record.id} data={spec.data} record={record} />
+              )}
+            />
           ) : spec.kind === 'named' ? (
             <RecordPages
               records={spec.records}
@@ -300,6 +309,56 @@ function MeasuredRecord({
           {record.title || 'Source'}
         </a>
         {benchmark?.attribution && ` · ${benchmark.attribution}`}
+      </p>
+    </article>
+  );
+}
+
+// One Hacker News comment's labels, without its text: the classifier's
+// one-sentence claim, the targets it labelled and the story it is under.
+function CrowdRecord({
+  data,
+  record,
+}: {
+  data: BriefData;
+  record: EvidenceRecord;
+}) {
+  const job = data.jobById.get(record.job);
+  return (
+    <article className="rd-record">
+      <header>
+        <span className="rd-band-chip rd-band-crowd">Crowd</span>
+        <span>Hacker News comment</span>
+        <time>{record.date || 'No date'}</time>
+      </header>
+      <p>{record.text || 'No claim recorded.'}</p>
+      <p className="rd-note">Claim written by the classifier.</p>
+      <p className="rd-note">
+        Labels:{' '}
+        {record.keys.map(([key, stance], i) => {
+          const at = key.indexOf('|');
+          const kind = key.slice(0, at);
+          const value = key.slice(at + 1);
+          const model = kind === 'model' ? data.modelById.get(value) : null;
+          return (
+            <span key={key}>
+              {i > 0 && ', '}
+              <a href={model ? modelHref(model.id) : lineHref(value)}>
+                {model ? model.name : value}
+              </a>{' '}
+              ({kind === 'line' ? `product line, ${stance}` : stance})
+            </span>
+          );
+        })}
+      </p>
+      <p className="rd-note">
+        Job: {job ? job.label : 'none'}
+        {job && ` · source label ${record.via}`}
+      </p>
+      <p className="rd-note">
+        <a href={record.url} target="_blank" rel="noopener noreferrer">
+          {record.title || 'Open on Hacker News'}
+        </a>
       </p>
     </article>
   );

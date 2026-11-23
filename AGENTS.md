@@ -6,6 +6,8 @@ The project's purpose is to help someone decide which model to use for a given j
 
 To update any data or to publish the site, follow [docs/updating.md](docs/updating.md) step by step. Each step states the command, the expected result and what to do when the result differs. When a step fails in a way it does not cover, stop and report the command and its output.
 
+To choose a model for a subtask from the records, use `npm run search -- <words>`; see [docs/search.md](docs/search.md#for-agents). Its output is private.
+
 ## Rules
 
 - Publish only when the owner asks for it in the current request. A request to update data is not a request to publish.

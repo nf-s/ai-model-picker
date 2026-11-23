@@ -1,0 +1,20 @@
+.rd-search-form {
+  display: flex;
+  gap: 8px;
+  max-width: 640px;
+}
+.rd-search-form .rd-input {
+  flex: 1;
+  min-width: 0;
+}
+.rd-search-group {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.rd-search-job {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

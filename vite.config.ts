@@ -56,6 +56,41 @@ function localJson(
   };
 }
 
+// The records build's search index, at the paths the published site serves
+// it from (dist/search/). Only its own file names are answered: the manifest
+// and numbered shard, fact and record files.
+function searchIndex(): Plugin {
+  const file = /^\/search\/(index|[tar]\/[0-9]{1,5})\.json$/;
+  let root = '';
+  const serve: Connect.NextHandleFunction = (request, response, next) => {
+    const path = new URL(request.url ?? '/', 'http://localhost').pathname;
+    const match = request.method === 'GET' ? file.exec(path) : null;
+    if (!match?.[1]) return next();
+    response.setHeader('Cache-Control', 'no-store');
+    readFile(join(root, `${match[1]}.json`)).then(
+      (body) => {
+        response.setHeader('Content-Type', 'application/json');
+        response.end(body);
+      },
+      (error: unknown) => {
+        if (!(error instanceof Error && 'code' in error)) return next(error);
+        if (error.code !== 'ENOENT') return next(error);
+        response.statusCode = 404;
+        response.end();
+      },
+    );
+  };
+  return {
+    name: 'search-index',
+    configResolved(config) {
+      root = join(config.root, 'build', 'records', 'search');
+    },
+    configureServer(server) {
+      server.middlewares.use(serve);
+    },
+  };
+}
+
 const loopback = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
 const NamedFile = z.object({
   version: z.number(),
@@ -186,6 +221,7 @@ export default defineConfig({
     // The records build's public output; `npm run build:pages` copies it
     // into dist/.
     localJson('records-core', '/core.json', ['build', 'records', 'core.json']),
+    searchIndex(),
     // Benchmarks that cannot be republished; the published site serves them
     // to approved accounts from a Pages Function instead.
     localJson('restricted-payload', '/api/restricted', [

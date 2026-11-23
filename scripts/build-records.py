@@ -16,13 +16,17 @@ Writes ignored files outside .local, in build/records/ by default:
   namedBehindSignIn flag says whether named records were built.
 - named-private.json, only when .local/people/ exists: use records and method advice from the
   people review, with their quotes, and the people list. It is served only behind sign-in.
+- search/: the public word-search index, static files of measured records and Hacker News labels
+  only, which the published app copies into dist/search/ (see scripts/search_index.py).
+- search-local.sqlite: the same records plus use records and method advice with their quotes,
+  for `npm run search` on this machine. It is never published.
 
 A job id the job file does not list, or a source label it does not map, stops the build with
 the records concerned.
 
 Usage: python3 scripts/build-records.py [--hn-root DIR] [--hn-source auto|checkpoint|export]
                                         [--people-root DIR] [--jobs FILE] [--out FILE]
-                                        [--named-out FILE]
+                                        [--named-out FILE] [--search-out DIR] [--search-local FILE]
 """
 
 import argparse
@@ -47,10 +51,13 @@ from records_schema import (
     DATE_PATTERN, FIELDS, JOB_PATTERN, RUNS, SETTINGS, STANCES, SURFACES, RecordError, check_people, check_record,
     is_date, is_text, is_url,
 )
+from search_index import write_local as write_search_local, write_public as write_search_public
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = ROOT / 'build/records/core.json'
 DEFAULT_NAMED_OUT = ROOT / 'build/records/named-private.json'
+DEFAULT_SEARCH_OUT = ROOT / 'build/records/search'
+DEFAULT_SEARCH_LOCAL = ROOT / 'build/records/search-local.sqlite'
 LIST_LIMIT = 20
 
 JOB_FILE_FIELDS = {'version', 'status', 'jobs', 'crosswalk', 'keywords', 'surface', 'replaces', 'guide'}
@@ -1240,10 +1247,12 @@ def main(argv=None):
     parser.add_argument('--jobs', type=Path, default=ROOT / 'research/jobs.json')
     parser.add_argument('--out', type=Path, default=DEFAULT_OUT)
     parser.add_argument('--named-out', type=Path, default=DEFAULT_NAMED_OUT)
+    parser.add_argument('--search-out', type=Path, default=DEFAULT_SEARCH_OUT)
+    parser.add_argument('--search-local', type=Path, default=DEFAULT_SEARCH_LOCAL)
     args = parser.parse_args(argv)
     people_root = args.people_root or args.hn_root
     try:
-        for out in (args.out, args.named_out):
+        for out in (args.out, args.named_out, args.search_out, args.search_local):
             need(not within(out, '.local'), f'refusing to write under .local: {out}')
         snapshot = read_json(ROOT / 'src/lib/snapshot.json')
         guide = read_json(ROOT / 'research/app-model-choices.json')
@@ -1253,9 +1262,15 @@ def main(argv=None):
         hn = read_hn(args.hn_root, args.hn_source)
         people = read_people(people_root)
         named = None if people is None else build_named(snapshot, guide, job_data, imported, people)
-        core, _ = build_core(snapshot, guide, job_data, hn, imported, usage, named is not None)
+        core, records = build_core(snapshot, guide, job_data, hn, imported, usage, named is not None)
         size, packed = write_json(args.out, core)
         named_size = None if named is None else write_json(args.named_out, named)[0]
+        names = {model['id']: model['name'] for model in snapshot['models']}
+        labels = {job['id']: job['label'] for job in core['jobs']['list']}
+        built_at = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')
+        manifest = write_search_public(args.search_out, records, names, labels, built_at)
+        local = write_search_local(args.search_local, records, [] if named is None else named['use'],
+                                   [] if named is None else named['advice'], names, labels, built_at)
     except BuildError as error:
         raise SystemExit(str(error)) from None
     print(coverage_table(core, named))
@@ -1279,6 +1294,10 @@ def main(argv=None):
             f'Wrote {args.named_out}: {named_size:,} bytes.'
         )
     print(f'Wrote {args.out}: {size:,} bytes, {packed:,} gzipped.')
+    files = 1 + manifest['shards'] + manifest['files']['facts'] + manifest['files']['records']
+    print(f'Wrote the search index {args.search_out}: {manifest["records"]:,} public records in {files:,} files.')
+    print(f'Wrote the local search index {args.search_local} (private): {local["public"]:,} public records, '
+          f'{local["use"]:,} use records, {local["advice"]:,} method advice.')
 
 
 if __name__ == '__main__':

@@ -53,6 +53,19 @@ class TestSiteCheck(unittest.TestCase):
         self.write(self.dist / 'hn-comments-2.json', {'publishedAt': second_release, 'comments': [{'id': 0}]})
         (self.dist / 'assets/index.js').write_text(script, encoding='utf-8')
         self.write(self.dist / 'core.json', {'measured': [MEASURED], 'namedBehindSignIn': True})
+        self.search()
+
+    def search(self, records=None):
+        search = self.dist / 'search'
+        for folder in ('t', 'a', 'r'):
+            (search / folder).mkdir(parents=True, exist_ok=True)
+        hn = {'id': 'hn:2', 'cls': 'crowd', 'src': 'hn', 'text': CLAIM, 'title': TITLE}
+        records = [hn, MEASURED] if records is None else records
+        head = {'v': 1, 'release': 'release'}
+        self.write(search / 'index.json', {'version': 1, 'builtAt': 'release', 'records': len(records)})
+        self.write(search / 't/0.json', {**head, 'terms': {'example': [0, 1], 'claim': [0]}})
+        self.write(search / 'a/0.json', {**head, 'from': 0, 'docs': [[2, 0, -1, -1]] * len(records)})
+        self.write(search / 'r/0.json', {**head, 'from': 0, 'records': records})
 
     def report(self, **options):
         return site_report(
@@ -104,6 +117,28 @@ class TestSiteCheck(unittest.TestCase):
         self.assertEqual(self.report()['personNames'], 0)
         self.assertEqual(self.failed(), [])
 
+    def test_the_search_index_is_checked_like_the_rest(self):
+        report = self.report()
+        self.assertEqual((report['searchFiles'], report['searchRecords']), (4, 2))
+        self.assertGreater(report['searchWordBytes'], 0)
+        hn = {'id': 'hn:2', 'cls': 'crowd', 'src': 'hn', 'text': f'{PERSON} said so.', 'title': f'A post by {PERSON}'}
+        self.search([hn, MEASURED])
+        self.assertEqual(self.failed(), [])
+        self.search([hn, {**MEASURED, 'text': f'Reported by {PERSON}'}])
+        self.assertEqual(self.failed(), ['personNames'])
+        self.search([hn, {'id': NAMED_ID, 'cls': 'named', 'src': 'use'}])
+        self.assertIn('namedRecords', self.failed())
+
+    def test_a_search_file_from_another_build_blocks_an_upload(self):
+        self.write(self.dist / 'search/t/0.json', {'v': 1, 'release': 'other', 'terms': {}})
+        self.assertEqual(self.failed(), ['searchMixedReleases'])
+
+    def test_a_missing_or_oversized_search_index_blocks_an_upload(self):
+        self.assertEqual(self.failed(word_bytes=10), ['searchOverBudget'])
+        self.assertEqual(self.failed(site_files=3), ['tooManyFiles'])
+        (self.dist / 'search/index.json').unlink()
+        self.assertEqual(self.failed(), ['searchIndexMissing'])
+
     def test_an_invalid_people_file_stops_the_check(self):
         self.write(self.people, {'version': 1, 'people': [{'name': ''}]})
         with self.assertRaises(ValueError):
@@ -142,7 +177,7 @@ class TestSiteCheck(unittest.TestCase):
             self.report()
 
     def test_a_file_over_the_limit_is_counted(self):
-        size = (self.dist / 'hn-comments-1.json').stat().st_size
+        size = max(path.stat().st_size for path in self.dist.rglob('*') if path.is_file())
         self.assertEqual(self.failed(file_bytes=size), [])
         self.assertEqual(self.failed(file_bytes=size - 1), ['oversizeFiles'])
 

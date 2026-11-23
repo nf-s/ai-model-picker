@@ -13,6 +13,7 @@ import { OutsideFilter } from './components/ModelFilter';
 import { NamedContext, useNamedView } from './components/Named';
 import Papers from './components/Papers';
 import People from './components/People';
+import Search from './components/Search';
 import Switch from './components/Switch';
 import type { Access } from './lib/access';
 import { useCoreData } from './lib/core-client';
@@ -43,6 +44,7 @@ const views: { route: Route; label: string; also?: View }[] = [
   },
   { route: { view: 'switch', a: null, b: null, job: null }, label: 'Switch' },
   { route: { view: 'people', name: null, job: null }, label: 'People' },
+  { route: { view: 'search', words: '', job: null }, label: 'Search' },
   { route: { view: 'papers', key: null, area: null }, label: 'Papers' },
   { route: { view: 'apps' }, label: 'App guide' },
   { route: { view: 'data' }, label: 'Data' },
@@ -112,17 +114,21 @@ export default function App({ access }: { access: Access }) {
               ? 'Board'
               : (views.find((view) => view.route.view === route.view)?.label ??
                 'Brief');
-  // Model, Switch and People keep the job in their own address; elsewhere
-  // choosing a job opens its brief.
+  // Model, Switch, People and Search keep the job in their own address;
+  // elsewhere choosing a job opens its brief.
   const jobHref = (job: string | null) =>
-    route.view === 'model' || route.view === 'switch' || route.view === 'people'
+    route.view === 'model' ||
+    route.view === 'switch' ||
+    route.view === 'people' ||
+    route.view === 'search'
       ? routeHref({ ...route, job })
       : routeHref({ view: 'brief', job });
   const full =
     route.view === 'brief' ||
     route.view === 'model' ||
     route.view === 'switch' ||
-    route.view === 'people';
+    route.view === 'people' ||
+    route.view === 'search';
 
   // A new page starts at the top; opening or closing the thread reader on the
   // same page does not move it.
@@ -207,7 +213,8 @@ export default function App({ access }: { access: Access }) {
               route.view === 'brief' ||
               route.view === 'model' ||
               route.view === 'switch' ||
-              route.view === 'people'
+              route.view === 'people' ||
+              route.view === 'search'
                 ? route.job
                 : null
             }
@@ -284,6 +291,14 @@ export default function App({ access }: { access: Access }) {
             )}
             {route.view === 'people' && (
               <People
+                route={route}
+                coreData={coreData}
+                filter={filter}
+                scope={scope}
+              />
+            )}
+            {route.view === 'search' && (
+              <Search
                 route={route}
                 coreData={coreData}
                 filter={filter}

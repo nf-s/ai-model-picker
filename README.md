@@ -10,6 +10,7 @@ The question it exists to answer is which model to use for a given job. [Goal](d
 - **Papers**: arXiv papers from the same six months whose title or abstract names a tracked model or family, filtered by model or family and title words.
 - **Expert articles** offers title, source and year filters for collected blog and newsletter posts. Each title opens the original post. Access on the published app requires an approved Google account.
 - **Benchmark pages**: every published result for one benchmark, including alternate configurations, with the source's method and limits. Reached from the Board's column headers and a model's benchmark tiles.
+- **Search**: word search over benchmark results, arena ratings, reports and Hacker News labels, grouped by band and job, within the filters; practitioner records for granted accounts. `npm run search -- <words>` searches the same records and the practitioners' quotes on this machine and prints JSON for coding agents; see [Search](docs/search.md).
 - **App guide**: which selection to make in ChatGPT and Claude on their highest-usage plans for eight tasks, with alternatives, settings and sources. The Coding agents mode includes practitioner advice under each task.
 - **Data**: HN collection status and controls, every source with its coverage and limits, and the snapshot download.
 - **Model filter** (header, on every view): limits the whole site to chosen providers, such as ChatGPT and Claude, or to individual models. Ranks stay overall ranks. The selection is remembered in the browser and cleared in one click.
@@ -27,7 +28,7 @@ npm run dev
 
 Open http://127.0.0.1:5186. The dev launcher also starts a loopback-only local analysis controller, which serves the comment index the HN views read.
 
-Views are hash routes: `#/` (Board), `#/model/<key>`, `#/discussion/<key>`, `#/papers/<key>`, `#/expert-articles`, `#/benchmark/<id>`, `#/apps` and `#/data`. A key is `model:<id>` or `family:<name>`.
+Views are hash routes: `#/` (Board), `#/model/<key>`, `#/discussion/<key>`, `#/papers/<key>`, `#/expert-articles`, `#/benchmark/<id>`, `#/search/<words>`, `#/apps` and `#/data`. A key is `model:<id>` or `family:<name>`.
 
 The [published app](https://ai-model-picker.pages.dev/) includes a dated HN results snapshot and loads comment text from the public HN API on demand. Benchmarks whose terms do not allow republishing are kept outside Git and shown only to Google accounts the administrator approves under **Sign in → Manage access**; the local dev server shows them from `.local/restricted/`. Source licences and credits are on the Data page. Processing continues locally; republishing updates the hosted snapshot. See [Cloudflare Pages deployment](docs/deployment.md) for the build and release procedure.
 
@@ -101,6 +102,7 @@ npm run format:check
 - `scripts/import_openrouter.py`, `research/openrouter-usage.json`: imported OpenRouter usage, which orders nothing.
 - `scripts/people_pipeline.py`, `scripts/people_local/`: collection of practitioners' public writing and its review into use records and method advice, with state in `.local/people/` (not in Git). See [people pipeline](docs/people-pipeline.md).
 - `scripts/build-records.py`, `scripts/records_schema.py`, `src/lib/records.ts`, `research/jobs.json`: the shared record schema, the job list and the records build, which writes `core.json` and, from `.local/people/`, the private `named-private.json`.
+- `scripts/search_index.py`, `src/lib/search.ts`, `src/lib/search-static.ts`, `src/components/Search.tsx`, `scripts/search.mjs`: the word-search index (static public files and a private local file), the shared ranking, the browser's index reader, the Search view and the local command. See [Search](docs/search.md).
 - `src/components/parts.tsx`: shared sentiment bars, weekly chart and comment stream.
 - `src/components/comment-views/`, `src/lib/hn-threads.ts`: the Discussion comment section, which lists comments under their stories and nests them by reply, with its thread loader.
 - `src/lib/site-data.ts`: benchmark standings joined to HN aggregates.

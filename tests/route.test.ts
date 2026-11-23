@@ -239,3 +239,19 @@ test('old Board links land on Brief and the Board keeps its own route', () => {
   assert.equal(routeHref({ view: 'board' }), '#/board');
   assert.deepEqual(parseRoute('#/redesign/model/model%3Aa'), model('a'));
 });
+
+test('the search route carries the words and the job', () => {
+  assert.deepEqual(parseRoute('#/search'), {
+    view: 'search',
+    words: '',
+    job: null,
+  });
+  const route: Route = {
+    view: 'search',
+    words: 'opus refactor / 5.5?',
+    job: 'coding',
+  };
+  const href = routeHref(route);
+  assert.equal(href, '#/search/opus%20refactor%20%2F%205.5%3F?job=coding');
+  assert.deepEqual(parseRoute(href), route);
+});

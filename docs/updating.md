@@ -555,12 +555,16 @@ Check that the reviewed catalog is available at `.local/expert-articles/catalog.
 npm run build:pages
 ```
 
-Expected last lines, with other numbers:
+Expected last lines, with other numbers (24 November 2026 shown):
 
 ```text
-Exported 88,309 Hacker News comment records.
-Exported 11,031 arXiv papers.
+Exported 89,824 Hacker News comment records.
+Exported 11,612 arXiv papers.
+Exported core.json: 752 measured records, 89,824 Hacker News comments.
+Exported the search index: 90,576 records in 3,111 files, 57,046,138 bytes.
 ```
+
+The search index's records are the measured records plus the Hacker News comments. If the last line is missing or the command ends with "Could not export build/records/core.json and build/records/search", run `npm run records:build` and read its last lines: it must print `Wrote the search index`. If it still fails, report the output and stop.
 
 Use this command, not `npm run build`: only this one builds the published mode and writes the data files into `dist/`.
 
@@ -570,23 +574,37 @@ Use this command, not `npm run build`: only this one builds the published mode a
 npm run check:pages
 ```
 
-Expected, with other numbers in the first four lines:
+Expected, with other numbers where the counts are not 0 (24 November 2026 shown):
 
 ```text
 commentFiles: 4
-comments: 88,309
-claimsAndTitles: 95,331
-restrictedOnlyIdentifiers: 91
+comments: 89,824
+claimsAndTitles: 96,909
+measuredRecords: 752
+restrictedOnlyIdentifiers: 109
 mixedReleases: 0
+siteFiles: 3,132
 oversizeFiles: 0
+tooManyFiles: 0
 personalDetails: 0
 restrictedIdentifiers: 0
 expertArticleLeaks: 0
 localPaths: 0
+namedRecords: 0
+namedFiles: 0
+personNames: 0
+searchRecords: 90,576
+searchFiles: 3,111
+searchBytes: 57,046,138
+searchLargestFile: 110,737
+searchWordBytes: 2,485,180
+searchIndexMissing: 0
+searchMixedReleases: 0
+searchOverBudget: 0
 The site build passed the checks.
 ```
 
-The last six counts must be 0. They are comment files from different exports, files over the 25 MiB that Cloudflare Pages accepts, claims or story titles that still contain a link, an address, a handle or a phone number, identifiers that exist only in the restricted results, expert article catalog files or links, and paths on this computer. If the command ends with "Do not upload", report the output and stop. `comments` must equal the first number printed in step 2.
+Every count that is 0 here must be 0. They are comment files from different exports, files over the 25 MiB that Cloudflare Pages accepts, more files than the 20,000 Pages accepts on the Free plan, claims or story titles that still contain a link, an address, a handle or a phone number, identifiers that exist only in the restricted results, expert article catalog files or links, paths on this computer, named records, the private named file, names from the people file, a missing search index, search files from two builds, and a search for the commonest word that would read more than 4 MiB. If the command ends with "Do not upload", report the output and stop. `comments` must equal the first number printed in step 2, and `searchRecords` must equal `comments` plus `measuredRecords`. If `siteFiles` is above 15,000, report it: the index needs larger record files before it reaches the limit.
 
 ### 4. Upload
 
@@ -611,11 +629,29 @@ python3 -c "import json; s=json.load(open('dist/hn-snapshot.json')); print(s['pu
 The two commands must print the same line. If the first still shows the earlier release, wait a minute and repeat it.
 
 ```sh
-curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/restricted
-curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/expert-articles
+curl -s https://ai-model-picker.pages.dev/search/index.json | python3 -c "import json,sys; s=json.load(sys.stdin); print(s['builtAt'], s['records'])"
 ```
 
-Expected: `401` for both endpoints.
+```sh
+python3 -c "import json; s=json.load(open('dist/search/index.json')); print(s['builtAt'], s['records'])"
+```
+
+The two commands must print the same line; if the first shows the earlier build, wait a minute and repeat it. Then check that the live search files hold no named record:
+
+```sh
+curl -s https://ai-model-picker.pages.dev/search/r/0.json | python3 -c "import json,sys; r=json.load(sys.stdin)['records']; print(len(r), sum(x['cls'] not in ('measured', 'crowd') or 'quote' in x or 'person' in x for x in r))"
+```
+
+Expected: `32 0`. A second number above 0 means a named record was published: tell the owner at once.
+
+```sh
+curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/restricted
+curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/expert-articles
+curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/named
+curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/named/advice
+```
+
+Expected: `401` for every endpoint.
 
 ```sh
 curl -sI https://ai-model-picker.pages.dev/hn-comments-1.json | grep -i -E '^(cache-control|x-robots-tag)'
@@ -628,7 +664,7 @@ cache-control: no-store
 x-robots-tag: noindex, nofollow, noarchive, nosnippet
 ```
 
-If a browser is available, open https://ai-model-picker.pages.dev/ and check that the header shows the new date range and comment count, that Discussion lists threads, that "Show comment" loads a comment, that the Data page has no scan controls and that the console has no errors. The remaining checks are listed under [release verification](deployment.md#release-verification).
+If a browser is available, open https://ai-model-picker.pages.dev/#/search/claude%20code and check that results appear under Measured and Crowd, that a result opens in the drawer with its source link, and that the network log shows requests under `/search/` only, none to `/api/`. Then open https://ai-model-picker.pages.dev/ and check that the header shows the new date range and comment count, that Discussion lists threads, that "Show comment" loads a comment, that the Data page has no scan controls and that the console has no errors. The remaining checks are listed under [release verification](deployment.md#release-verification).
 
 ## Automating the updates
 
