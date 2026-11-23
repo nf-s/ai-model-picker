@@ -10,7 +10,8 @@ from .sources import iso_time
 from .state import atomic_write
 
 REPORT_NAME = 'failure-review.json'
-CODING_TASKS = {'coding', 'agents'}
+# Coding work, from the jobs and from the tasks of earlier reviews.
+CODING_TASKS = {'code', 'debug', 'review', 'plan', 'interface', 'coding', 'agents'}
 CODING_THEMES = {'code-quality', 'agentic-work', 'harness'}
 COMPARISON = re.compile(r'\b(?:than|unlike|compared (?:with|to)|whereas|versus|vs\.?)\b', re.I)
 

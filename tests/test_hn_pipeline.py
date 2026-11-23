@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager, redirect_stdout
 from datetime import datetime, timezone
@@ -23,7 +24,7 @@ import anthropic
 import hn_pipeline
 from hn_local.anthropic_api import API_URL, AnthropicClassifier
 from hn_local.classify import (
-    CLAIM_LIMIT, COMMENT_LIMIT, MAX_THEMES, PARENT_LIMIT, REMINDER, STORY_SYSTEM, SYSTEM, TITLE_LIMIT,
+    CLAIM_LIMIT, COMMENT_LIMIT, JOBS, MAX_THEMES, NO_JOB, PARENT_LIMIT, REMINDER, STORY_SYSTEM, SYSTEM, TITLE_LIMIT,
     Assessment, LocalClassifier, Review, Targets, parse_review, review_prompt, validate_endpoint,
 )
 from hn_local.clickhouse import read_row
@@ -32,9 +33,11 @@ from hn_local.sources import (
     archive_pages, build_plan, clip_archive_partition, iso_time, read_item, recent_window, screened, tail_partitions,
 )
 from hn_local.state import Counters, State
+from evaluate_hn_classifier import evaluate_listed
 from hn_pipeline import (
     REWALK_DAYS, arguments, classifier_key_for, consume_partition, expand_stories, extend_window, mirror_pages,
-    previous_targets, process_block, read_ancestors, reconcile_pages, resolve_context, retarget, review_batches,
+    previous_targets, process_block, read_ancestors, reconcile_pages, rereview, resolve_context, retarget,
+    review_batches,
     review_comments, scan_key_for, thread_root,
 )
 
@@ -112,7 +115,7 @@ class Reviewer:
             for target in subject.targets
         )
         prefers = (subject.targets[0], subject.targets[1]) if self.prefers and len(subject.targets) > 1 else None
-        return Review(assessments, 'coding', 'Synthetic claim.', (prefers,) if prefers else ())
+        return Review(assessments, 'code', 'Synthetic claim.', (prefers,) if prefers else (), run='unattended')
 
     def about_story(self, title, targets):
         self.titles.append(title)
@@ -130,7 +133,7 @@ def judged(prompt):
     """A valid reply that calls every target in the prompt positive."""
     count = len(re.findall(r'^\d+\. ', prompt.partition('\nTargets:\n')[2], re.M))
     labels = [[index, 'positive', ['speed'], 'high'] for index in range(count)]
-    return json.dumps({'labels': labels, 'task': 'coding', 'claim': 'Synthetic claim.', 'prefers': []})
+    return json.dumps({'labels': labels, 'job': 'code', 'setting': 'local', 'run': '', 'claim': 'Synthetic claim.', 'prefers': []})
 
 
 class Batches:
@@ -291,7 +294,7 @@ class TestClassifier(unittest.TestCase):
                 [1, 'negative', [], 'medium'],
                 [2, 'none', ['speed'], 'high'],
             ],
-            'task': 'coding',
+            'job': 'code',
             'claim': 'GPT-6 Astra beats Claude Opus 4.',
             'prefers': [],
         }), targets)
@@ -303,16 +306,41 @@ class TestClassifier(unittest.TestCase):
         self.assertEqual(len(review.assessments[0].themes), MAX_THEMES)
         self.assertEqual(review.assessments[0].aspects, ('coding', 'cost', 'speed'))
         self.assertEqual(review.assessments[1].aspects, ('coding',))
-        self.assertEqual(review.task, 'coding')
+        self.assertEqual((review.task, review.setting, review.run), ('code', '', ''))
         for sentiment in ('positive', 'negative', 'mixed'):
             with self.subTest(sentiment=sentiment):
-                low = parse_review(json.dumps({'labels': [[0, sentiment, [], 'low']]}), targets).assessments[0]
+                low = parse_review(json.dumps({'labels': [[0, sentiment, [], 'low']], 'job': 'none'}), targets).assessments[0]
                 self.assertEqual((low.sentiment, low.confidence), ('unclear', 'low'))
-        neutral = parse_review('{"labels":[[0,"neutral",[],"low"]]}', targets).assessments[0]
+        neutral = parse_review('{"labels":[[0,"neutral",[],"low"]],"job":"none"}', targets).assessments[0]
         self.assertEqual(neutral.sentiment, 'neutral')
-        missing = parse_review('{"labels":[[1,"neutral",[],"high"]],"task":"synthetic-task"}', targets)
+        missing = parse_review('{"labels":[[1,"neutral",[],"high"]],"job":"maths","setting":null}', targets)
         self.assertEqual([value.target.label for value in missing.assessments], ['claude-opus-4'])
-        self.assertEqual(missing.task, 'other')
+        self.assertEqual((missing.task, missing.setting, missing.run), ('maths', '', ''))
+        stated = parse_review('{"labels":[[0,"positive",[],"high"]],"job":"read-media","setting":"local","run":"parallel"}', targets)
+        self.assertEqual((stated.task, stated.setting, stated.run), ('read-media', 'local', 'parallel'))
+        self.assertEqual(stated.assessments[0].aspects, ('agents',))
+
+    def test_review_needs_a_listed_job_setting_and_run(self):
+        targets = self.targets.mentions('GPT-6 Astra')
+        for fields in (
+            {},
+            {'task': 'coding'},
+            {'job': 'synthetic-job'},
+            {'job': 'other'},
+            {'job': ['code']},
+            {'job': 'code', 'setting': 'hosted'},
+            {'job': 'code', 'run': 'interactive'},
+            {'job': 'code', 'run': ['parallel']},
+        ):
+            with self.subTest(fields=fields), self.assertRaises((TypeError, ValueError)):
+                parse_review(json.dumps({'labels': [[0, 'positive', [], 'high']], **fields}), targets)
+
+    def test_jobs_are_the_approved_list(self):
+        approved = json.loads((Path(__file__).resolve().parents[1] / 'research/jobs.json').read_text())
+        self.assertEqual(list(JOBS), [job['id'] for job in approved['jobs']])
+        self.assertNotIn(NO_JOB, JOBS)
+        for job in (*JOBS, NO_JOB):
+            self.assertIn(f'\n{job}: ', SYSTEM)
 
     def test_review_rejects_malformed_rows(self):
         targets = self.targets.mentions('GPT-6 Astra and Claude Opus 4')
@@ -337,7 +365,7 @@ class TestClassifier(unittest.TestCase):
         name, address, handle = SENSITIVE_PLACEHOLDERS
         review = parse_review(json.dumps({
             'labels': [[0, 'positive', [], 'high'], [1, 'negative', [], 'high'], [2, 'none', [], 'high']],
-            'task': 'coding',
+            'job': 'code',
             'claim': f'GPT-6 Astra beats Claude Opus 4, says {address} and @{handle}. ' + 'More detail. ' * 40,
             'prefers': [[0, 1], [0, 1], [1, 1], [0, 2], [2, 0], [0, 5], ['0', '1'], [0]],
         }), targets)
@@ -349,13 +377,14 @@ class TestClassifier(unittest.TestCase):
         for value in SENSITIVE_PLACEHOLDERS:
             self.assertNotIn(value, review.claim)
         nothing = parse_review(json.dumps({
-            'labels': [[0, 'none', [], 'high']], 'claim': 'GPT-6 Astra is irrelevant here.', 'prefers': [[0, 1]],
+            'labels': [[0, 'none', [], 'high']], 'job': 'none', 'claim': 'GPT-6 Astra is irrelevant here.',
+            'prefers': [[0, 1]],
         }), targets)
         self.assertEqual((nothing.assessments, nothing.claim, nothing.prefers), ((), '', ()))
 
     def test_review_tolerates_thinking_and_fences(self):
         targets = self.targets.mentions('GPT-6 Astra')
-        message = '<think>Synthetic reasoning.</think>\n```json\n{"labels":[[0,"mixed",["speed"],"high"]]}\n```'
+        message = '<think>Synthetic reasoning.</think>\n```json\n{"labels":[[0,"mixed",["speed"],"high"]],"job":"none"}\n```'
         review = parse_review(message, targets)
         self.assertEqual([value.sentiment for value in review.assessments], ['mixed'])
         self.assertEqual(review.assessments[0].aspects, ('speed',))
@@ -363,7 +392,7 @@ class TestClassifier(unittest.TestCase):
     def test_review_retries_once_then_gives_up(self):
         classifier = LocalClassifier('http://127.0.0.1:8788/v1/chat/completions', 'fixture')
         subject = self.targets.subject('GPT-6 Astra is useful, but Claude Opus 4 is unreliable.')
-        valid = '{"labels":[[0,"positive",[],"high"],[1,"negative",["regression"],"high"]],"task":"chat"}'
+        valid = '{"labels":[[0,"positive",[],"high"],[1,"negative",["regression"],"high"]],"job":"chat"}'
         with patch.object(classifier, 'request', side_effect=['{"labels":[[0', valid]) as request:
             review = classifier.review(subject)
         self.assertEqual(
@@ -466,11 +495,11 @@ class TestClassifier(unittest.TestCase):
 
     def test_backend_sets_the_default_model_and_classifier(self):
         for backend, expected in (
-            ((), ('local', 'default_model', 'qwen3.8-27b-4bit-thread-v1')),
-            (('--backend', 'anthropic'), ('anthropic', 'claude-haiku-5-5', 'claude-haiku-5.5-thread-v1')),
+            ((), ('local', 'default_model', 'qwen3.8-27b-4bit-jobs-v1')),
+            (('--backend', 'anthropic'), ('anthropic', 'claude-haiku-5-5', 'claude-haiku-5.5-jobs-v1')),
             (
                 ('--backend', 'anthropic', '--model', 'other-model'),
-                ('anthropic', 'other-model', 'claude-haiku-5.5-thread-v1'),
+                ('anthropic', 'other-model', 'claude-haiku-5.5-jobs-v1'),
             ),
         ):
             with self.subTest(backend=backend), patch.object(sys, 'argv', ['hn_pipeline.py', 'run', *backend]):
@@ -985,6 +1014,108 @@ class TestPhases(unittest.TestCase):
                     retarget(self.state, previous, 'fixture', model)
                 self.assertEqual(tuple(self.state.job()), tuple(before))
 
+    def test_rereview_queues_every_comment_for_another_classifier_and_keeps_the_scan(self):
+        items, _scanned = self.retargeted_run()
+        before = self.assessed()
+        reviewed = {row['item_id'] for row in self.state.connection.execute('SELECT item_id FROM comment')}
+        self.state.connection.execute("UPDATE comment SET failed_groups = 1 WHERE item_id = 303")
+        key = classifier_key_for('fixture-jobs', 'fixture-model', self.targets)
+        rereview(self.state, scan_key_for(self.targets), 'fixture-jobs', 'fixture-model', self.targets)
+        job = self.state.job()
+        self.assertEqual(
+            (job['classifier'], job['classifier_key'], job['scan_key'], job['state']),
+            ('fixture-jobs', key, scan_key_for(self.targets), 'paused'),
+        )
+        self.assertIsNone(self.state.next_partition())
+        self.assertEqual(self.state.pending_stories(), [])
+        self.assertEqual({row['item_id'] for row in self.state.queued(10)}, reviewed)
+        # The earlier reviews stay until each new one is stored over them.
+        self.assertEqual(self.assessed(), before)
+        for table in ('comment', 'assessment'):
+            self.assertEqual(
+                {row[0] for row in self.state.connection.execute(f'SELECT DISTINCT classifier_key FROM {table}')}, {key},
+            )
+        failing = Reviewer()
+        failing.fail = True
+        with ThreadPoolExecutor() as executor:
+            review_comments(self.state, Firebase(items), self.targets, failing, key, executor, [10, 1], lambda: False)
+        self.assertEqual(len(self.state.queued(10)), len(reviewed) - 1)
+        failed = self.state.queued(10, failed=True)[0]['item_id']
+        self.assertNotIn(failed, {item for item, _target in self.assessed()})
+        with ThreadPoolExecutor() as executor:
+            review_comments(self.state, Firebase(items), self.targets, Reviewer(), key, executor, [10, 100], lambda: False)
+        self.assertEqual(self.state.queued(10), [])
+        self.assertEqual(
+            {row[0] for row in self.state.connection.execute("SELECT DISTINCT run FROM comment WHERE failed_groups = 0")},
+            {'unattended'},
+        )
+
+    def test_rereview_refuses_an_unfinished_run_a_changed_list_and_the_same_classifier(self):
+        self.retargeted_run()
+        renamed = Targets([*MODEL_FIXTURES, {'id': 'example-new', 'name': 'Example New 9'}])
+        before = tuple(self.state.job())
+        for scan_key, classifier, reason in (
+            (scan_key_for(renamed), 'fixture-jobs', 'checkpoint-configuration-mismatch'),
+            (scan_key_for(self.targets), 'fixture', 'classifier-unchanged'),
+        ):
+            with self.subTest(reason=reason), self.assertRaisesRegex(PipelineError, reason):
+                rereview(self.state, scan_key, classifier, 'fixture-model', self.targets)
+            self.assertEqual(tuple(self.state.job()), before)
+        self.state.connection.execute('UPDATE comment SET failed_groups = NULL WHERE item_id = 301')
+        with self.assertRaisesRegex(PipelineError, 'run-unfinished'):
+            rereview(self.state, scan_key_for(self.targets), 'fixture-jobs', 'fixture-model', self.targets)
+        self.assertEqual(tuple(self.state.job()), before)
+
+    def test_listed_comments_are_reviewed_from_a_read_only_checkpoint_without_their_text(self):
+        items, _scanned = self.retargeted_run()
+        before = [tuple(row) for row in self.state.connection.execute('SELECT * FROM comment ORDER BY item_id')]
+        replies = Counter()
+
+        def reply(custom_id, prompt):
+            replies[custom_id] += 1
+            if custom_id == '302' and replies[custom_id] == 1:
+                return 'succeeded', 'not json'
+            return 'succeeded', judged(prompt)
+
+        batches = Batches(reply)
+        ids, output, reference = (self.directory / name for name in ('ids.json', 'labels.json', 'reference.json'))
+        ids.write_text(json.dumps([301, 302, 999]))
+        reference.write_text(json.dumps({
+            '301': {'job': 'code', 'setting': 'local', 'run': ''}, '302': {'job': 'chat', 'setting': 'local', 'run': ''},
+        }))
+        args = SimpleNamespace(
+            ids=str(ids), output=str(output), reference=str(reference), state_dir=self.directory,
+            backend='anthropic', classifier_id='fixture-jobs',
+        )
+
+        class Reader(Firebase):
+            def __init__(self, *_args):
+                super().__init__(items)
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+        with patch('evaluate_hn_classifier.FirebaseReader', Reader):
+            result = evaluate_listed(args, self.targets, api_classifier(batches))
+        written = output.read_text()
+        labels = json.loads(written)['labels']
+        self.assertEqual(labels['301'], {
+            'job': 'code', 'setting': 'local', 'run': '', 'stances': {'model|gpt-6-astra': 'positive'},
+        })
+        self.assertEqual(labels['999'], 'not-in-checkpoint')
+        self.assertEqual((result['reviewed'], result['invalidFirstReplies'], result['failed']), (2, 1, 0))
+        self.assertEqual(result['reference']['job'], {'agrees': 1, 'disagrees': 1})
+        self.assertEqual(result['reference']['setting'], {'agrees': 2})
+        self.assertTrue(batches.sent['batch-2'][0]['params']['messages'][0]['content'].endswith(REMINDER))
+        for text in ('Fast.', 'Claude Opus 4 and Example New 9 both did well.'):
+            self.assertNotIn(text, written)
+        self.assertEqual(
+            [tuple(row) for row in self.state.connection.execute('SELECT * FROM comment ORDER BY item_id')], before,
+        )
+
     def test_names_written_with_unicode_hyphens_match(self):
         for text in ('GPT\u20116 Astra is fast.', 'GPT\u20106 Astra is fast.', 'GPT\u20136 Astra is fast.'):
             with self.subTest(text=text):
@@ -1409,8 +1540,8 @@ class TestPhases(unittest.TestCase):
             [(row['target'], json.loads(row['themes'])) for row in themes],
             [('claude-opus-4', ['code-quality']), ('gpt-6-astra', ['code-quality'])],
         )
-        task, claim = self.state.connection.execute('SELECT task, claim FROM comment').fetchone()
-        self.assertEqual((task, claim), ('coding', 'Synthetic claim.'))
+        stored = self.state.connection.execute('SELECT task, claim, setting, run FROM comment').fetchone()
+        self.assertEqual(tuple(stored), ('code', 'Synthetic claim.', '', 'unattended'))
 
     def test_phases_end_to_end_status_results_and_no_text_on_disk(self):
         name, address, handle = SENSITIVE_PLACEHOLDERS

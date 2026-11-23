@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from hn_local.classify import (
-    ASPECTS, CLAIM_LIMIT, CONFIDENCES, FAMILIES, MAX_THEMES, SENTIMENTS, TASKS, THEMES,
+    ASPECTS, CLAIM_LIMIT, CONFIDENCES, FAMILIES, MAX_THEMES, RUNS, SENTIMENTS, SETTINGS, STORED_TASKS, THEMES,
 )
 from hn_local.sources import ARCHIVE_PATTERN, MAX_TIMESTAMP, RECONCILE_ID, PipelineError, iso_time
 from hn_local.state import DATABASE, State, atomic_write
@@ -182,8 +182,11 @@ def read_checkpoint(directory):
         end = integer(job['end_at'], MAX_TIMESTAMP)
         check(start <= end)
         window = (job['classifier_key'], start, end)
+        # Checkpoints reviewed before the job list, opened read-only, have no setting or run column.
+        columns = {row['name'] for row in state.connection.execute('PRAGMA table_info(comment)')}
+        fields = ', '.join(f'c.{name}' if name in columns else f'NULL AS {name}' for name in ('setting', 'run'))
         rows = state.connection.execute(
-            """SELECT c.item_id, c.created, c.failed_groups, c.parent, c.root, c.task, c.claim, a.kind, a.target,
+            f"""SELECT c.item_id, c.created, c.failed_groups, c.parent, c.root, c.task, c.claim, {fields}, a.kind, a.target,
                       a.sentiment, a.aspects, a.confidence, a.themes
                FROM comment c LEFT JOIN assessment a
                  ON a.item_id = c.item_id AND a.classifier_key = c.classifier_key AND a.failed = 0
@@ -201,7 +204,7 @@ def read_checkpoint(directory):
                     'createdAt': iso_time(integer(row['created'], MAX_TIMESTAMP)),
                     'assessments': [],
                 }
-                entries.append((current, row['parent'], row['root'], row['task'], row['claim']))
+                entries.append((current, row['parent'], row['root'], row['task'], row['claim'], row['setting'], row['run']))
                 failures = row['failed_groups']
                 if failures is None:
                     untracked += 1
@@ -245,7 +248,7 @@ def read_checkpoint(directory):
 
         # A comment is listed only when its review found an opinion about a target.
         comments, story_counts = [], {}
-        for entry, parent, root, task, claim in entries:
+        for entry, parent, root, task, claim, setting, run in entries:
             if not entry['assessments']:
                 continue
             if root is not None:
@@ -254,7 +257,12 @@ def read_checkpoint(directory):
             if parent is not None:
                 entry['parent'] = item_id(parent)
             if task is not None:
-                entry['task'] = enum(task, TASKS)
+                entry['task'] = enum(task, STORED_TASKS)
+            # Reviews made before the job list have neither field; a value is shown only when stated.
+            if setting is not None and enum(setting, SETTINGS):
+                entry['setting'] = setting
+            if run is not None and enum(run, RUNS):
+                entry['run'] = run
             if claim is not None and text(claim, CLAIM_LIMIT):
                 entry['claim'] = claim
             if entry['id'] in prefers:

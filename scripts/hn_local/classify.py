@@ -18,7 +18,29 @@ SENTIMENTS = ('positive', 'negative', 'mixed', 'neutral', 'unclear')
 STANCES = ('positive', 'negative', 'mixed', 'neutral', 'none')
 ASPECTS = ('coding', 'reliability', 'cost', 'speed', 'design', 'agents', 'writing', 'research', 'reasoning')
 CONFIDENCES = ('high', 'medium', 'low')
+# The tasks of reviews made before the approved job list. Stored reviews keep them; the reviewer no longer gives them.
 TASKS = ('coding', 'agents', 'design', 'writing', 'research', 'reasoning', 'images', 'chat', 'other')
+# The approved jobs in `research/jobs.json`, in its order, with the definition the reviewer reads.
+JOBS = {
+    'code': 'writing, changing, refactoring, migrating, testing or scripting code, in a chat or a coding agent',
+    'debug': 'finding why something fails, and fixing it',
+    'review': 'judging code, a diff or a pull request, including security review',
+    'plan': 'specs, architecture or implementation plans for software, before code is written',
+    'interface': 'a web page or app front end whose look or interaction is what is judged',
+    'research': 'the model searches the web and finds and cites sources itself',
+    'documents': 'summaries, answers or findings from documents or data the writer supplies',
+    'extraction': 'structured output such as labels, fields, rows or JSON',
+    'writing': 'text whose quality as text is judged, including editing, translation and fiction',
+    'maths': 'maths, science or logic problems with a checkable answer',
+    'chat': "everyday questions answered from the model's own knowledge: explanations, advice, conversation",
+    'read-media': 'describing, transcribing or answering questions about images, scans, audio or video',
+    'make-images': 'generating or editing pictures or video',
+}
+NO_JOB = 'none'
+SETTINGS = ('', 'local')
+RUNS = ('', 'unattended', 'parallel')
+# Every value the task column can hold: the jobs and their absence, and the earlier tasks.
+STORED_TASKS = tuple(dict.fromkeys((*JOBS, NO_JOB, *TASKS)))
 THEMES = {
     'code-quality': 'correctness and quality of generated code',
     'agentic-work': 'long tasks, planning, tool use, staying on task',
@@ -42,7 +64,10 @@ THEMES = {
     'release': 'launch, naming, hype and expectations',
 }
 # The app's earlier topic filters are derived from the task and themes.
-TASK_ASPECTS = {task: task for task in ('coding', 'agents', 'design', 'writing', 'research', 'reasoning')}
+TASK_ASPECTS = {
+    **{task: task for task in ('coding', 'agents', 'design', 'writing', 'research', 'reasoning')},
+    'code': 'coding', 'debug': 'coding', 'review': 'coding', 'plan': 'coding', 'interface': 'design', 'maths': 'reasoning',
+}
 THEME_ASPECTS = {
     'code-quality': 'coding',
     'agentic-work': 'agents',
@@ -229,6 +254,8 @@ class Review:
     task: str
     claim: str
     prefers: tuple[tuple[Target, Target], ...] = ()
+    setting: str = ''
+    run: str = ''
 
 
 def alias_words(name):
@@ -384,8 +411,8 @@ def clip(text, limit):
     return f'{text[:head].rstrip()} … {text[len(text) - (limit - head):].lstrip()}'
 
 
-def legacy_aspects(task, themes):
-    found = {TASK_ASPECTS.get(task), *(THEME_ASPECTS.get(theme) for theme in themes)}
+def legacy_aspects(task, themes, run=''):
+    found = {TASK_ASPECTS.get(task), 'agents' if run else None, *(THEME_ASPECTS.get(theme) for theme in themes)}
     return tuple(aspect for aspect in ASPECTS if aspect in found)
 
 
@@ -406,12 +433,17 @@ For each target that is not none, list up to three themes the writer raises abou
 """ + '\n'.join(f'{theme}: {gloss}.' for theme, gloss in THEMES.items()) + """
 confidence: high when the comment says it directly, medium when it follows from context, low when it is a guess.
 
-task: what the writer used or discusses the targets for: coding, agents (long autonomous tool-using work), design (UI and visual output), writing, research (search and source gathering), reasoning (maths and hard problems), images (image, video or audio generation), chat (everyday questions), or other.
+job: the one job whose result the comment judges, or that the writer used the targets for:
+""" + '\n'.join(f'{job}: {gloss}.' for job, gloss in JOBS.items()) + """
+none: no task is named, or the comment is about the model in general: price, speed, limits, release, benchmarks, safety, refusals, the company, or how it behaves without a task.
+debug, review, plan and interface win over code when the comment is about that part. Turning media into text or answers is read-media; media that only feeds another job takes that job. Prose findings from supplied material are documents; labels, fields or rows are extraction. Research needs the model to search; answers from memory are chat. Maths needs a checkable answer. A drawing test, such as an SVG of a pelican, is none. Running locally, unattended or in parallel never decides the job.
+setting: "local" when the writer runs the model on their own hardware or from downloaded weights, otherwise "".
+run: "unattended" for long or overnight runs with no one steering, "parallel" for subagents, swarms or several sessions at once, otherwise "".
 claim: one plain sentence of at most 25 words giving the writer's main point about the targets and naming them. No personal names, usernames or quotations. Use "" when every target is none.
 prefers: [better, worse] pairs of target numbers, only where the writer says one target is better overall or that they chose it over the other.
 
 Reply with JSON only, one labels row per target in order:
-{"labels":[[0,"stance",["theme"],"confidence"]],"task":"task","claim":"sentence","prefers":[[0,1]]}
+{"labels":[[0,"stance",["theme"],"confidence"]],"job":"job","setting":"","run":"","claim":"sentence","prefers":[[0,1]]}
 
 Example
 Story title: Claude Opus 5
@@ -420,7 +452,15 @@ Comment: Been running it in my editor all day. It finally stops rewriting files 
 Targets:
 0. Claude Opus 5 (model; story subject)
 1. GPT-6 (model family; named in the comment)
-{"labels":[[0,"mixed",["instruction-following","speed"],"high"],[1,"positive",["speed"],"medium"]],"task":"coding","claim":"Claude Opus 5 no longer makes unrequested edits but is still slower than GPT-6.","prefers":[]}
+{"labels":[[0,"mixed",["instruction-following","speed"],"high"],[1,"positive",["speed"],"medium"]],"job":"code","setting":"","run":"","claim":"Claude Opus 5 no longer makes unrequested edits but is still slower than GPT-6.","prefers":[]}
+
+Example
+Story title: Show HN: A tool for batch OCR
+Replied-to text: (none)
+Comment: I left the 4-bit Qwen running overnight on my own GPU over 3,000 scanned invoices and it got nearly every total right.
+Targets:
+0. Qwen (model family; named in the comment)
+{"labels":[[0,"positive",[],"high"]],"job":"read-media","setting":"local","run":"unattended","claim":"Qwen read totals from 3,000 scanned invoices almost without error.","prefers":[]}
 
 Example
 Story title: Claude Opus 5
@@ -428,7 +468,7 @@ Replied-to text: I wonder how much this launch cost them in compute.
 Comment: Probably less than their legal bills this year.
 Targets:
 0. Claude Opus 5 (model; story subject)
-{"labels":[[0,"none",[],"high"]],"task":"other","claim":"","prefers":[]}"""
+{"labels":[[0,"none",[],"high"]],"job":"none","setting":"","run":"","claim":"","prefers":[]}"""
 STORY_SYSTEM = (
     'A Hacker News story title contains a word that is also the name of an AI model, AI assistant '
     'or AI coding tool. Answer yes if the title uses the word in that AI sense, otherwise no. '
@@ -468,8 +508,9 @@ def parse_review(message, targets):
             raise ValueError
         named = [theme for theme in themes if isinstance(theme, str) and theme in THEMES]
         stances[index] = (stance, tuple(dict.fromkeys(named))[:MAX_THEMES], confidence)
-    task = data.get('task')
-    task = task if isinstance(task, str) and task in TASKS else 'other'
+    task, setting, run = data.get('job'), data.get('setting') or '', data.get('run') or ''
+    if task not in JOBS and task != NO_JOB or setting not in SETTINGS or run not in RUNS:
+        raise ValueError
     assessments = []
     for index in sorted(stances):
         stance, themes, confidence = stances[index]
@@ -477,7 +518,7 @@ def parse_review(message, targets):
             continue
         if confidence == 'low' and stance != 'neutral':
             stance = 'unclear'
-        assessments.append(Assessment(targets[index], stance, legacy_aspects(task, themes), confidence, themes))
+        assessments.append(Assessment(targets[index], stance, legacy_aspects(task, themes, run), confidence, themes))
     judged = {index for index, (stance, _themes, _confidence) in stances.items() if stance != 'none'}
     prefers = []
     pairs = data.get('prefers')
@@ -491,7 +532,7 @@ def parse_review(message, targets):
                 prefers.append(choice)
     claim = data.get('claim')
     claim = clip(PII.sub(' … ', claim), CLAIM_LIMIT) if isinstance(claim, str) and assessments else ''
-    return Review(tuple(assessments), task, claim, tuple(prefers[:MAX_PREFERENCES]))
+    return Review(tuple(assessments), task, claim, tuple(prefers[:MAX_PREFERENCES]), setting, run)
 
 
 class NoRedirect(HTTPRedirectHandler):

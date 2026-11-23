@@ -106,15 +106,30 @@
   ],
   "crosswalk": {
     "hn-task": {
-      "version": 2,
+      "version": 3,
       "labels": [
         {
-          "label": "coding",
+          "label": "code",
           "job": "code",
           "fit": "direct"
         },
         {
-          "label": "design",
+          "label": "debug",
+          "job": "debug",
+          "fit": "direct"
+        },
+        {
+          "label": "review",
+          "job": "review",
+          "fit": "direct"
+        },
+        {
+          "label": "plan",
+          "job": "plan",
+          "fit": "direct"
+        },
+        {
+          "label": "interface",
           "job": "interface",
           "fit": "direct"
         },
@@ -124,8 +139,23 @@
           "fit": "direct"
         },
         {
+          "label": "documents",
+          "job": "documents",
+          "fit": "direct"
+        },
+        {
+          "label": "extraction",
+          "job": "extraction",
+          "fit": "direct"
+        },
+        {
           "label": "writing",
           "job": "writing",
+          "fit": "direct"
+        },
+        {
+          "label": "maths",
+          "job": "maths",
           "fit": "direct"
         },
         {
@@ -134,67 +164,26 @@
           "fit": "direct"
         },
         {
-          "label": "reasoning",
-          "job": "reasoning",
-          "fit": "none",
-          "note": "Split: maths, everyday questions or no job. Needs reading until the next review."
+          "label": "read-media",
+          "job": "read-media",
+          "fit": "direct"
         },
         {
-          "label": "images",
-          "job": "images",
-          "fit": "none",
-          "note": "Split: read media or make images. Needs reading until the next review."
+          "label": "make-images",
+          "job": "make-images",
+          "fit": "direct"
         },
         {
-          "label": "agents",
-          "job": "agents",
-          "fit": "none",
-          "note": "A way of running (run: unattended). The task needs reading until the next review."
-        },
-        {
-          "label": "other",
+          "label": "none",
           "job": null,
-          "fit": "none"
+          "fit": "none",
+          "note": "The review found no job: the comment is about the model in general or names no task."
         }
       ]
     },
     "hn-theme": {
-      "version": 2,
-      "labels": [
-        {
-          "label": "local-use",
-          "job": null,
-          "fit": "none",
-          "note": "Sets the setting field only (local)."
-        },
-        {
-          "label": "frontend-design",
-          "job": "interface",
-          "fit": "direct"
-        },
-        {
-          "label": "writing-style",
-          "job": "writing",
-          "fit": "direct"
-        },
-        {
-          "label": "agentic-work",
-          "job": null,
-          "fit": "none",
-          "note": "Sets the run field only (unattended)."
-        },
-        {
-          "label": "code-quality",
-          "job": "code",
-          "fit": "direct"
-        },
-        {
-          "label": "reasoning-depth",
-          "job": null,
-          "fit": "none",
-          "note": "How much a model thinks, not a task."
-        }
-      ]
+      "version": 3,
+      "labels": []
     },
     "report": {
       "version": 2,
@@ -765,17 +754,8 @@
     }
   },
   "fields": {
-    "version": 1,
-    "hn-theme": [
-      {
-        "label": "local-use",
-        "setting": "local"
-      },
-      {
-        "label": "agentic-work",
-        "run": "unattended"
-      }
-    ],
+    "version": 2,
+    "hn-theme": [],
     "surface": [
       {
         "surface": "local-runner",

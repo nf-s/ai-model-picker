@@ -15,7 +15,7 @@ from contextlib import closing
 from pathlib import Path
 
 from hn_local.classify import (
-    DEFAULT_ENDPOINT, PIPELINE_VERSION, REMINDER, LocalClassifier, Review, Targets,
+    DEFAULT_ENDPOINT, NO_JOB, PIPELINE_VERSION, REMINDER, LocalClassifier, Review, Targets,
     parse_review, plain, review_prompt, sanitize_html,
 )
 from hn_local.clickhouse import CLICKHOUSE_BATCH_SIZE, ClickHouseReader
@@ -39,10 +39,11 @@ BATCH_PAGE = 256
 BATCH_SIZE = 5_000
 BATCH_WAVE = 100_000
 BATCH_POLL = 30
-# The default model name and classifier ID of each backend.
+# The default model name and classifier ID of each backend. The IDs ending in -thread-v1 named the reviewer
+# that gave each comment a task; the -jobs-v1 reviewer gives one of the approved jobs with setting and run.
 BACKENDS = {
-    'local': ('default_model', 'qwen3.8-27b-4bit-thread-v1'),
-    'anthropic': ('claude-haiku-5-5', 'claude-haiku-5.5-thread-v1'),
+    'local': ('default_model', 'qwen3.8-27b-4bit-jobs-v1'),
+    'anthropic': ('claude-haiku-5-5', 'claude-haiku-5.5-jobs-v1'),
 }
 KNOWN_ITEMS = 20_000
 MAX_THREAD_DEPTH = 128
@@ -274,7 +275,7 @@ def read_subjects(state, firebase, targets, known, rows):
             story_targets(targets, story) if story is not None and story['state'] == 'expanded' else (),
         )
         if subject is None:
-            records.append((item.id, item.parent, root, Review((), 'other', '')))
+            records.append((item.id, item.parent, root, Review((), NO_JOB, '')))
         else:
             subjects.append((item.id, item.parent, root, subject))
     return subjects, records, cleared
@@ -561,6 +562,24 @@ def retarget(state, previous, classifier_id, model):
     state.retarget(classifier_key_for(classifier_id, model, targets), scan_key_for(targets), added, stories)
 
 
+def rereview(state, scan_key, classifier_id, model, targets):
+    """Queue every comment of a finished run for review by another classifier, keeping its scan.
+
+    The next `run` with that classifier reviews them all again. Comments that a run has not collected
+    yet, and target lists that changed since the scan, are refused: extend or retarget first.
+    """
+    job = state.job()
+    if job is None:
+        raise PipelineError('no-checkpoint')
+    if job['scan_key'] != scan_key:
+        raise PipelineError('checkpoint-configuration-mismatch')
+    if state.next_partition() is not None or state.pending_stories() or state.queued(1) or state.batched():
+        raise PipelineError('run-unfinished')
+    if job['classifier'] == classifier_id:
+        raise PipelineError('classifier-unchanged')
+    state.rereview(classifier_id, classifier_key_for(classifier_id, model, targets))
+
+
 def build_classifier(args):
     if args.backend == 'anthropic':
         # Imported here so that the other commands and the local backend do not load the SDK.
@@ -722,7 +741,10 @@ def arguments():
     renamed = commands.add_parser(
         'retarget', help='Keep the reviews after the model list changes, for the next run to scan again',
     )
-    for command in (scan, status, export, migrate, backfill, extend, renamed):
+    again = commands.add_parser(
+        'rereview', help='Queue every comment of a finished run for the next run to review with another classifier',
+    )
+    for command in (scan, status, export, migrate, backfill, extend, renamed, again):
         command.add_argument('--state-dir', type=Path, default=STATE_DIR)
     for command in (scan, backfill):
         command.add_argument('--workers', type=int, choices=range(1, 65), default=16, metavar='1..64')
@@ -730,7 +752,7 @@ def arguments():
             '--max-firebase-requests', type=positive_integer, help='Cap item HTTP requests, including retries',
         )
     scan.add_argument('--source', choices=('archive-and-tail', 'firebase'), default='archive-and-tail')
-    for command in (scan, renamed):
+    for command in (scan, renamed, again):
         command.add_argument(
             '--backend', choices=tuple(BACKENDS), default='local',
             help='local: a loopback model server. anthropic: the Anthropic API, which receives scrubbed comment text',
@@ -745,20 +767,20 @@ def arguments():
     scan.add_argument('--max-classifications', type=positive_integer, help='Pause after this many comment reviews')
     scan.add_argument('--collect-only', action='store_true', help='Scan and list threads without calling the model')
     args = parser.parse_args()
-    if args.command in ('run', 'retarget'):
+    if args.command in ('run', 'retarget', 'rereview'):
         model, classifier_id = BACKENDS[args.backend]
         args.model = args.model or model
         args.classifier_id = args.classifier_id or classifier_id
+    if args.command in ('run', 'rereview') and not all(
+        value and len(value) <= 128 and all(c.isascii() and (c.isalnum() or c in '._/-:') for c in value)
+        for value in (args.classifier_id, args.model)
+    ):
+        parser.error('invalid classifier name')
     if args.command == 'run':
         if args.source == 'firebase' and (args.first_item is None or args.last_item is None):
             parser.error('--source firebase requires --first-item and --last-item')
         if args.source != 'firebase' and (args.first_item is not None or args.last_item is not None):
             parser.error('the explicit item range requires --source firebase')
-        if not all(
-            value and len(value) <= 128 and all(c.isascii() and (c.isalnum() or c in '._/-:') for c in value)
-            for value in (args.classifier_id, args.model)
-        ):
-            parser.error('invalid classifier name')
     return args
 
 
@@ -788,6 +810,11 @@ def main():
                 if job is None:
                     raise PipelineError('no-checkpoint')
                 retarget(state, previous_targets(job['scan_key']), args.classifier_id, args.model)
+                export_progress(state)
+                return 0
+            if args.command == 'rereview':
+                targets = current_targets()
+                rereview(state, scan_key_for(targets), args.classifier_id, args.model, targets)
                 export_progress(state)
                 return 0
             if args.command == 'context':

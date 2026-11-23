@@ -1,14 +1,20 @@
 {
-  "checkedAt": "2026-11-18",
-  "classifierId": "claude-haiku-5.5-thread-v1",
+  "checkedAt": "2026-11-24",
+  "classifierId": "claude-haiku-5.5-jobs-v1",
   "backend": "anthropic",
   "modelName": "Claude Haiku 5.5",
   "modelUrl": "https://www.anthropic.com/claude/haiku",
   "referenceAssessments": 37,
-  "agrees": 22,
-  "disagrees": 12,
-  "oppositePolarity": 1,
-  "unclear": 1,
+  "agrees": 23,
+  "disagrees": 9,
+  "oppositePolarity": 0,
+  "unclear": 3,
   "targetMissed": 2,
-  "failed": 0
+  "failed": 0,
+  "jobs": {
+    "comments": 100,
+    "agrees": 83,
+    "earlierAgrees": 48,
+    "reference": "100 comments from the 24 November 2026 pilot, labelled by an AI reviewer (Claude Opus 5.5), not by a person."
+  }
 }

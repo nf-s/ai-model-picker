@@ -303,7 +303,7 @@ test('HN controller leaves a run made with another classifier to the terminal', 
 
   await writeFile(
     join(runDir, 'status.json'),
-    runStatus('paused', unfinished, 'qwen3.8-27b-4bit-thread-v1'),
+    runStatus('paused', unfinished, 'qwen3.8-27b-4bit-jobs-v1'),
   );
   assert.equal((await overview()).runner.external, false);
   let started = await start();
@@ -312,7 +312,7 @@ test('HN controller leaves a run made with another classifier to the terminal', 
 
   await writeFile(
     join(runDir, 'status.json'),
-    runStatus('running', unfinished, 'claude-haiku-5.5-thread-v1'),
+    runStatus('running', unfinished, 'claude-haiku-5.5-jobs-v1'),
   );
   const data = await overview();
   assert.equal(data.runner.external, true);

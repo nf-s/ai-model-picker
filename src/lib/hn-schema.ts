@@ -13,6 +13,21 @@ const checkFields = {
   unclear: count,
   targetMissed: count,
   failed: count,
+  // The job check of a reviewer that gives jobs: comments whose job matched the reference, and how
+  // many the earlier review's tasks matched through the crosswalk on the same comments.
+  jobs: z
+    .strictObject({
+      comments: count,
+      agrees: count,
+      earlierAgrees: count,
+      reference: z.string().min(1),
+    })
+    .refine(
+      (value) =>
+        value.agrees <= value.comments && value.earlierAgrees <= value.comments,
+      'Invalid job counts',
+    )
+    .optional(),
 };
 // The backend names match the pipeline's --backend option.
 export const hnClassifierCheck = z

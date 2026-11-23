@@ -6,7 +6,12 @@ import {
   createPublicHnReader,
   ReaderError,
 } from '../src/lib/hn-public-items.ts';
-import { hnTaskSchema, hnThemeSchema } from '../src/lib/hn-published.ts';
+import {
+  hnRunSchema,
+  hnSettingSchema,
+  hnTaskSchema,
+  hnThemeSchema,
+} from '../src/lib/hn-published.ts';
 export {
   commentText,
   publicItem,
@@ -45,6 +50,8 @@ const commentRow = z.object({
   root: itemId.nullable(),
   task: hnTaskSchema.nullable(),
   claim: z.string().max(240).nullable(),
+  setting: z.union([z.literal(''), hnSettingSchema]).nullable(),
+  run: z.union([z.literal(''), hnRunSchema]).nullable(),
 });
 const assessmentRow = z.object({
   item_id: itemId,
@@ -69,8 +76,22 @@ const storyRow = z.object({
   targets: json(z.array(z.tuple([kind, label])).max(20)),
   state: z.enum(['pending', 'expanded', 'rejected', 'context']),
 });
-const commentColumns =
-  'c.item_id, c.created, c.parent, c.root, c.task, c.claim';
+// Checkpoints reviewed before the job list have no setting or run column.
+function commentColumns(db) {
+  const names = new Set(
+    db
+      .prepare('PRAGMA table_info(comment)')
+      .all()
+      .map((column) => column.name),
+  );
+  const optional = ['setting', 'run'].map((name) =>
+    names.has(name) ? `c.${name}` : `NULL AS ${name}`,
+  );
+  return [
+    'c.item_id, c.created, c.parent, c.root, c.task, c.claim',
+    ...optional,
+  ].join(', ');
+}
 const assessmentColumns =
   'item_id, kind, target, sentiment, aspects, confidence, themes';
 const preferenceColumns = 'item_id, winner_kind, winner, loser_kind, loser';
@@ -195,6 +216,8 @@ function reviewDetails(row, prefers) {
     ...(row.parent === null ? {} : { parent: row.parent }),
     ...(row.task === null ? {} : { task: row.task }),
     ...(row.claim ? { claim: row.claim } : {}),
+    ...(row.setting ? { setting: row.setting } : {}),
+    ...(row.run ? { run: row.run } : {}),
     ...(prefers.length ? { prefers } : {}),
   };
 }
@@ -245,7 +268,7 @@ async function readPage(stateDir, request) {
       .parse(
         db
           .prepare(
-            `SELECT ${commentColumns} FROM comment c WHERE ${where}${request.before === null ? '' : ' AND c.item_id < ?'} ORDER BY c.item_id DESC LIMIT ?`,
+            `SELECT ${commentColumns(db)} FROM comment c WHERE ${where}${request.before === null ? '' : ' AND c.item_id < ?'} ORDER BY c.item_id DESC LIMIT ?`,
           )
           .all(...pageValues, request.limit + 1),
       );
@@ -315,7 +338,7 @@ async function readIndex(stateDir) {
       .parse(
         db
           .prepare(
-            `SELECT ${commentColumns} FROM comment c WHERE c.classifier_key = ? AND c.created BETWEEN ? AND ? ORDER BY c.item_id DESC`,
+            `SELECT ${commentColumns(db)} FROM comment c WHERE c.classifier_key = ? AND c.created BETWEEN ? AND ? ORDER BY c.item_id DESC`,
           )
           .all(...window),
       )) {

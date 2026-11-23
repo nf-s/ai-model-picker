@@ -75,6 +75,8 @@ CREATE TABLE IF NOT EXISTS comment (
     mention INTEGER NOT NULL DEFAULT 1,
     task TEXT,
     claim TEXT,
+    setting TEXT,
+    run TEXT,
     PRIMARY KEY (item_id, classifier_key)
 );
 CREATE TABLE IF NOT EXISTS assessment (
@@ -233,6 +235,8 @@ class State:
                 ('comment', 'mention', 'INTEGER NOT NULL DEFAULT 1'),
                 ('comment', 'task', 'TEXT'),
                 ('comment', 'claim', 'TEXT'),
+                ('comment', 'setting', 'TEXT'),
+                ('comment', 'run', 'TEXT'),
                 ('assessment', 'themes', "TEXT NOT NULL DEFAULT '[]'"),
             ):
                 columns = self.connection.execute(f'PRAGMA table_info({table})')
@@ -539,6 +543,29 @@ class State:
                 (classifier_key, scan_key, int(time.time())),
             )
 
+    def rereview(self, classifier, classifier_key):
+        """Queue every comment of a finished run for review by another classifier.
+
+        The scan, the thread walks and the window are kept. Each comment keeps its earlier review
+        until the new one is stored over it, and a comment whose new reviews all fail loses it.
+        """
+        job = self.job()
+        if job is None or self.scan_window(job) is None or job['source'] != 'archive-and-tail' or self.batched():
+            raise PipelineError('checkpoint-configuration-mismatch')
+        previous = job['classifier_key']
+        self.connection.execute('PRAGMA defer_foreign_keys = ON')
+        with self.connection:
+            for table in ('comment', 'assessment', 'preference'):
+                self.connection.execute(
+                    f'UPDATE {table} SET classifier_key = ? WHERE classifier_key = ?', (classifier_key, previous),
+                )
+            self.connection.execute('UPDATE comment SET failed_groups = NULL')
+            self.connection.execute(
+                """UPDATE run SET classifier = ?, classifier_key = ?, state = 'paused', reason = NULL,
+                   retry_failures = 0, updated = ?""",
+                (classifier, classifier_key, int(time.time())),
+            )
+
     def remember_story(self, item_id, created, title):
         """Keep the title of a thread that holds a queued comment, for context and display."""
         with self.connection:
@@ -621,11 +648,12 @@ class State:
                 self.connection.execute('DELETE FROM assessment WHERE item_id = ? AND classifier_key = ?', key)
                 self.connection.execute('DELETE FROM preference WHERE item_id = ? AND classifier_key = ?', key)
                 self.connection.execute(
-                    """UPDATE comment SET failed_groups = ?, parent = ?, root = ?, task = ?, claim = ?
-                       WHERE item_id = ? AND classifier_key = ?""",
+                    """UPDATE comment SET failed_groups = ?, parent = ?, root = ?, task = ?, claim = ?,
+                       setting = ?, run = ? WHERE item_id = ? AND classifier_key = ?""",
                     (
                         int(review is None), parent, root,
-                        review.task if review else None, (review.claim or None) if review else None, *key,
+                        review.task if review else None, (review.claim or None) if review else None,
+                        review.setting if review else None, review.run if review else None, *key,
                     ),
                 )
                 if review is None:

@@ -145,6 +145,47 @@ BACKUP=.local/hn/threads-backup-YYYYMMDD-HHMMSS && sqlite3 .local/hn/threads/che
 
 Replace `YYYYMMDD-HHMMSS` with the name noted in step 2, then run step 1 to confirm the earlier numbers are back.
 
+### When the comment review changes
+
+The Hacker News review's instructions are `SYSTEM` and the lists in `scripts/hn_local/classify.py`, which include each job's id and definition. A job's id in `research/jobs.json` is part of them: a test fails until the two agree. After a change, give the reviewer a new classifier ID in `BACKENDS` in `scripts/hn_pipeline.py`, and review every stored comment again; nothing is collected. It is paid: on 24 November 2026 the measured cost was about 4.3 US cents per 1,000 comments, so a run of about 195,000 comments costs about US$8.30. Ask the owner first.
+
+1. Run step 1 of [Hacker News comments](#hacker-news-comments): the run must be finished. Then copy the checkpoint as in step 2 and note the folder.
+
+2. Pilot the new instructions without touching the checkpoint. Draw about 2,000 comment IDs from it into a JSON list, label about 100 of them yourself into a JSON object of ID to `job`, `setting` and `run`, and keep both outside the repository. Then:
+
+   ```sh
+   .local/hn/venv/bin/python -B scripts/evaluate_hn_classifier.py --backend anthropic --ids <id list> --reference <labels> --output <file outside the repository>
+   ```
+
+   It reads the comments as `run` would, sends them in one batch, retries invalid replies once and writes each comment's job, setting, run and stances, with no comment text. Expected: a JSON summary with `reviewed`, `invalidFirstReplies`, `failed`, `reference` and `tokens`. Stop and report if more than 5% of first replies are invalid, or if the reference agrees with the new jobs less often than with the stored labels mapped through the crosswalk. Work out the cost per 1,000 comments from `tokens` at batch rates.
+
+3. Run the stance check without `--ids` (about 45 requests, under one US cent), and write its holdout counts and the pilot's job agreement into `research/hn-classifier-check.json` with the new classifier ID. The export and the records build refuse a run whose classifier differs from that file's.
+
+4. Queue every comment for the new reviewer:
+
+   ```sh
+   .local/hn/venv/bin/python -B scripts/hn_pipeline.py rereview --state-dir .local/hn/threads --backend anthropic
+   ```
+
+   Expected: exit code 0 and one line of JSON with `"state": "paused"`, `classified` 0 and `commentsQueued` equal to `candidates` in step 1. Each comment keeps its earlier labels until its new review is stored.
+
+   | Output                              | Meaning                                                 | What to do                                                                   |
+   | ----------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+   | `run-unfinished`                    | Comments, stories or batches are still waiting.         | Finish the run with step 4 of [Hacker News comments](#hacker-news-comments). |
+   | `classifier-unchanged`              | The run already has this classifier.                    | Give the reviewer a new ID, or nothing needs doing.                          |
+   | `checkpoint-configuration-mismatch` | The model list changed since the scan. Nothing changed. | Retarget first: [When the model list changes](#when-the-model-list-changes). |
+   | `already-running`                   | Another command is using the directory.                 | Wait for it to end.                                                          |
+
+5. Read the queue without reviewing:
+
+   ```sh
+   .local/hn/venv/bin/python -B scripts/hn_pipeline.py run --state-dir .local/hn/threads --backend anthropic --collect-only >> .local/hn/update.log 2>&1; echo "exit $?"
+   ```
+
+   Expected: exit code 0 and a last log line with `"reason": "collect-only"`. Multiply `commentsQueued` by the pilot's cost per 1,000 and report it to the owner with the pilot's results.
+
+6. With the owner's go-ahead, follow steps 4 and 5 of [Hacker News comments](#hacker-news-comments). The review sends about 40 batches of 5,000. Until it finishes, the local app shows the older analysis and `npm run records:build` stops with "Could not read the Hacker News checkpoint". `commentsAboutTargets` can fall: a comment whose new review finds no opinion is no longer listed.
+
 ## arXiv metadata
 
 This reads the days of arXiv metadata published since the last harvest. The index is a feed for reports reviewed by hand: its failure shortlist points to studies worth reading, and one that controls its comparison is added to `research/reports.json` through [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide). The app shows nothing from it and publishing exports nothing from it. It is free, needs no model and no sign-in, and is paced at one request every three seconds. The first harvest of 186 days took on the order of an hour, so a week of new days should take a few minutes; a short update has not been timed.
@@ -290,7 +331,7 @@ To retarget the Hacker News run, first make sure it is finished (step 1 of [Hack
 
 Until step 3 finishes, the local app shows the older analysis kept in `.local/hn/` and `npm run build:pages` stops with "Could not export the current Hacker News checkpoint." Do not publish in between.
 
-A new full run, which reviews every comment again, is needed only after a change to the review itself, such as its prompt or classifier. Through the Anthropic API the first one cost about US$7 and took about two hours. Start one only when the owner asks; the steps are in the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api).
+A review of every comment again is needed only after a change to the review itself, such as its instructions or classifier: see [When the comment review changes](#when-the-comment-review-changes). Start one only when the owner asks.
 
 ### When the job list changes
 
@@ -315,7 +356,7 @@ The job list is `research/jobs.json` ([data](data.md#shared-records-and-the-job-
 3. Compare the coverage with the last build's: a job that falls to zero, or records that move to "Needs reading", should be explained by the change. Restricted benchmarks take their job from their category in `.local/restricted/research.json` through `benchmark-category`; tell the owner if a category no longer gives a job, without naming the benchmark.
 4. Run the checks in `AGENTS.md`, look at Brief for every job and at the Data page's job coverage, and commit `research/jobs.json` with any test or fixture that names a job id.
 
-The people review labels with the approved list since 24 November 2026, so no people record needs reading. A job's id or label is part of the people review's instructions: changing one makes `status` report `instructionsUnchanged: false`, and the people review needs [a new review of every passage](#when-the-review-instructions-change) (about US$2; ask the owner). The Hacker News review's tasks are still the earlier 17 jobs, mapped through `replaces`; its records that need reading get a job only from a new Hacker News review with the new list (about US$7; ask the owner).
+The people review labels with the approved list since 24 November 2026, so no people record needs reading. A job's id or label is part of the people review's instructions: changing one makes `status` report `instructionsUnchanged: false`, and the people review needs [a new review of every passage](#when-the-review-instructions-change) (about US$2; ask the owner). The Hacker News review labels with the approved list since 24 November 2026 as well, so no Hacker News record needs reading. Its jobs are part of its instructions: changing a job's id needs [a new review of every comment](#when-the-comment-review-changes) (about US$8; ask the owner).
 
 On 24 November 2026 one restricted benchmark's category in `.local/restricted/research.json` was `reasoning`, which gives no job under the approved list, so it orders no brief until the owner changes that category. The build does not stop for it.
 

@@ -426,6 +426,34 @@ test('review details, stories and preferences appear only for newer reviews', as
   assert.equal(page.comments[1].prefers.length, 1);
 });
 
+test('jobs, setting and run appear when the checkpoint stores them', async (t) => {
+  const directory = await fixture(t);
+  update(directory, 'ALTER TABLE comment ADD COLUMN setting TEXT');
+  update(directory, 'ALTER TABLE comment ADD COLUMN run TEXT');
+  update(
+    directory,
+    'UPDATE comment SET task = ?, setting = ?, run = ? WHERE item_id = 1029',
+    'read-media',
+    'local',
+    '',
+  );
+  const read = createCommentReader(directory, syntheticItems);
+  const index = await read(select('/api/hn/index'));
+  const comment = index.comments.find((row) => row.id === 1029);
+  assert.equal(comment.task, 'read-media');
+  assert.equal(comment.setting, 'local');
+  assert.equal('run' in comment, false);
+  update(
+    directory,
+    'UPDATE comment SET run = ? WHERE item_id = 1029',
+    'interactive',
+  );
+  await assert.rejects(
+    read(select('/api/hn/index')),
+    (error) => error.status === 503,
+  );
+});
+
 test('unknown stored values and missing columns are refused as unavailable storage', async (t) => {
   for (const [sql, value] of [
     ['UPDATE assessment SET themes = ? WHERE item_id = 1029', '["synthetic"]'],

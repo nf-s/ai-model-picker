@@ -24,17 +24,32 @@ export const hnAspectSchema = z.enum([
   'research',
   'reasoning',
 ]);
+// A comment's job from the approved list, or none; reviews made before the list keep their earlier task.
 export const hnTaskSchema = z.enum([
+  'code',
+  'debug',
+  'review',
+  'plan',
+  'interface',
+  'research',
+  'documents',
+  'extraction',
+  'writing',
+  'maths',
+  'chat',
+  'read-media',
+  'make-images',
+  'none',
   'coding',
   'agents',
   'design',
-  'writing',
-  'research',
   'reasoning',
   'images',
-  'chat',
   'other',
 ]);
+// Stated by the review only when the comment says so.
+export const hnSettingSchema = z.enum(['local']);
+export const hnRunSchema = z.enum(['unattended', 'parallel']);
 export const hnThemeSchema = z.enum([
   'code-quality',
   'agentic-work',
@@ -74,6 +89,8 @@ export const hnIndexCommentSchema = z.strictObject({
   story: itemId.optional(),
   parent: itemId.optional(),
   task: hnTaskSchema.optional(),
+  setting: hnSettingSchema.optional(),
+  run: hnRunSchema.optional(),
   claim: z.string().min(1).max(240).optional(),
   prefers: z
     .array(z.strictObject({ winner: targetSchema, loser: targetSchema }))

@@ -4,6 +4,8 @@ import {
   hnIndexCommentSchema,
   hnPublishedSnapshotSchema,
   hnStorySchema,
+  hnRunSchema,
+  hnSettingSchema,
   hnTaskSchema,
   hnThemeSchema,
   parsePublishedCollection,
@@ -178,18 +180,31 @@ const story = {
   comments: 1,
 };
 
-test('task and theme values match the pipeline lists', () => {
+test('task, setting, run and theme values match the pipeline lists', () => {
   assert.deepEqual(hnTaskSchema.options, [
+    'code',
+    'debug',
+    'review',
+    'plan',
+    'interface',
+    'research',
+    'documents',
+    'extraction',
+    'writing',
+    'maths',
+    'chat',
+    'read-media',
+    'make-images',
+    'none',
     'coding',
     'agents',
     'design',
-    'writing',
-    'research',
     'reasoning',
     'images',
-    'chat',
     'other',
   ]);
+  assert.deepEqual(hnSettingSchema.options, ['local']);
+  assert.deepEqual(hnRunSchema.options, ['unattended', 'parallel']);
   assert.equal(hnThemeSchema.options.length, 20);
   assert.equal(hnThemeSchema.options[0], 'code-quality');
   assert.equal(hnThemeSchema.options.at(-1), 'release');

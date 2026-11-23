@@ -185,11 +185,11 @@ test('coverage is by each record’s own job; the filters apply as Search applie
     id: 'hn:1',
     job: '',
     how: 'pending',
-    via: 'task:images',
+    via: 'category:agents',
   };
   assert.deepEqual(
     [...byJob([pending])].map(([row, records]) => [row, records.length]),
-    [['pending:images', 1]],
+    [['pending:agents', 1]],
   );
   const current = (id: string) => data.modelById.get(id)?.status === 'current';
   const within = inFilters(core.measured, { ...openFilter, current });

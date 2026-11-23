@@ -54,10 +54,10 @@ def hn_export():
         'status': {'classifier': CLASSIFIER, 'startAt': '2026-05-20T00:00:00Z', 'endAt': '2026-11-20T00:00:00Z'},
         'stories': [{'id': 900, 'title': 'Synthetic story'}],
         'comments': [
-            {'id': 101, 'createdAt': '2026-10-01T10:00:00Z', 'task': 'coding', 'story': 900,
+            {'id': 101, 'createdAt': '2026-10-01T10:00:00Z', 'task': 'code', 'story': 900,
              'claim': 'It found the root cause from the stack trace.',
              'assessments': [assessment('model', MODEL, 'positive')]},
-            {'id': 102, 'createdAt': '2026-10-02T10:00:00Z', 'task': 'other',
+            {'id': 102, 'createdAt': '2026-10-02T10:00:00Z', 'task': 'none', 'setting': 'local',
              'claim': 'Slow on my laptop.',
              'assessments': [assessment('family', 'GPT', 'negative', ['local-use'])],
              'prefers': [{'winner': {'kind': 'model', 'target': MODEL}, 'loser': {'kind': 'family', 'target': 'GPT'}}]},
@@ -138,8 +138,8 @@ class TestJobFile(unittest.TestCase):
         self.assertEqual(self.jobs['keywords']['rules'], [])
         counted = sum(sum(row['counts'].values()) for row in core['coverage']['rows'] + core['coverage']['pending'])
         self.assertEqual(counted, len(records))
-        self.assertEqual((records['hn:101']['job'], records['hn:101']['how'], records['hn:101']['via']), ('code', 'label', 'task:coding'))
-        # The local-use theme gives no job and sets the setting field.
+        self.assertEqual((records['hn:101']['job'], records['hn:101']['how'], records['hn:101']['via']), ('code', 'label', 'task:code'))
+        # The review's `none` gives no job; the comment's own setting field sets the setting.
         self.assertEqual((records['hn:102']['job'], records['hn:102']['how'], records['hn:102']['setting']), ('', '', 'local'))
         self.assertEqual((records['hn:103']['job'], records['hn:103']['stance']), ('writing', 'neutral'))
         self.assertEqual(core['crowd']['counts']['line|GPT']['writing']['2026-09'], [0, 0, 1, 0])
@@ -151,6 +151,13 @@ class TestJobFile(unittest.TestCase):
         self.assertEqual(core['jobs']['categories']['design'], 'interface')
         self.assertEqual(core['jobs']['categories']['general'], '')
         self.assertEqual(core['jobs']['categories']['reasoning'], '')
+        # A theme alone gives no job and sets neither setting nor run.
+        hn = hn_export()
+        del hn['comments'][1]['setting']
+        hn['comments'][1]['assessments'][0]['themes'] = ['agentic-work', 'local-use']
+        _core, themed = build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
+        themed = next(record for record in themed if record['id'] == 'hn:102')
+        self.assertEqual((themed['job'], themed['how'], themed['setting'], themed['run']), ('', '', '', ''))
 
     def test_every_old_job_id_is_current_or_replaced(self):
         old = ('coding', 'bug-fix', 'refactor', 'review', 'tests', 'interface', 'agents', 'delegation', 'planning',
@@ -174,17 +181,23 @@ class TestJobFile(unittest.TestCase):
             })
 
     def test_records_of_split_jobs_and_fields_need_reading(self):
+        # The tracked hn-task table maps only current jobs, so this copy adds two old labels whose jobs
+        # were split or became a field.
+        self.jobs['crosswalk']['hn-task']['labels'] += [
+            {'label': 'images', 'job': 'images', 'fit': 'none'},
+            {'label': 'agents', 'job': 'agents', 'fit': 'none'},
+        ]
         hn = hn_export()
         hn['comments'] += [
             {'id': 104, 'createdAt': '2026-10-05T10:00:00Z', 'task': 'images', 'claim': 'It read the scan.',
              'assessments': [assessment('model', MODEL, 'positive')]},
-            {'id': 105, 'createdAt': '2026-10-06T10:00:00Z', 'task': 'agents', 'claim': 'It ran overnight.',
-             'assessments': [assessment('model', MODEL, 'mixed', ['local-use'])]},
+            {'id': 105, 'createdAt': '2026-10-06T10:00:00Z', 'task': 'agents', 'claim': 'It ran overnight.', 'setting': 'local',
+             'assessments': [assessment('model', MODEL, 'mixed')]},
         ]
         core, records = build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
         records = {record['id']: record for record in records}
         self.assertEqual((records['hn:104']['job'], records['hn:104']['how'], records['hn:104']['via']), ('', 'pending', 'task:images'))
-        # The old job sets the run field; the theme sets the setting.
+        # The old job sets the run field; the comment's own field sets the setting.
         self.assertEqual((records['hn:105']['how'], records['hn:105']['run'], records['hn:105']['setting']), ('pending', 'unattended', 'local'))
         self.assertEqual(core['coverage']['pending'], [
             {'old': 'images', 'counts': {'benchmark': 0, 'arena': 0, 'report': 0, 'hn': 1}},
@@ -251,11 +264,11 @@ class TestJobFile(unittest.TestCase):
 
     def test_a_crosswalk_fit_agrees_with_the_job_it_gives(self):
         cases = [
-            (lambda d: crosswalk_entry(d, 'hn-task', 'other').update(fit='direct'), 'crosswalk hn-task: other has fit direct but gives no job'),
-            (lambda d: crosswalk_entry(d, 'hn-task', 'images').update(fit='loose'), 'crosswalk hn-task: images has fit loose but gives no job'),
-            (lambda d: crosswalk_entry(d, 'hn-task', 'coding').update(fit='none'), 'crosswalk hn-task: coding has fit none but gives a job'),
-            (lambda d: crosswalk_entry(d, 'hn-task', 'coding').update(fit='close'), 'crosswalk hn-task: coding has unknown fit close'),
-            (lambda d: crosswalk_entry(d, 'hn-task', 'coding').pop('fit'), 'crosswalk hn-task: an entry is not a label, a job, a fit'),
+            (lambda d: crosswalk_entry(d, 'hn-task', 'none').update(fit='direct'), 'crosswalk hn-task: none has fit direct but gives no job'),
+            (lambda d: crosswalk_entry(d, 'report-category', 'agents').update(fit='loose'), 'crosswalk report-category: agents has fit loose but gives no job'),
+            (lambda d: crosswalk_entry(d, 'hn-task', 'code').update(fit='none'), 'crosswalk hn-task: code has fit none but gives a job'),
+            (lambda d: crosswalk_entry(d, 'hn-task', 'code').update(fit='close'), 'crosswalk hn-task: code has unknown fit close'),
+            (lambda d: crosswalk_entry(d, 'hn-task', 'code').pop('fit'), 'crosswalk hn-task: an entry is not a label, a job, a fit'),
         ]
         for change, message in cases:
             with self.subTest(message=message):
@@ -287,8 +300,8 @@ class TestJobFile(unittest.TestCase):
         self.refused('writting is neither a job nor replaced', 'hn:103')
 
     def test_unknown_job_id_without_records_is_listed(self):
-        crosswalk_entry(self.jobs, 'hn-task', 'images')['job'] = 'imagez'
-        self.refused('imagez is neither a job nor replaced (in crosswalk hn-task:images): 0 records')
+        crosswalk_entry(self.jobs, 'hn-task', 'maths')['job'] = 'mathz'
+        self.refused('mathz is neither a job nor replaced (in crosswalk hn-task:maths): 0 records')
 
     def test_unmapped_source_label_stops_the_build_and_lists_its_records(self):
         labels = self.jobs['crosswalk']['hn-task']['labels']
@@ -301,12 +314,12 @@ class TestJobFile(unittest.TestCase):
         self.refused('benchmark:plato-web-clone-bench is not in the crosswalk', 'bm:plato-web-clone-bench:')
 
     def test_old_job_ids_map_through_replaces(self):
-        crosswalk_entry(self.jobs, 'hn-task', 'coding')['job'] = 'coding'
+        crosswalk_entry(self.jobs, 'hn-task', 'code')['job'] = 'coding'
         del self.jobs['replaces']['coding']
         self.refused('coding is neither a job nor replaced', 'hn:101')
         self.jobs['replaces']['coding'] = {'label': 'Old coding', 'job': 'code'}
         _core, records = self.build()
-        self.assertEqual((records['hn:101']['job'], records['hn:101']['via']), ('code', 'task:coding'))
+        self.assertEqual((records['hn:101']['job'], records['hn:101']['via']), ('code', 'task:code'))
 
     def test_parent_that_does_not_exist(self):
         job(self.jobs, 'debug')['parent'] = 'cooding'
@@ -382,6 +395,14 @@ class TestJobFile(unittest.TestCase):
         hn['comments'][0]['assessments'][0]['aspects'] = ['typing']
         with self.assertRaises(BuildError):
             build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
+
+    def test_unknown_setting_or_run_stops_the_build(self):
+        for field in ('setting', 'run'):
+            with self.subTest(field=field):
+                hn = hn_export()
+                hn['comments'][0][field] = 'synthetic'
+                with self.assertRaisesRegex(BuildError, 'hn:101: unknown setting or run'):
+                    build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
 
 
 class TestImported(unittest.TestCase):
@@ -593,15 +614,15 @@ class TestCrowdAggregates(unittest.TestCase):
 
     def export(self, root):
         comments = [
-            {'id': 210, 'createdAt': '2026-11-02T10:00:00Z', 'task': 'coding',
+            {'id': 210, 'createdAt': '2026-11-02T10:00:00Z', 'task': 'code',
              'assessments': [assessment('model', MODEL, 'positive', ['code-quality', 'speed']),
                              assessment('family', 'GPT', 'negative', ['pricing'])]},
-            {'id': 209, 'createdAt': '2026-10-30T10:00:00Z', 'task': 'other',
+            {'id': 209, 'createdAt': '2026-10-30T10:00:00Z', 'task': 'none',
              'assessments': [assessment('model', MODEL, 'mixed', ['local-use'])]},
             {'id': 208, 'createdAt': '2026-10-01T10:00:00Z', 'task': 'writing',
              'assessments': [assessment('model', MODEL, 'unclear', ['writing-style']),
                              assessment('model', 'gpt-6-luna', 'positive')]},
-            {'id': 207, 'createdAt': '2026-09-15T10:00:00Z', 'task': 'coding',
+            {'id': 207, 'createdAt': '2026-09-15T10:00:00Z', 'task': 'code',
              'assessments': [assessment('model', MODEL, 'negative', ['code-quality'])]},
         ]
         published = '2026-11-21T00:00:00+00:00'
@@ -707,7 +728,7 @@ class TestReadOnly(unittest.TestCase):
             with state.connection:
                 state.connection.execute(
                     """INSERT INTO comment (item_id, classifier_key, digest, created, priority, failed_groups,
-                       root, task, claim) VALUES (10, 'current', 'synthetic', ?, 0, 0, NULL, 'coding', ?)""",
+                       root, task, claim) VALUES (10, 'current', 'synthetic', ?, 0, 0, NULL, 'code', ?)""",
                     (START + 5, 'Synthetic claim about the example model.'),
                 )
                 state.connection.execute(

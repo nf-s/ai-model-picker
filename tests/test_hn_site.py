@@ -193,6 +193,20 @@ class TestPublishedExport(unittest.TestCase):
             },
         ])
 
+    def test_jobs_setting_and_run_are_published_only_when_stated(self):
+        with State(self.directory) as state, state.connection:
+            state.connection.execute(
+                "UPDATE comment SET task = 'read-media', setting = 'local', run = '' WHERE item_id = 18"
+            )
+            state.connection.execute("UPDATE comment SET task = 'none', setting = '', run = 'parallel' WHERE item_id = 10")
+        export_snapshot(self.directory, self.output)
+        _snapshot, collection = self.read()
+        rows = {row['id']: row for row in collection['comments']}
+        self.assertEqual((rows[18]['task'], rows[18]['setting']), ('read-media', 'local'))
+        self.assertNotIn('run', rows[18])
+        self.assertEqual((rows[10]['task'], rows[10]['run']), ('none', 'parallel'))
+        self.assertNotIn('setting', rows[10])
+
     def test_snapshot_keeps_original_revision_while_writer_commits(self):
         status = State.status
 
@@ -226,6 +240,8 @@ class TestPublishedExport(unittest.TestCase):
             ("UPDATE assessment SET themes = ? WHERE item_id = 18 AND kind = 'model'",
              '["code-quality","code-quality"]'),
             ('UPDATE comment SET task = ? WHERE item_id = 18', 'synthetic'),
+            ('UPDATE comment SET setting = ? WHERE item_id = 18', 'hosted'),
+            ('UPDATE comment SET run = ? WHERE item_id = 18', 'interactive'),
             ('UPDATE comment SET claim = ? WHERE item_id = 18', 'x' * 241),
             ('UPDATE comment SET root = ? WHERE item_id = 18', 2**32),
             ('UPDATE comment SET parent = ? WHERE item_id = 18', 0),

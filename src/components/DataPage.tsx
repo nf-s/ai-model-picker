@@ -339,6 +339,15 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
                   <> {hnClassifierCheck.failed} classifications failed.</>
                 )}
               </p>
+              {hnClassifierCheck.jobs && (
+                <p>
+                  Jobs: {hnClassifierCheck.jobs.agrees} of{' '}
+                  {hnClassifierCheck.jobs.comments} comments got the reference
+                  job; the earlier review&apos;s tasks, through the crosswalk,
+                  gave {hnClassifierCheck.jobs.earlierAgrees}. Reference:{' '}
+                  {hnClassifierCheck.jobs.reference}
+                </p>
+              )}
               <p>
                 The reference has no independent human validation. Read the
                 original comments before using a label to choose a model.

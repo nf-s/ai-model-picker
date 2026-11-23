@@ -23,7 +23,7 @@ const modelOrigin = `http://${host}:${modelPort}`;
 const allowedHosts = new Set([`${host}:${appPort}`, `${host}:${controlPort}`]);
 const allowedOrigins = new Set([appOrigin, controlOrigin]);
 const service = 'ai-help-hn';
-const localClassifier = 'qwen3.8-27b-4bit-thread-v1';
+const localClassifier = 'qwen3.8-27b-4bit-jobs-v1';
 
 function reply(response, status, payload) {
   response.writeHead(status, {

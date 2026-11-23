@@ -164,3 +164,32 @@ The full review cost US$1.86 (13.7 million input, 91.1 million cached input and 
 Use records per job, before and after: code 1,271 and 1,568; debug 430 and 453; review 163 and 121; plan 75 and 77; interface 510 and 148; research 337 and 250; documents 259 and 153; extraction 169 and 72; writing 156 and 134; maths 0 and 162; chat 238 and 336; read media 0 and 229; make images 0 and 450. Of the 450 make-images records, 299 carry the drawing-test tag: the review labelled pelican and other SVG drawings by text models as making images, against its rule. The tag still marks them.
 
 `npm run records:build` printed the coverage table with no people record needing reading and "Named records (private, behind sign-in): 5,830 use records (26 left out as advice-only), 5,198 method advice, 16 people." The site was not published; it serves the records of 23 November 2026 until the next publish.
+
+## Hacker News re-review of 24 November 2026
+
+Every comment of the served run was reviewed again with the approved 13-job list, by the new classifier `claude-haiku-5.5-jobs-v1` (Claude Haiku 5.5 through the batch API). The window stayed 16 May to 22 November 2026 (UTC) and the model list was unchanged. The checkpoint was first copied into `.local/hn/threads-backup-20261124-021844/`; the copy opened with the same 194,648 comments, 119,823 labels and 8,727 stated preferences. `rereview` then queued all 194,648 comments; `run --collect-only` confirmed the queue without calling a model.
+
+A pilot of 2,000 comments drawn at random from the run, reviewed read-only with `evaluate_hn_classifier.py --ids`, cost US$0.085 (4.28 US cents per 1,000 comments). 100 of its listed comments, chosen by their earlier task, were labelled with a job, setting and run by an AI reviewer (Claude Opus 5.5), not by a person. The new review gave the reference job for 83 of the 100; the earlier tasks, through the crosswalk, gave it for 48, with 16 needing reading. Setting agreed on 98 (95 before) and run on 98 (93). 9 of 1,998 first replies (0.45%) were invalid and 1 comment stayed unresolved. The reference was drawn from the pilot and its labeller follows the same written rules as the review, so the agreement is optimistic. The stance check of the new classifier agreed with 23 of 37 holdout labels, with none of the opposite sign (`research/hn-classifier-check.json`).
+
+The full review sent the 194,648 comments in 40 batches and finished `blocked classification-unresolved`, the usual end. It used 48.9 million input, 428.5 million cached input and 14.6 million output tokens: about US$8.24 at batch rates, US$8.33 with the pilot and the stance check. 20 comments had been removed from HN since the first review.
+
+| Hacker News                                 | 22 November 2026 run | 24 November 2026 re-review |
+| ------------------------------------------- | -------------------: | -------------------------: |
+| Comments reviewed / without a valid review  |        194,373 / 275 |              194,180 / 448 |
+| Listed comments (at least one stance)       |               89,824 |                     84,215 |
+| Labels (comment and target)                 |              119,823 |                    112,718 |
+| Stated preferences                          |                8,727 |                      8,730 |
+| Listed comments with a job                  |               35,843 |                     28,865 |
+| … needing reading                           |                9,456 |                          0 |
+| … with no job (task `other`, or job `none`) |               44,525 |                     55,350 |
+| Setting local                               |                8,119 |                      7,428 |
+| Run unattended / parallel                   |            9,373 / 0 |              1,747 / 1,256 |
+| Source partitions complete                  |            127 / 127 |                  127 / 127 |
+
+Listed comments per job, before (through the crosswalk) and after: code 22,961 and 11,614; debug 0 and 1,282; review 0 and 2,048; plan 0 and 1,249; interface 2,081 and 1,691; research 2,526 and 714; documents 0 and 659; extraction 0 and 388; writing 4,239 and 2,014; maths 0 and 1,120; chat 4,036 and 3,603; read media 0 and 769; make images 0 and 1,714. Fewer comments have a job: the earlier crosswalk gave code, research and writing to many comments about a model in general, which the review now leaves without a job, as the reference set did. Earlier, the `local-use` and `agentic-work` themes set setting and run whatever the comment said; the review now labels them only when stated.
+
+The drawing-test tag matches 413 listed comments: 248 with no job, 151 labelled make images (of 1,714), 9 interface, 3 code and 2 chat. As in the people review, some drawing tests by text models were labelled as making images against the rule; the tag still marks them and does not change their job.
+
+With Brief's default filters (current models, signed out), every job ordered by a benchmark keeps the measure it had. Review and plan, which have no measure and had no Hacker News evidence, are now ordered by stated preferences (5 and 3 models with at least five); make images, whose benchmarks have no current model, by Hacker News positive share (4 models with at least ten clear labels), and its order counts drawing tests labelled as making images; extraction still has no model above the minimums and says so. No brief orders or rates a model below the minimums.
+
+`npm run records:build` printed the coverage table with no Hacker News record needing reading and "Hacker News from the checkpoint: 84,215 comments.", equal to `commentsAboutTargets`. The site was not published; it serves the labels of 22 November 2026 until the next publish.

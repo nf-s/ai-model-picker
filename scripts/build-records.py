@@ -900,6 +900,7 @@ def check_comment(comment):
         need(type(themes) is list and all(theme in HN_THEMES for theme in themes), f'hn:{comment["id"]}: unknown theme')
         aspects = assessment.get('aspects', [])
         need(type(aspects) is list and all(aspect in HN_ASPECTS for aspect in aspects), f'hn:{comment["id"]}: unknown aspect')
+    need(comment.get('setting', '') in SETTINGS and comment.get('run', '') in RUNS, f'hn:{comment["id"]}: unknown setting or run')
     for preference in comment.get('prefers', []):
         for side in ('winner', 'loser'):
             need(preference[side].get('kind') in HN_KEY_KINDS, f'hn:{comment["id"]}: unknown preference target')
@@ -968,8 +969,9 @@ def crowd(hn, records, model_ids):
             text=claim,
             tool=tool_in(claim),
             effort=effort_in(claim),
-            setting=next((setting for setting, _ in fields if setting), ''),
-            run=next((run for _, run in fields if run), ''),
+            # The review states setting and run; a theme rule sets them for reviews made before it did.
+            setting=comment.get('setting') or next((setting for setting, _ in fields if setting), ''),
+            run=comment.get('run') or next((run for _, run in fields if run), ''),
             date=date,
             url=f'https://news.ycombinator.com/item?id={comment["id"]}',
             title=stories.get(comment.get('story'), ''),
