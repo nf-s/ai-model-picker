@@ -74,7 +74,7 @@ Before a passage is sent: code blocks, private keys, credentials and authorisati
 
 ## Privacy and what stays on this machine
 
-The named records are private for the first release: use records, method advice, summaries and quotes are served only behind sign-in. `npm run records:build` writes them to the ignored `build/records/named-private.json`, never to `core.json`, which says only whether named records exist (`namedBehindSignIn`). No person's name, record or count per person reaches a public file. Everything under `.local/people/` stays on this machine and out of Git. The only text that leaves it is the redacted passages sent for review, with `--backend anthropic`.
+The named records are private for the first release: use records, method advice, summaries and quotes are served only behind sign-in. The reason is that the summaries and job labels were written by the review and have not been checked by hand: in the check against 100 reference passages on 23 November 2026 about 4 in 10 extracted records did not match a reference record, and the job agreed with the reference half the time, so public cards would attribute unchecked summaries to named people. They may become public after a re-review, on the owner's word. `npm run records:build` writes them to the ignored `build/records/named-private.json`, never to `core.json`, which says only whether named records exist (`namedBehindSignIn`). No person's name, record or count per person reaches a public file. Everything under `.local/people/` stays on this machine and out of Git. The only text that leaves it is the redacted passages sent for review, with `--backend anthropic`.
 
 ## The records build
 
@@ -82,7 +82,7 @@ The named records are private for the first release: use records, method advice,
 
 - **Ids.** `ur:<source id>/<n>` and `ma:<source id>/<n>`, where `n` counts that source's use records or advice in file order. They stay the same across builds and when other sources are reviewed again.
 - **Keys.** An exact model in the list is `model|<id>`; an exact version outside the list keeps its own `version|<name as written>`; a record that names only a product line stays `line|<name>` and is never attached to a model. The tool adds `tool|<name>`.
-- **Jobs.** The review's job goes through the `review-job` crosswalk in `research/jobs.json` and its `replaces` map. It is marked `how: review`, `via: review:<label>`. `other` and `general` give no job. In a check against 100 reference passages on 23 November 2026, the review's job agreed half the time.
+- **Jobs.** The review labels a job from the earlier list of 17 jobs, in its own instructions; the label goes through the `review-job` crosswalk in `research/jobs.json` and its `replaces` map onto the approved list. It is marked `how: review`, `via: review:<label>`. `other` and `general` give no job. A label whose earlier job was split or became a field (hard reasoning, images, long agent runs, parallel work, local use) gives no job: the record needs reading until the next review (`how: pending`), and the field it became, such as setting local, is set. In a check against 100 reference passages on 23 November 2026, the review's job agreed half the time.
 - **Secondary sources.** A record from a `secondary` person keeps the review's basis, but a `measured` basis is filtered as second-hand (`x.b`) and marked `x.sec`.
 - **Advice only.** Use records of an `adviceOnly` person are numbered and left out; their method advice is kept.
 - **Method advice** has no model key and never counts toward a model or job coverage.
@@ -91,7 +91,8 @@ The named records are private for the first release: use records, method advice,
 
 ## Known limitations
 
-- One person supplies most of the records, and the review's job labels agree with a reference set about half the time. Counts must never rank a model.
+- One person supplies most of the records, and the review's job labels agree with a reference set about half the time. The reference labels were themselves written by AI agents reading the passages, not checked by a person. Counts must never rank a model.
+- The review's labels are the earlier 17 jobs. Records whose earlier job was split or became a field need reading until a review with the approved list; changing the labels changes the instructions, so that is a new review of every stored passage (about US$2, the owner's decision).
 - Line-only names are not resolved to a version by date.
 - Unresolved passages are not sent a third time.
 - A Unix home folder written after a space, quote or backtick (`/Users/<name>/…`) is not removed: the pattern only matches one that follows a letter or digit. The redaction is kept as the review of 23 November 2026 used it; 34 of that review's passages contained such a path. Fixing it belongs with the next full review.

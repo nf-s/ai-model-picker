@@ -4,26 +4,28 @@ Procedures for bringing each data source up to date and for publishing the site.
 
 Nothing updates on its own. Each source is updated separately, and the published site changes only when it is built and uploaded.
 
-| Source                                     | Procedure                                                                                     | Cost                                          | Changes files in Git |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------- | --------------------------------------------- | -------------------- |
-| Hacker News comments                       | [Hacker News comments](#hacker-news-comments)                                                 | Paid: about 5 US cents per 1,000 new comments | No                   |
-| arXiv papers                               | [arXiv papers](#arxiv-papers)                                                                 | Free                                          | No                   |
-| Benchmarks, prices, reports, the app guide | [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide) | Free, but someone has to read the sources     | Yes                  |
-| LMArena ratings and Epoch runs             | [LMArena and Epoch runs](#lmarena-and-epoch-runs)                                             | Free                                          | Yes                  |
-| OpenRouter usage                           | [OpenRouter usage](#openrouter-usage)                                                         | Free; needs the owner's OpenRouter key        | Yes                  |
-| People: practitioners' use records         | [People](#people)                                                                             | Paid: about 10 US cents per 1,000 passages    | No                   |
-| Practitioner findings                      | [Practitioner findings](#practitioner-findings)                                               | Free for existing reviewed findings           | Yes                  |
-| Expert articles                            | [Expert articles](#expert-articles)                                                           | Free for existing verified articles           | No                   |
-| Published site                             | [Publish](#publish)                                                                           | Free                                          | No                   |
+| Source                                                                 | Procedure                                                                                     | Cost                                                  | Changes files in Git |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------- | -------------------- |
+| Hacker News comments                                                   | [Hacker News comments](#hacker-news-comments)                                                 | Paid: about 5 US cents per 1,000 new comments         | No                   |
+| arXiv metadata (a feed for reports reviewed by hand; nothing is shown) | [arXiv metadata](#arxiv-metadata)                                                             | Free                                                  | No                   |
+| Benchmarks, prices, reports, the app guide                             | [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide) | Free, but someone has to read the sources             | Yes                  |
+| The model list                                                         | [When the model list changes](#when-the-model-list-changes)                                   | Free, then a paid Hacker News review of the new names | Yes                  |
+| The job list                                                           | [When the job list changes](#when-the-job-list-changes)                                       | Free                                                  | Yes                  |
+| LMArena ratings and Epoch runs                                         | [LMArena and Epoch runs](#lmarena-and-epoch-runs)                                             | Free                                                  | Yes                  |
+| OpenRouter usage                                                       | [OpenRouter usage](#openrouter-usage)                                                         | Free; needs the owner's OpenRouter key                | Yes                  |
+| People: practitioners' use records and method advice                   | [People](#people)                                                                             | Paid: about 10 US cents per 1,000 passages            | No                   |
+| Practitioner findings (the App guide's 13)                             | [Practitioner findings](#practitioner-findings)                                               | Free for existing reviewed findings                   | Yes                  |
+| Article catalog (person pages)                                         | [Article catalog](#article-catalog)                                                           | Free for existing verified articles                   | No                   |
+| Published site                                                         | [Publish](#publish)                                                                           | Free                                                  | No                   |
 
-The Hacker News, arXiv and people data live in the ignored `.local/` directory, and the published site carries its own publication time. An update of either therefore leaves nothing to commit. Do not edit the documentation to restate their counts: the app's Data page and the `status` commands below are the record.
+The Hacker News, arXiv and people data live in the ignored `.local/` directory, and the published site carries its own publication time. An update of any of them therefore leaves nothing to commit. Do not edit the documentation to restate their counts: the app's Data page and the `status` commands below are the record.
 
 ## How to use these procedures
 
 - Run every command from the repository root.
 - A command block is one command. Some tools start a new shell for each command, so a block that sets a variable also uses it.
 - Compare what you see with the expected result written under each step. If it differs and the step does not say what to do, stop and report the command and its output. Do not edit or delete state files to get past a step.
-- The procedures need the working setup on the owner's Mac: `node_modules/`, `.local/hn/venv/`, `.local/hn/threads/`, `.local/arxiv/` and `.local/restricted/`. If one is missing, stop and report it. Do not run `npm run hn:setup` to recreate `.local/hn/venv/`: it also downloads a 16 GB model.
+- The procedures need the working setup on the owner's Mac, in the main checkout: `node_modules/`, `.local/hn/venv/`, `.local/hn/threads/`, `.local/arxiv/`, `.local/people/`, `.local/restricted/`, `.local/expert-articles/` and, for publishing, `wrangler.jsonc`. A worktree has none of `.local/`; its records build reads the main checkout's with `-- --hn-root <main checkout>`. If one is missing, stop and report it. Do not run `npm run hn:setup` to recreate `.local/hn/venv/`: it also downloads a 16 GB model.
 
 ## Before any update
 
@@ -121,6 +123,14 @@ Run the command from step 1 again. Expected:
 - `candidates`, `classified` and `commentsAboutTargets` are at least what they were before.
 - `classificationFailures` has grown by no more than 2% of the growth in `candidates`. On 19 November 2026, 6 of 2,680 new comments failed. If it grew by more, stop and report before anyone publishes.
 
+Then rebuild the records, which Brief, Model, Switch, Search and the Data page count from:
+
+```sh
+npm run records:build
+```
+
+Expected: the coverage table, whose Hacker News column grows, and `Hacker News from the checkpoint: N comments.` with `N` equal to `commentsAboutTargets`. `… is not in the snapshot` means the model list changed: see [When the model list changes](#when-the-model-list-changes).
+
 There is nothing to commit. The local app (`npm run dev`, then http://127.0.0.1:5186/#/data) shows the new range and counts. The published site does not change until someone follows [Publish](#publish).
 
 The review also writes the [local HN failure report](#local-failure-reports), including when the run finishes with `classification-unresolved`.
@@ -135,9 +145,9 @@ BACKUP=.local/hn/threads-backup-YYYYMMDD-HHMMSS && sqlite3 .local/hn/threads/che
 
 Replace `YYYYMMDD-HHMMSS` with the name noted in step 2, then run step 1 to confirm the earlier numbers are back.
 
-## arXiv papers
+## arXiv metadata
 
-This reads the days of arXiv metadata published since the last harvest. It is free, needs no model and no sign-in, and is paced at one request every three seconds. The first harvest of 186 days took on the order of an hour, so a week of new days should take a few minutes; a short update has not been timed.
+This reads the days of arXiv metadata published since the last harvest. The index is a feed for reports reviewed by hand: its failure shortlist points to studies worth reading, and one that controls its comparison is added to `research/reports.json` through [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide). The app shows nothing from it and publishing exports nothing from it. It is free, needs no model and no sign-in, and is paced at one request every three seconds. The first harvest of 186 days took on the order of an hour, so a week of new days should take a few minutes; a short update has not been timed.
 
 ### 1. Check the state
 
@@ -166,7 +176,7 @@ Never run two harvests at once, even in separate directories: arXiv allows one r
 
 Run the command from step 1 again. Expected: `complete None` and today's or yesterday's date in UTC. `daysComplete` is one less than `daysTotal`, because the current UTC day stays open and is read again next time. `papers` is at least what it was. `assessed` and `results` can fall a little: a paper whose new version changes its title or abstract loses its label and result until labelling runs again. On 20 November 2026, 445 new papers took `papers` to 11,476 and 9 labels were dropped this way.
 
-New papers have no label, and the Papers page counts them as Unlabelled. Labelling runs a local model for about 3.5 seconds a paper and is done only when the owner asks; see [Labelling](arxiv-pipeline.md#labelling). There is nothing to commit.
+New papers have no label. Labelling runs a local model for about 3.5 seconds a paper and is done only when the owner asks; see [Labelling](arxiv-pipeline.md#labelling). There is nothing to commit.
 
 The harvest also writes the [local paper failure report](#local-failure-reports). Newly matched papers are eligible as soon as their abstracts arrive.
 
@@ -201,7 +211,7 @@ No command fetches this data. Someone reads each source again and edits the revi
 
    Expected, with other numbers: `Saved 98 model identities, 4 benchmarks, 153 results, 15 reports, 28 sources; …`. It writes `src/lib/snapshot.json` and `.local/restricted/payload.json`. Check the new model names for duplicates of existing ones under another spelling; add each such spelling to the `aliases` table in `scripts/build-snapshot.py` and build again. If the number of model identities changed, or you renamed a model, follow [When the model list changes](#when-the-model-list-changes) after the remaining steps.
 
-   Give every new model a status, which the Board's "Current models only" filter reads. A priced model has `status` in `research/pricing.json`; any other model gets an entry in `research/model-status.json` with a one-sentence reason. A model is `previous` when a newer model of its line is in the data or its provider names a replacement, and the model it replaces becomes `previous` too; `preview` when its name says so and nothing has replaced it; `current` when it is the newest of its line. Leave a model out when the data does not settle it. The build stops if an entry names an unknown model or a priced one.
+   Give every new model a status, which the filter bar's "Current models only" reads. A priced model has `status` in `research/pricing.json`; any other model gets an entry in `research/model-status.json` with a one-sentence reason. A model is `previous` when a newer model of its line is in the data or its provider names a replacement, and the model it replaces becomes `previous` too; `preview` when its name says so and nothing has replaced it; `current` when it is the newest of its line. Leave a model out when the data does not settle it. The build stops if an entry names an unknown model or a priced one.
 
    To give comments about a new model their short spellings, such as "6.2 Sol" for GPT-6.2 Sol, add them to `SHORT_NAMES` in `scripts/hn_local/classify.py`, and add a family such as "Gemini Neon" to `FAMILIES`. Avoid spellings that are ordinary words.
 
@@ -221,7 +231,15 @@ No command fetches this data. Someone reads each source again and edits the revi
 
    Replace the date in the command with the previous `checkedAt`. Change a line only where the fact it states was checked again. The counts are in the first paragraphs of `README.md` under "Data in the app" and in [data provenance](data.md).
 
-6. Run the remaining checks, look at the Board, one benchmark page and one model page in `npm run dev`, then commit the files you changed by name:
+6. Rebuild the records, which read `src/lib/snapshot.json`:
+
+   ```sh
+   npm run records:build
+   ```
+
+   Expected: the coverage table and the lines described under [People](#5-check-the-result-1) and [LMArena and Epoch runs](#5-build-and-check). A result or a reviewed record that names a model no longer in the snapshot stops it with `… is not in the snapshot`: follow [When the model list changes](#when-the-model-list-changes).
+
+7. Run the remaining checks, look at the brief of an affected job, one benchmark page and one model page in `npm run dev`, then commit the files you changed by name:
 
    ```sh
    npm run build && npm run format && npm run format:check
@@ -237,6 +255,8 @@ The model list is the `models` array in `src/lib/snapshot.json`. It changes when
 - **Hacker News:** the reviewed run keeps being served, but `extend` refuses it with `checkpoint-configuration-mismatch` until it is retargeted, because it was scanned for the old names. Retargeting keeps every review, scans the six months again for the new names (free) and reviews only the comments that are new or that name a new model (paid). It does not work if a model `id` that some comment was reviewed for was removed: keep such models in the list.
 - **LMArena and Epoch runs:** an imported result or alias that names a model no longer in the list stops `npm run records:build` and the importers. A new model has no imported results until its exact source name is added as an alias. In both cases, run [LMArena and Epoch runs](#lmarena-and-epoch-runs) again after the change.
 - **OpenRouter usage:** the same holds for `research/openrouter-usage.json` and its aliases. Run steps 2 to 5 of [OpenRouter usage](#openrouter-usage) on the last download; a new download needs the owner.
+- **People:** a stored use record that names a model no longer in the list stops `npm run records:build` with `… is not in the snapshot`: keep such models in the list. A new model is matched only in passages reviewed after the change; the stored records keep the models they were reviewed with.
+- **Search and the records:** run `npm run records:build` after the change; `core.json`, the search index and the named records follow the new list.
 
 To retarget the Hacker News run, first make sure it is finished (step 1 of [Hacker News comments](#hacker-news-comments)) and copy the checkpoint (step 2). Then:
 
@@ -295,7 +315,9 @@ The job list is `research/jobs.json` ([data](data.md#shared-records-and-the-job-
 3. Compare the coverage with the last build's: a job that falls to zero, or records that move to "Needs reading", should be explained by the change. Restricted benchmarks take their job from their category in `.local/restricted/research.json` through `benchmark-category`; tell the owner if a category no longer gives a job, without naming the benchmark.
 4. Run the checks in `AGENTS.md`, look at Brief for every job and at the Data page's job coverage, and commit `research/jobs.json` with any test or fixture that names a job id.
 
-The records that need reading get a job only from the next people review and Hacker News review with the new list (see [People](#people) and [Hacker News comments](#hacker-news-comments)); ask the owner before either, as both are paid.
+The records that need reading get a job only from the next people review and Hacker News review with the new list (see [People](#people) and [Hacker News comments](#hacker-news-comments)); ask the owner before either, as both are paid. Neither review knows the approved list yet: the people review's labels (`scripts/people_local/review.py`) and the Hacker News review's tasks are still the earlier 17 jobs, mapped through `replaces`. Changing them changes the review instructions, so each needs a new review of every stored passage or comment: about US$2 for the people review and about US$7 for Hacker News.
+
+On 24 November 2026 one restricted benchmark's category in `.local/restricted/research.json` was `reasoning`, which gives no job under the approved list, so it orders no brief until the owner changes that category. The build does not stop for it.
 
 ## LMArena and Epoch runs
 
@@ -550,29 +572,49 @@ Then run step 1, which checks both files, and the remaining steps.
 
 ## Practitioner findings
 
-Update [the reviewed selection](../research/practitioner-findings.json) by hand from existing reviewed findings. Check each summary, condition, date, attribution and match against the original public comment and the reply context. Keep family or tool mentions at the level the source supports. Use short paraphrases, and check the public download for text or identifiers that should stay private. Set `checkedAt` to the date of the source check. Run `npm test` and `npm run build`, then open an affected page and verify the original and context links. The Data download carries the same selection.
+These are the 13 hand-checked findings the App guide shows under its tasks in the Coding agents mode. Update [the reviewed selection](../research/practitioner-findings.json) by hand from existing reviewed findings. Check each summary, condition, date, attribution and match against the original public comment and the reply context. Keep family or tool mentions at the level the source supports, and use short paraphrases. Set `checkedAt` to the date of the source check. Run `npm test` and `npm run build`, then open the App guide's Coding agents mode in `npm run dev` and verify the original and context links. The findings are not in the Data download.
 
-## Expert articles
+## Article catalog
+
+Person pages list the practitioners' articles from a private catalog, served to granted accounts by `/api/expert-articles`. An article belongs to a person when its site is one that only that person's records link to.
 
 1. Check candidates against the existing verified article sources. Keep original publication dates and canonical HTTPS links. Require an attributable byline for team-blog posts. Exclude replies, interviews, reposts and unresolved matches.
 2. Use the reviewed export at `.local/expert-articles/catalog.json`. It is a JSON object with an `articles` array of `{ title, date, url }` objects. Dates use `YYYY-MM-DD`. The file and the source material stay out of Git and public downloads.
-3. Open Expert articles in the loopback dev app and verify the title, source and year filters and an original-post link. For a release, run the build and pre-upload checks below. The catalog and its links must be absent from the static output. Compile the Pages Functions separately as described in [Google sign-in](../server/auth/README.md#verification).
+3. Open a person page in the loopback dev app (`npm run dev`, which serves the catalog without sign-in) and check its articles and an original-post link. For a release, run the build and pre-upload checks below: the catalog and its links must be absent from the static output (`expertArticleLeaks: 0`). Compile the Pages Functions separately as described in [Google sign-in](../server/auth/README.md#verification).
 
 ## Publish
 
 Publish only when the owner asks for it. A request to update data is not a request to publish.
 
+Publish from the main checkout, never from a worktree: only the main checkout has `.local/` (the Hacker News checkpoint, the people data, the restricted benchmarks and the article catalog) and `wrangler.jsonc`, which the build, the checks and the Functions need. The upload uses the owner's Wrangler sign-in.
+
 ### 1. Check what will be published
 
-Run step 1 of [Hacker News comments](#hacker-news-comments): the run must be finished. Then:
+```sh
+git status --short && git fetch -q origin && git status -sb | head -n 1
+```
+
+Expected: one line, `## main...origin/main`, with nothing after it. A changed file, `[ahead …]` or `[behind …]` means the checkout is not the pushed `main`: stop and report.
+
+```sh
+pgrep -f '[h]n_pipeline|[a]rxiv_pipeline|[p]eople_pipeline'
+```
+
+Expected: nothing. A process ID means a pipeline is running: wait for it to end.
+
+```sh
+ls .local/hn/threads/checkpoint.sqlite3 .local/people/people.json .local/restricted/payload.json .local/restricted/research.json .local/expert-articles/catalog.json wrangler.jsonc
+```
+
+Expected: the six paths, with no `No such file or directory`. If one is missing, stop and report; never recreate it.
+
+Run step 1 of [Hacker News comments](#hacker-news-comments): the run must be finished. Do not update or review anything as part of a publish. Then:
 
 ```sh
 npm test && npm run hn:test && npm run arxiv:test && npm run format:check
 ```
 
-Expected: every command passes.
-
-Check that the reviewed catalog is available at `.local/expert-articles/catalog.json` before building.
+Expected: every command passes, ending with `All matched files use Prettier code style!`.
 
 ### 2. Build
 
@@ -580,17 +622,36 @@ Check that the reviewed catalog is available at `.local/expert-articles/catalog.
 npm run build:pages
 ```
 
-Expected last lines, with other numbers (24 November 2026 shown):
+It runs the records build, the published-mode frontend build, the Hacker News export and the records export. Expected, with other numbers and with `<checkout>` standing for the repository's folder (24 November 2026 shown): first the records build's coverage table, which has a row per job, the records that need reading by earlier job, "No job" and "Total", with columns Benchmark, Arena, Report, Hacker News and Use (review); then:
+
+```text
+LMArena: 391 records, fetched 2026-11-23, checked 2026-11-23.
+Epoch runs: 193 records, fetched 2026-11-23, checked 2026-11-23.
+OpenRouter usage (orders nothing): 38 models with 30-day tokens as of 2026-11-23T02:56:32.003Z, 29 task tags as of 2026-11-22, checked 2026-11-23.
+Hacker News from the checkpoint: 89,824 comments.
+Named records (private, behind sign-in): 6,572 use records (28 left out as advice-only), 4,515 method advice, 16 people. Wrote <checkout>/build/records/named-private.json: 9,846,694 bytes.
+Wrote <checkout>/build/records/core.json: 3,564,338 bytes, 573,715 gzipped.
+Wrote the search index <checkout>/build/records/search: 90,576 public records in 3,111 files.
+Wrote the local search index <checkout>/build/records/search-local.sqlite (private): 90,576 public records, 6,572 use records, 4,515 method advice.
+```
+
+then Vite's build lines, ending with `✓ built in …`, then:
 
 ```text
 Exported 89,824 Hacker News comment records.
 Exported core.json: 752 measured records, 89,824 Hacker News comments.
-Exported the search index: 90,576 records in 3,111 files, 57,046,138 bytes.
+Exported the search index: 90,576 records in 3,111 files, 56,871,846 bytes.
 ```
 
-The search index's records are the measured records plus the Hacker News comments. If the last line is missing or the command ends with "Could not export build/records/core.json and build/records/search", run `npm run records:build` and read its last lines: it must print `Wrote the search index`. If it still fails, report the output and stop.
+The line `Hacker News from the checkpoint` must name the checkpoint, not `the export`, and the `Named records` line must be there: without `.local/people/` the Functions would have no named records to serve. The Hacker News count is the same in the three lines that state it. The search index's records are the measured records plus the Hacker News comments.
 
-Use this command, not `npm run build`: only this one builds the published mode and writes the data files into `dist/`. It no longer exports arXiv papers: the app does not show them, and `dist/` must hold no `arxiv-snapshot.json`.
+| Output                                                                                             | Meaning                                                                              | What to do                                                                                                                      |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `Could not export the current Hacker News checkpoint.`                                             | The Hacker News run is unfinished.                                                   | Stop. Finish [Hacker News comments](#hacker-news-comments) first; do not publish in between.                                    |
+| `Could not export build/records/core.json and build/records/search. Run npm run build:pages again` | `core.json`, the comment export and the search index do not describe the same build. | Run `npm run build:pages` once more. If it repeats, report the output and stop.                                                 |
+| A message naming a record, a crosswalk label, `checkedAt` or the snapshot                          | The records build refused its inputs.                                                | See the tables in [When the job list changes](#when-the-job-list-changes) and the import procedures; otherwise stop and report. |
+
+Use this command, not `npm run build`: only this one builds the published mode and writes the data files into `dist/`. It exports nothing from arXiv.
 
 ### 3. Check the build
 
@@ -621,16 +682,29 @@ restrictedNames: 0
 arxivExport: 0
 searchRecords: 90,576
 searchFiles: 3,111
-searchBytes: 57,046,138
+searchBytes: 56,871,846
 searchLargestFile: 110,737
-searchWordBytes: 2,485,180
+searchWordBytes: 2,650,376
 searchIndexMissing: 0
 searchMixedReleases: 0
 searchOverBudget: 0
 The site build passed the checks.
 ```
 
-Every count that is 0 here must be 0. They are comment files from different exports, files over the 25 MiB that Cloudflare Pages accepts, more files than the 20,000 Pages accepts on the Free plan, claims or story titles that still contain a link, an address, a handle or a phone number, identifiers that exist only in the restricted results, expert article catalog files or links, paths on this computer, named records, the private named file, names from the people file, names of restricted benchmarks (read from `.local/restricted/research.json`, matched as whole words and never printed) anywhere outside the Hacker News comment text, an `arxiv-snapshot.json` left from an older build, a missing search index, search files from two builds, and a search for the commonest word that would read more than 4 MiB. If the command ends with "Do not upload", report the output and stop. `comments` must equal the first number printed in step 2, and `searchRecords` must equal `comments` plus `measuredRecords`. If `siteFiles` is above 15,000, report it: the index needs larger record files before it reaches the limit.
+Every count that is 0 here must be 0. They are comment files from different exports, files over the 25 MiB that Cloudflare Pages accepts, more files than the 20,000 Pages accepts on the Free plan, claims or story titles that still contain a link, an address, a handle or a phone number, identifiers that exist only in the restricted results, expert article catalog files or links, paths on this computer, named records, the private named file, names from the people file, names of restricted benchmarks (read from `.local/restricted/research.json`, matched as whole words and never printed) anywhere outside the Hacker News comment text, an `arxiv-snapshot.json` left from an older build, a missing search index, search files from two builds, and a search for the commonest word that would read more than 4 MiB.
+
+- If the command ends with `Do not upload. These must be 0: …`, report the output and stop.
+- If it ends with `Could not check the site build and private payloads.`, a file it reads is missing (`dist/`, `.local/people/people.json`, `.local/restricted/`): stop and report.
+- `comments` must equal the Hacker News count printed in step 2, `measuredRecords` the measured count, and `searchRecords` must equal `comments` plus `measuredRecords`.
+- If `siteFiles` is above 15,000, report it: the index needs larger record files before it reaches the limit.
+
+Then confirm that no arXiv file is left:
+
+```sh
+ls dist/arxiv-snapshot.json
+```
+
+Expected: `ls: dist/arxiv-snapshot.json: No such file or directory`.
 
 ### 4. Upload
 
@@ -638,11 +712,20 @@ Every count that is 0 here must be 0. They are comment files from different expo
 npx wrangler@4.163.0 pages deploy dist --project-name ai-model-picker --branch main
 ```
 
-Expected: `Deployment complete!` followed by an address ending in `.ai-model-picker.pages.dev`. Upload only `dist/`.
+Run it from the repository root, so Wrangler compiles `functions/` with the files they bundle (`.local/restricted/payload.json`, `.local/expert-articles/catalog.json` and `build/records/named-private.json`). Expected: a line saying the Functions bundle was compiled, a line saying how many files were uploaded (files already on Cloudflare are skipped), a line uploading the Functions bundle, then `Deployment complete!` followed by an address ending in `.ai-model-picker.pages.dev`. Upload only `dist/`.
 
-If Wrangler reports that it is not signed in, ask the owner to run `npx wrangler@4.163.0 login` in a terminal. Do not run `wrangler whoami`, which prints the account's email address. `wrangler pages deployment list` prints an address that contains the account identifier; keep its output out of commits, documents and messages.
+| Output                                                                                     | Meaning                                                      | What to do                                                                                 |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Wrangler says it is not signed in or not authenticated, or asks to log in                  | There is no usable Cloudflare sign-in. Nothing was uploaded. | Stop. Ask the owner to run `npx wrangler@4.163.0 login` in a terminal, then repeat step 4. |
+| A message that the Functions bundle, a file or the number of files is too large or refused | Cloudflare refused the deployment.                           | Stop and report the message. Do not restructure anything or retry differently.             |
+| An error compiling `functions/` (a file it imports could not be found)                     | A bundled file is missing.                                   | Stop and report.                                                                           |
+| A project-not-found error                                                                  | The signed-in account does not hold the project.             | Stop and report.                                                                           |
+
+Do not run `wrangler whoami`, which prints the account's email address. `wrangler pages deployment list` prints an address that contains the account identifier; keep its output out of commits, documents and messages.
 
 ### 5. Check the live site
+
+Run each command from the repository root. If a live check fails after the upload, tell the owner at once and plainly what a visitor can now see. Do not upload again or roll back without the owner's word.
 
 ```sh
 curl -s https://ai-model-picker.pages.dev/hn-snapshot.json | python3 -c "import json,sys; s=json.load(sys.stdin); print(s['publishedAt'], s['commentParts'], s['status']['endAt'], s['status']['totals']['commentsAboutTargets'])"
@@ -662,22 +745,40 @@ curl -s https://ai-model-picker.pages.dev/search/index.json | python3 -c "import
 python3 -c "import json; s=json.load(open('dist/search/index.json')); print(s['builtAt'], s['records'])"
 ```
 
-The two commands must print the same line; if the first shows the earlier build, wait a minute and repeat it. Then check that the live search files hold no named record:
+The two commands must print the same line; if the first shows the earlier build, wait a minute and repeat it. Then check that the live records file and a live search record file hold no practitioner record:
+
+```sh
+curl -s https://ai-model-picker.pages.dev/core.json | python3 -c "import json,sys; c=json.load(sys.stdin); m=c['measured']; print(len(m), sum(r['cls'] != 'measured' or bool(r.get('quote')) or bool(r.get('person')) for r in m), c['namedBehindSignIn'])"
+```
+
+Expected: the measured count from step 2, then `0 True`.
 
 ```sh
 curl -s https://ai-model-picker.pages.dev/search/r/0.json | python3 -c "import json,sys; r=json.load(sys.stdin)['records']; print(len(r), sum(x['cls'] not in ('measured', 'crowd') or 'quote' in x or 'person' in x for x in r))"
 ```
 
-Expected: `32 0`. A second number above 0 means a named record was published: tell the owner at once.
+Expected: `32 0`. A second number above 0 on either command means a practitioner record was published: tell the owner at once.
 
 ```sh
-curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/restricted
-curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/expert-articles
-curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/named
-curl -s -o /dev/null -w '%{http_code}\n' https://ai-model-picker.pages.dev/api/named/advice
+for path in restricted expert-articles named named/advice; do curl -s -o /dev/null -w "$path %{http_code}\n" "https://ai-model-picker.pages.dev/api/$path"; done
 ```
 
-Expected: `401` for every endpoint.
+Expected:
+
+```text
+restricted 401
+expert-articles 401
+named 401
+named/advice 401
+```
+
+Any other status means a protected endpoint is open or broken: tell the owner at once.
+
+```sh
+curl -s https://ai-model-picker.pages.dev/arxiv-snapshot.json | python3 -c "import json,sys; json.load(sys.stdin); print('json')" 2>/dev/null || echo 'not json'
+```
+
+Expected: `not json`. The address now answers with the app's page, as any unknown path does; `json` means the old arXiv export is still served.
 
 ```sh
 curl -sI https://ai-model-picker.pages.dev/hn-comments-1.json | grep -i -E '^(cache-control|x-robots-tag)'
@@ -690,7 +791,15 @@ cache-control: no-store
 x-robots-tag: noindex, nofollow, noarchive, nosnippet
 ```
 
-If a browser is available, open https://ai-model-picker.pages.dev/#/search/claude%20code and check that results appear under Measured and Crowd, that a result opens in the drawer with its source link, and that the network log shows requests under `/search/` only, none to `/api/`. Then open https://ai-model-picker.pages.dev/ and check that the header shows the new date range and comment count, that Discussion lists threads, that "Show comment" loads a comment, that the Data page has no scan controls and that the console has no errors. The remaining checks are listed under [release verification](deployment.md#release-verification).
+In a browser, signed out, with the network log open:
+
+- https://ai-model-picker.pages.dev/ shows Brief's job chooser with 13 jobs; open two briefs, a model page from a card, Switch from "Compare with", a Benchmark page from a benchmark name, the App guide and the Data page. The header shows the Hacker News range, and the Data page has no scan controls.
+- https://ai-model-picker.pages.dev/#/search/claude%20code shows results under Measured and Crowd; a result opens in the drawer with its source link; the requests for it are under `/search/` only.
+- People shows only the line saying practitioner records need sign-in, and every Named band shows the same line.
+- An old Board link (`#/board`), an old Discussion link (`#/discussion/model:claude-opus-5-5`) and an old Papers link (`#/papers`) land on the chooser, the model page with its thread reader, and the Data page's line on papers.
+- The console has no errors, and no request goes to `/api/`, `/auth/` or a local address.
+
+Check at desktop width and at a phone's (390 CSS pixels): no page scrolls sideways. The checks a granted account needs are listed under [release verification](deployment.md#release-verification); only the owner can make them.
 
 ## Automating the updates
 

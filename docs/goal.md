@@ -8,7 +8,7 @@ A job is a real piece of work with its limits: the kind of task, the app or codi
 
 - A person choosing a model and setting in ChatGPT, Claude or a coding agent.
 - A person deciding which model to give each kind of delegated work, such as search, exact edits, implementation, design and diagnosis.
-- An agent choosing a model for a subtask. The app does not serve agents yet.
+- An agent choosing a model for a subtask. On the owner's machine, `npm run search -- <words> --job <id>` gives it the matching records as JSON: counts per band and job, and the best records of each band with their model, tool, effort, conditions, date, job and source link, practitioners' quotes included. The output is private, and the published site offers agents nothing beyond its pages. See [Search](search.md#for-agents).
 
 ## What counts as an answer
 
@@ -21,11 +21,13 @@ A job is a real piece of work with its limits: the kind of task, the app or codi
 
 ## What the project collects
 
-- Published benchmark results and official API prices.
+- Published benchmark results and official API prices, read by hand.
+- LMArena leaderboard ratings and the results of Epoch AI's own benchmark runs, imported by script.
 - Published reports and controlled experiments.
-- arXiv metadata, as a feed for reports reviewed by hand.
+- OpenRouter usage: 30-day token shares and 7-day task tags. It is shown apart and orders nothing.
+- arXiv metadata, as a feed for reports reviewed by hand. Nothing from it is shown.
 - Hacker News discussion that names a model.
-- Dated first-hand accounts from practitioners who publish their work with these models.
+- Dated use records and method advice from a short list of practitioners and outlets who publish their work with these models, reviewed by a model and shown only behind sign-in.
 - The selections that ChatGPT, Claude and the coding agents offer, for the app guide.
 
 The coverage and limits of each source are in [Data provenance](data.md).
