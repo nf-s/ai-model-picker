@@ -1,0 +1,63 @@
+/* Named records: cards, the outcome strip and the trusted-people star. */
+.rd-ncards {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.rd-ncard {
+  padding: 8px 10px;
+  font-size: 12.5px;
+}
+.rd-ncard p {
+  margin: 0;
+}
+.rd-ncard header a {
+  color: var(--rd-ink);
+}
+.rd-ncard blockquote {
+  margin: 2px 0;
+  padding: 2px 0 2px 9px;
+  border-left: 2px solid var(--rd-line);
+  color: var(--rd-ink2);
+  font-style: italic;
+}
+.rd-ncard-outcome {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.rd-ncard-outcome i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.rd-star {
+  padding: 0 2px;
+  color: var(--rd-ink3);
+  font-size: 14px;
+  line-height: 1;
+}
+.rd-star[aria-pressed='true'] {
+  color: var(--rd-accent);
+}
+.rd-star:hover {
+  color: var(--rd-ink);
+}
+.rd-tag {
+  display: inline-block;
+  padding: 0 6px;
+  border: 1px solid var(--rd-line);
+  border-radius: 4px;
+  color: var(--rd-ink2);
+  font-size: 11px;
+  font-weight: 500;
+}
+.rd-bands .rd-crowd-row .rd-bar,
+.rd-brief-named .rd-bar {
+  width: 80px;
+}
+.rd-brief-named {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

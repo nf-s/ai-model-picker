@@ -3,6 +3,8 @@ import { afterEach, describe, test } from 'node:test';
 import { COOKIE_NAMES } from '../server/auth/index.mjs';
 import { restrictedFixture } from '../server/auth/restricted-fixture.mjs';
 import { ENV, harness } from '../server/auth/test-support.mjs';
+import { namedParts } from '../server/named.mjs';
+import { preparedJson } from '../server/restricted.mjs';
 import { routeApi } from '../server/routes.mjs';
 
 const opened = [];
@@ -16,6 +18,17 @@ const articleFixture = {
   ],
 };
 
+// A stand-in for named-private.json with an invented person.
+const namedFixture = namedParts({
+  version: 1,
+  private: 'Served only behind sign-in.',
+  review: { model: 'test', methodology: 'test', note: 'Test.' },
+  people: [{ name: 'Ada Example', sourceClass: 'first-hand', trusted: true }],
+  coverage: [{ job: 'coding', use: 1, advice: 1 }],
+  use: [{ id: 'ur:000000000000000000000001/1', person: 'Ada Example' }],
+  advice: [{ id: 'ma:000000000000000000000001/1', person: 'Ada Example' }],
+});
+
 function setup() {
   const value = harness();
   opened.push(value.binding);
@@ -23,9 +36,23 @@ function setup() {
     ...value.dependencies,
     payload: restrictedFixture,
     expertArticles: articleFixture,
+    // Serialised once, as the Function does when it starts.
+    named: preparedJson(namedFixture.named),
+    namedAdvice: preparedJson(namedFixture.advice),
   };
   return value;
 }
+
+test('the named file is split into people with use records, and advice', () => {
+  assert.deepEqual(Object.keys(namedFixture.named), [
+    'version',
+    'review',
+    'people',
+    'coverage',
+    'use',
+  ]);
+  assert.deepEqual(Object.keys(namedFixture.advice), ['version', 'advice']);
+});
 afterEach(() => {
   for (const db of opened.splice(0)) db.close();
 });
@@ -50,6 +77,8 @@ async function grantedViewer(h) {
 for (const [path, fixture] of [
   ['/api/restricted', restrictedFixture],
   ['/api/expert-articles', articleFixture],
+  ['/api/named', namedFixture.named],
+  ['/api/named/advice', namedFixture.advice],
 ]) {
   describe(path, () => {
     function request(session, method = 'GET', origin = ENV.PUBLIC_URL) {
@@ -65,10 +94,13 @@ for (const [path, fixture] of [
       const h = setup();
       const denied = await routeApi(request(), h.env, h.dependencies);
       assert.equal(denied.status, 401);
-      assert.deepEqual(await denied.json(), {
+      const body = await denied.text();
+      assert.deepEqual(JSON.parse(body), {
         error: 'authentication_required',
         message: 'Authentication is required.',
       });
+      // No named data, not even a count, in an error.
+      assert.doesNotMatch(body, /Ada Example|ur:|ma:|people|coverage/);
       const head = await routeApi(request(null, 'HEAD'), h.env, h.dependencies);
       assert.equal(head.status, 401);
       await assert.rejects(
@@ -112,6 +144,7 @@ for (const [path, fixture] of [
       );
       const revoked = await routeApi(request(session), h.env, h.dependencies);
       assert.equal(revoked.status, 401);
+      assert.doesNotMatch(await revoked.text(), /Ada Example|ur:|ma:/);
     });
 
     test('alternate origins and missing storage fail closed', async () => {

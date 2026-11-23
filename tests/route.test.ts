@@ -174,10 +174,23 @@ test('the account route carries a sign-in error code', () => {
   );
 });
 
-test('Expert articles has a standalone bookmarkable route', () => {
-  const hash = routeHref({ view: 'expert-articles' });
-  assert.equal(hash, '#/expert-articles');
-  assert.deepEqual(parseRoute(hash), { view: 'expert-articles' });
+test('People and person pages are bookmarkable; Expert articles lands on People', () => {
+  for (const route of [
+    { view: 'people', name: null, job: null },
+    { view: 'people', name: 'Ada Example', job: null },
+    { view: 'people', name: 'Ada Example', job: 'coding' },
+    { view: 'people', name: null, job: 'bug-fix' },
+  ] satisfies Route[])
+    assert.deepEqual(parseRoute(routeHref(route)), route);
+  assert.equal(
+    routeHref({ view: 'people', name: 'Ada Example', job: 'coding' }),
+    '#/people/Ada%20Example?job=coding',
+  );
+  assert.deepEqual(parseRoute('#/expert-articles'), {
+    view: 'people',
+    name: null,
+    job: null,
+  });
 });
 
 test('Brief is the home page and the job is in the address', () => {

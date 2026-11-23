@@ -19,6 +19,9 @@ import {
   scopeIndex,
   scopeLabel,
   scopePapers,
+  sourceClasses,
+  toggleBasis,
+  toggleClass,
   toggleModel,
   toggleProvider,
   writeStoredFilter,
@@ -513,7 +516,8 @@ test('unusable storage reads as the default bar', () => {
     '{"providers":[1],"models":[]}',
     '{"providers":["OpenAI"]}',
     '{"providers":[],"models":[],"period":5}',
-    '{"providers":[],"models":[],"classes":["named"]}',
+    '{"providers":[],"models":[],"classes":["usage"]}',
+    '{"providers":[],"models":[],"basis":["hearsay"]}',
     '{"providers":[],"models":[],"current":"yes"}',
   ])
     assert.deepEqual(
@@ -536,4 +540,28 @@ test('unusable storage reads as the default bar', () => {
     defaultFilterBar,
     'at least one source class stays on',
   );
+  assert.deepEqual(
+    readStoredFilter(
+      memory('{"providers":[],"models":[],"basis":["second","first"]}'),
+      catalogue,
+    ),
+    { ...defaultFilterBar, basis: ['first', 'second'] },
+    'bases keep their own order',
+  );
+});
+
+test('a source class or basis toggle never leaves nothing to show', () => {
+  // Without sign-in only Measured and Crowd can be seen, so one of them stays on.
+  const signedOut = ['measured', 'crowd'] as const;
+  assert.deepEqual(
+    toggleClass(['measured', 'named', 'crowd'], 'crowd', signedOut),
+    ['measured', 'named'],
+  );
+  assert.equal(toggleClass(['measured', 'named'], 'measured', signedOut), null);
+  assert.deepEqual(
+    toggleClass(['measured', 'named'], 'measured', sourceClasses),
+    ['named'],
+  );
+  assert.deepEqual(toggleBasis(['first', 'second'], 'second'), ['first']);
+  assert.equal(toggleBasis(['vendor'], 'vendor'), null);
 });

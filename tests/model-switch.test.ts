@@ -190,7 +190,8 @@ const all: BriefFilters = {
   inScope: () => true,
   current: true,
   since: '',
-  classes: ['measured', 'crowd'],
+  classes: ['measured', 'named', 'crowd'],
+  basis: ['first', 'measured', 'second', 'vendor'],
 };
 
 function target(

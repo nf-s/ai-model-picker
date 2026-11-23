@@ -17,6 +17,7 @@ LOCAL_PATH = Path('/synthetic/checkout')
 ARTICLE_URL = 'https://example.test/synthetic-article'
 MEASURED = {'id': 'bm:synthetic-result', 'cls': 'measured', 'quote': ''}
 NAMED_ID = 'ur:0123456789abcdef01234567/3'
+PERSON = 'Ada Example'
 
 
 class TestSiteCheck(unittest.TestCase):
@@ -28,6 +29,8 @@ class TestSiteCheck(unittest.TestCase):
         self.restricted = Path(directory.name) / 'payload.json'
         self.public = Path(directory.name) / 'snapshot.json'
         self.expert_catalog = Path(directory.name) / 'catalog.json'
+        self.people = Path(directory.name) / 'people.json'
+        self.write(self.people, {'version': 1, 'people': [{'name': PERSON}, {'name': 'Ben Sample'}]})
         self.write(self.expert_catalog, {'articles': [{'title': 'Example article', 'date': '2026-03-01', 'url': ARTICLE_URL}]})
         self.write(self.public, {'models': [{'id': 'example-model'}], 'sources': [{'id': 'shared-source'}]})
         self.write(self.restricted, {
@@ -52,7 +55,9 @@ class TestSiteCheck(unittest.TestCase):
         self.write(self.dist / 'core.json', {'measured': [MEASURED], 'namedBehindSignIn': True})
 
     def report(self, **options):
-        return site_report(self.dist, self.restricted, self.public, (LOCAL_PATH,), self.expert_catalog, **options)
+        return site_report(
+            self.dist, self.restricted, self.public, (LOCAL_PATH,), self.expert_catalog, self.people, **options,
+        )
 
     def failed(self, **options):
         report = self.report(**options)
@@ -85,6 +90,24 @@ class TestSiteCheck(unittest.TestCase):
     def test_the_private_named_file_blocks_an_upload(self):
         self.write(self.dist / 'named-private.json', {'use': []})
         self.assertEqual(self.failed(), ['namedFiles'])
+
+    def test_a_person_named_in_static_output_blocks_an_upload(self):
+        self.build(script=f'const person = "{PERSON}";')
+        self.assertEqual(self.report()['personNames'], 1)
+        self.assertEqual(self.failed(), ['personNames'])
+        self.build()
+        self.write(self.dist / 'core.json', {'measured': [MEASURED], 'note': f'{PERSON} and Ben Sample'})
+        self.assertEqual(self.report()['personNames'], 2)
+
+    def test_a_person_in_a_public_story_title_is_not_counted(self):
+        self.build(title=f'A story by {PERSON}')
+        self.assertEqual(self.report()['personNames'], 0)
+        self.assertEqual(self.failed(), [])
+
+    def test_an_invalid_people_file_stops_the_check(self):
+        self.write(self.people, {'version': 1, 'people': [{'name': ''}]})
+        with self.assertRaises(ValueError):
+            self.report()
 
     def test_a_part_from_another_export_is_counted(self):
         self.build(second_release='earlier-release')

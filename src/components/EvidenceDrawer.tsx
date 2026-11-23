@@ -22,16 +22,20 @@ import type { BriefData } from '../lib/brief';
 import type { HnTheme } from '../lib/hn-index';
 import { emptyFilter } from '../lib/hn-insights';
 import { dollars } from '../lib/metrics';
+import type { NamedRecord } from '../lib/named';
 import type { EvidenceRecord } from '../lib/records';
 import { modelHref } from '../lib/route';
 import type { HnData } from '../lib/site-data';
+import { NamedCard } from './Named';
 import { CommentStream } from './parts';
 import './evidence-drawer.css';
 
-// What a count opens: the measured records behind it, or the Hacker News
-// comments behind a crowd count or a stated preference.
+// What a count opens: the measured records behind it, the named records
+// (in the order the band shows them), or the Hacker News comments behind a
+// crowd count or a stated preference.
 export type EvidenceSpec = { title: string; note?: string } & (
   | { kind: 'measured'; data: BriefData; records: EvidenceRecord[] }
+  | { kind: 'named'; records: NamedRecord[] }
   | {
       kind: 'comments';
       // Item ids the comments must be among; null for any.
@@ -129,6 +133,11 @@ export default function EvidenceDrawer({
           {spec.note && <p className="rd-note">{spec.note}</p>}
           {spec.kind === 'measured' ? (
             <MeasuredList data={spec.data} records={spec.records} />
+          ) : spec.kind === 'named' ? (
+            <RecordPages
+              records={spec.records}
+              render={(record) => <NamedCard key={record.id} record={record} />}
+            />
           ) : (
             <CommentList spec={spec} hn={hn} />
           )}
@@ -177,6 +186,23 @@ function MeasuredList({
   data: BriefData;
   records: EvidenceRecord[];
 }) {
+  return (
+    <RecordPages
+      records={records}
+      render={(record) => (
+        <MeasuredRecord key={record.id} data={data} record={record} />
+      )}
+    />
+  );
+}
+
+function RecordPages<T extends { id: string }>({
+  records,
+  render,
+}: {
+  records: T[];
+  render: (record: T) => ReactNode;
+}) {
   const [shown, setShown] = useState(pageSize);
   return (
     <div className="rd-records">
@@ -185,9 +211,7 @@ function MeasuredList({
           ? 'No records.'
           : `${records.length.toLocaleString()} ${records.length === 1 ? 'record' : 'records'}`}
       </p>
-      {records.slice(0, shown).map((record) => (
-        <MeasuredRecord key={record.id} data={data} record={record} />
-      ))}
+      {records.slice(0, shown).map(render)}
       {records.length > shown && (
         <button
           type="button"

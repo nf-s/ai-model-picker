@@ -211,7 +211,7 @@ export function scopeHnData(data: HnData, scope: Scope): HnData {
   return { ...data, index, insights: buildInsights(index, keysRelated) };
 }
 
-function browserStorage() {
+export function browserStorage() {
   try {
     return window.localStorage;
   } catch {

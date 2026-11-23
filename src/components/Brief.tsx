@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Access } from '../lib/access';
 import {
   benchmarkKind,
   briefFilters,
@@ -32,11 +31,13 @@ import type { CoreJob, CoreModel, CoreUsage } from '../lib/core-schema';
 import { guide } from '../lib/guide';
 import { dollars } from '../lib/metrics';
 import type { FilterBar, Scope } from '../lib/model-filter';
+import { namedColumn, outcomeTally } from '../lib/named';
 import { modelHref, routeHref } from '../lib/route';
 import Bands, {
   BenchmarkName,
   commentSpec,
   measuredSpec,
+  namedSpec,
   preferenceIds,
   RecordsStatus,
 } from './Bands';
@@ -44,6 +45,7 @@ import type { BandContext } from './Bands';
 import { EvidenceButton } from './EvidenceDrawer';
 import type { EvidenceSpec } from './EvidenceDrawer';
 import { formatDay } from './FilterBar';
+import { namedNote, OutcomeBar, useNamed } from './Named';
 import { RankNote } from './ModelFilter';
 import './brief.css';
 
@@ -93,19 +95,17 @@ export default function Brief({
   filter,
   onFilterChange,
   scope,
-  access,
 }: {
   job: string | null;
   coreData: CoreData;
   filter: FilterBar;
   onFilterChange: (next: FilterBar) => void;
   scope: Scope;
-  access: Access;
 }) {
   const data = useBriefData(coreData);
   if (!data) return <RecordsStatus coreData={coreData} />;
   const filters = briefFilters(data, filter, scope.model);
-  const ctx = { data, filters, access };
+  const ctx = { data, filters };
   if (job === null) return <JobChooser ctx={ctx} />;
   const found = findJob(data, job);
   if (!found)
@@ -429,6 +429,7 @@ function Card({
         ctx={ctx}
         job={{ id: brief.job.id, label: brief.job.label }}
         model={row.model}
+        compact
       />
     </section>
   );
@@ -448,6 +449,19 @@ function BriefTable({
   narrowed: boolean;
 }) {
   const primary = brief.primary;
+  const { state, trusted } = useNamed();
+  // The Named column counts each row's records; it never moves a row.
+  const named =
+    state.status === 'ready' && ctx.filters.classes.includes('named')
+      ? namedColumn(
+          ctx.data,
+          state.value,
+          brief.rows,
+          brief.job.id,
+          ctx.filters,
+          trusted,
+        )
+      : null;
   return (
     <section className="rd-panel rd-brief-table">
       <div className="rd-brief-table-head">
@@ -515,10 +529,16 @@ function BriefTable({
                   </div>
                 </th>
               ))}
+              {named && (
+                <th>
+                  Named use records
+                  <div className="rd-note rd-th-sub">job by review</div>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
-            {brief.rows.map((row) => (
+            {brief.rows.map((row, at) => (
               <tr key={row.model.id}>
                 <td>
                   <a href={modelHref(row.model.id)}>
@@ -570,14 +590,47 @@ function BriefTable({
                     </td>
                   );
                 })}
+                {named && (
+                  <td className="rd-nowrap">
+                    <NamedCell
+                      title={`${row.model.name} · use records · ${brief.job.label}`}
+                      records={named[at]?.records ?? []}
+                      note={namedNote(state)}
+                    />
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="rd-note">{orderRules(brief)}</p>
+      <p className="rd-note">
+        {orderRules(brief)}
+        {named &&
+          ' Named use records carry the job the model review gave them and never change the order.'}
+      </p>
       {narrowed && <RankNote />}
     </section>
+  );
+}
+
+function NamedCell({
+  title,
+  records,
+  note,
+}: {
+  title: string;
+  records: Parameters<typeof namedSpec>[1];
+  note: string;
+}) {
+  if (records.length === 0) return <span className="rd-muted">—</span>;
+  return (
+    <span className="rd-brief-named">
+      <EvidenceButton spec={() => namedSpec(title, records, note)}>
+        {records.length.toLocaleString()}
+      </EvidenceButton>
+      <OutcomeBar tally={outcomeTally(records)} />
+    </span>
   );
 }
 

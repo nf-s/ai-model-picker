@@ -12,12 +12,16 @@ export async function routeAuth(request, env) {
 export async function routeApi(
   request,
   env,
-  { payload, expertArticles, ...dependencies },
+  { payload, expertArticles, named, namedAdvice, ...dependencies },
 ) {
   const path = new URL(request.url).pathname;
   if (path === '/api/restricted')
     return handleProtectedJson(request, env, payload, dependencies);
   if (path === '/api/expert-articles')
     return handleProtectedJson(request, env, expertArticles, dependencies);
+  if (path === '/api/named')
+    return handleProtectedJson(request, env, named, dependencies);
+  if (path === '/api/named/advice')
+    return handleProtectedJson(request, env, namedAdvice, dependencies);
   return (await handleAuthRequest(request, env, dependencies)) ?? notFound();
 }

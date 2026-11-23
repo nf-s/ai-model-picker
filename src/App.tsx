@@ -7,11 +7,12 @@ import Brief from './components/Brief';
 import DataPage from './components/DataPage';
 import EvidenceDrawer, { EvidenceContext } from './components/EvidenceDrawer';
 import type { EvidenceSpec } from './components/EvidenceDrawer';
-import ExpertArticles from './components/ExpertArticles';
 import FilterBar from './components/FilterBar';
 import Model from './components/Model';
 import { OutsideFilter } from './components/ModelFilter';
+import { NamedContext, useNamedView } from './components/Named';
 import Papers from './components/Papers';
+import People from './components/People';
 import Switch from './components/Switch';
 import type { Access } from './lib/access';
 import { useCoreData } from './lib/core-client';
@@ -32,7 +33,8 @@ import {
 type View = Route['view'];
 // The Board left the navigation for Brief and stays at #/board until it is
 // removed. Discussion left it for the thread reader under each model's Crowd
-// band; its links open the model page.
+// band; its links open the model page. Expert articles moved onto person
+// pages; their old address opens People.
 const views: { route: Route; label: string; also?: View }[] = [
   { route: { view: 'brief', job: null }, label: 'Brief', also: 'benchmark' },
   {
@@ -40,8 +42,8 @@ const views: { route: Route; label: string; also?: View }[] = [
     label: 'Models',
   },
   { route: { view: 'switch', a: null, b: null, job: null }, label: 'Switch' },
+  { route: { view: 'people', name: null, job: null }, label: 'People' },
   { route: { view: 'papers', key: null, area: null }, label: 'Papers' },
-  { route: { view: 'expert-articles' }, label: 'Expert articles' },
   { route: { view: 'apps' }, label: 'App guide' },
   { route: { view: 'data' }, label: 'Data' },
 ];
@@ -61,6 +63,9 @@ export default function App({ access }: { access: Access }) {
   const pipeline = useHnPipeline();
   const { filter, setFilter } = useModelFilter();
   const coreData = useCoreData();
+  const core = coreData.status === 'ready' ? coreData.core : null;
+  // Named records are requested only with a session (or on the dev server).
+  const named = useNamedView(access, core ? core.jobs.list : null);
   const [evidence, setEvidence] = useState<EvidenceSpec | null>(null);
   // The comment index is requested only by views that list comments; Brief,
   // Model and Switch count from core.json.
@@ -100,19 +105,25 @@ export default function App({ access }: { access: Access }) {
         ? route.target.kind === 'model'
           ? (modelById.get(route.target.id)?.name ?? 'Model')
           : route.target.name
-        : route.view === 'account'
-          ? 'Account'
-          : route.view === 'board'
-            ? 'Board'
-            : (views.find((view) => view.route.view === route.view)?.label ??
-              'Brief');
-  const core = coreData.status === 'ready' ? coreData.core : null;
-  // Model and Switch keep the job in their own address; elsewhere choosing a
-  // job opens its brief.
+        : route.view === 'people' && route.name !== null
+          ? route.name
+          : route.view === 'account'
+            ? 'Account'
+            : route.view === 'board'
+              ? 'Board'
+              : (views.find((view) => view.route.view === route.view)?.label ??
+                'Brief');
+  // Model, Switch and People keep the job in their own address; elsewhere
+  // choosing a job opens its brief.
   const jobHref = (job: string | null) =>
-    route.view === 'model' || route.view === 'switch'
+    route.view === 'model' || route.view === 'switch' || route.view === 'people'
       ? routeHref({ ...route, job })
       : routeHref({ view: 'brief', job });
+  const full =
+    route.view === 'brief' ||
+    route.view === 'model' ||
+    route.view === 'switch' ||
+    route.view === 'people';
 
   // A new page starts at the top; opening or closing the thread reader on the
   // same page does not move it.
@@ -127,156 +138,160 @@ export default function App({ access }: { access: Access }) {
   }, [title]);
 
   return (
-    <EvidenceContext.Provider value={setEvidence}>
-      <div className="rd">
-        <a
-          className="skip-link"
-          href={location}
-          onClick={(event) => {
-            event.preventDefault();
-            document.getElementById('content')?.focus();
-          }}
-        >
-          Skip to content
-        </a>
-        <header className="rd-top">
+    <NamedContext.Provider value={named}>
+      <EvidenceContext.Provider value={setEvidence}>
+        <div className="rd">
           <a
-            className="rd-brand"
-            href={routeHref({ view: 'brief', job: null })}
+            className="skip-link"
+            href={location}
+            onClick={(event) => {
+              event.preventDefault();
+              document.getElementById('content')?.focus();
+            }}
           >
-            Model picker
+            Skip to content
           </a>
-          <nav aria-label="Main">
-            {views.map((view) => (
-              <a
-                key={view.label}
-                href={routeHref(view.route)}
-                aria-current={
-                  view.route.view === route.view
-                    ? 'page'
-                    : view.also === route.view
-                      ? 'true'
-                      : undefined
-                }
-              >
-                {view.label}
-                {view.route.view === 'data' && pipeline.data?.runner.active && (
-                  <span>Running</span>
-                )}
-              </a>
-            ))}
-          </nav>
-          <p className="rd-top-meta">
-            {core && (
-              <span>
-                HN{' '}
-                {formatHnRange(core.sources.hn.startAt, core.sources.hn.endAt)}{' '}
-                · {core.sources.hn.comments.toLocaleString()} comments
-              </span>
-            )}
-            <span>Benchmarks checked {checkedAt}</span>
-          </p>
-          {access.kind !== 'local' && (
+          <header className="rd-top">
             <a
-              className="rd-account-link"
-              href={routeHref({ view: 'account', error: null })}
-              aria-current={route.view === 'account' ? 'page' : undefined}
+              className="rd-brand"
+              href={routeHref({ view: 'brief', job: null })}
             >
-              {access.kind === 'signed-in' ? 'Account' : 'Sign in'}
+              Model picker
             </a>
-          )}
-        </header>
-        <FilterBar
-          filter={filter}
-          onChange={setFilter}
-          jobs={core ? core.jobs.list : null}
-          job={
-            route.view === 'brief' ||
-            route.view === 'model' ||
-            route.view === 'switch'
-              ? route.job
-              : null
-          }
-          jobHref={jobHref}
-          full={
-            route.view === 'brief' ||
-            route.view === 'model' ||
-            route.view === 'switch'
-          }
-          end={core ? core.sources.hn.endAt.slice(0, 10) : null}
-        />
-        {hn.status === 'failed' && (
-          <p className="rd-alert" role="alert">
-            The comment index could not be loaded.{' '}
-            {!hnPublished && (
-              <>
-                Start the app with <code>npm run dev</code> so the local
-                analysis service is running.{' '}
-              </>
+            <nav aria-label="Main">
+              {views.map((view) => (
+                <a
+                  key={view.label}
+                  href={routeHref(view.route)}
+                  aria-current={
+                    view.route.view === route.view
+                      ? 'page'
+                      : view.also === route.view
+                        ? 'true'
+                        : undefined
+                  }
+                >
+                  {view.label}
+                  {view.route.view === 'data' &&
+                    pipeline.data?.runner.active && <span>Running</span>}
+                </a>
+              ))}
+            </nav>
+            <p className="rd-top-meta">
+              {core && (
+                <span>
+                  HN{' '}
+                  {formatHnRange(
+                    core.sources.hn.startAt,
+                    core.sources.hn.endAt,
+                  )}{' '}
+                  · {core.sources.hn.comments.toLocaleString()} comments
+                </span>
+              )}
+              <span>Benchmarks checked {checkedAt}</span>
+            </p>
+            {access.kind !== 'local' && (
+              <a
+                className="rd-account-link"
+                href={routeHref({ view: 'account', error: null })}
+                aria-current={route.view === 'account' ? 'page' : undefined}
+              >
+                {access.kind === 'signed-in' ? 'Account' : 'Sign in'}
+              </a>
             )}
-            Benchmark data is still shown.
-          </p>
-        )}
-        {outside && (
-          <OutsideFilter
-            target={outside}
+          </header>
+          <FilterBar
             filter={filter}
-            onChange={setSelection}
+            onChange={setFilter}
+            jobs={core ? core.jobs.list : null}
+            job={
+              route.view === 'brief' ||
+              route.view === 'model' ||
+              route.view === 'switch' ||
+              route.view === 'people'
+                ? route.job
+                : null
+            }
+            jobHref={jobHref}
+            full={full}
+            named={named.state.status === 'ready'}
+            end={core ? core.sources.hn.endAt.slice(0, 10) : null}
           />
-        )}
-        <main id="content" className="rd-main" tabIndex={-1}>
-          {route.view === 'brief' && (
-            <Brief
-              job={route.job}
-              coreData={coreData}
+          {hn.status === 'failed' && (
+            <p className="rd-alert" role="alert">
+              The comment index could not be loaded.{' '}
+              {!hnPublished && (
+                <>
+                  Start the app with <code>npm run dev</code> so the local
+                  analysis service is running.{' '}
+                </>
+              )}
+              Benchmark data is still shown.
+            </p>
+          )}
+          {outside && (
+            <OutsideFilter
+              target={outside}
               filter={filter}
-              onFilterChange={setFilter}
-              scope={scope}
-              access={access}
+              onChange={setSelection}
             />
           )}
-          {route.view === 'board' && <Board hn={hn} scope={scope} />}
-          {route.view === 'model' && (
-            <Model
-              route={route}
-              coreData={coreData}
-              filter={filter}
-              scope={scope}
-              access={access}
-            />
+          <main id="content" className="rd-main" tabIndex={-1}>
+            {route.view === 'brief' && (
+              <Brief
+                job={route.job}
+                coreData={coreData}
+                filter={filter}
+                onFilterChange={setFilter}
+                scope={scope}
+              />
+            )}
+            {route.view === 'board' && <Board hn={hn} scope={scope} />}
+            {route.view === 'model' && (
+              <Model
+                route={route}
+                coreData={coreData}
+                filter={filter}
+                scope={scope}
+              />
+            )}
+            {route.view === 'switch' && (
+              <Switch
+                route={route}
+                coreData={coreData}
+                filter={filter}
+                scope={scope}
+              />
+            )}
+            {route.view === 'papers' && (
+              <Papers
+                initialTarget={route.key}
+                initialArea={route.area}
+                scope={scope}
+              />
+            )}
+            {route.view === 'benchmark' && (
+              <Benchmark key={route.id} id={route.id} scope={scope} />
+            )}
+            {route.view === 'apps' && <AppGuide hn={hn} scope={scope} />}
+            {route.view === 'people' && (
+              <People
+                route={route}
+                coreData={coreData}
+                filter={filter}
+                scope={scope}
+              />
+            )}
+            {route.view === 'data' && <DataPage pipeline={pipeline} />}
+            {route.view === 'account' && (
+              <Account access={access} error={route.error} />
+            )}
+          </main>
+          {evidence && (
+            <EvidenceDrawer spec={evidence} hn={hn} onClose={closeEvidence} />
           )}
-          {route.view === 'switch' && (
-            <Switch
-              route={route}
-              coreData={coreData}
-              filter={filter}
-              scope={scope}
-              access={access}
-            />
-          )}
-          {route.view === 'papers' && (
-            <Papers
-              initialTarget={route.key}
-              initialArea={route.area}
-              scope={scope}
-            />
-          )}
-          {route.view === 'benchmark' && (
-            <Benchmark key={route.id} id={route.id} scope={scope} />
-          )}
-          {route.view === 'apps' && <AppGuide hn={hn} scope={scope} />}
-          {route.view === 'expert-articles' && (
-            <ExpertArticles access={access} />
-          )}
-          {route.view === 'data' && <DataPage pipeline={pipeline} />}
-          {route.view === 'account' && (
-            <Account access={access} error={route.error} />
-          )}
-        </main>
-        {evidence && (
-          <EvidenceDrawer spec={evidence} hn={hn} onClose={closeEvidence} />
-        )}
-      </div>
-    </EvidenceContext.Provider>
+        </div>
+      </EvidenceContext.Provider>
+    </NamedContext.Provider>
   );
 }

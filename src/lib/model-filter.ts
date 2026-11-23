@@ -29,21 +29,27 @@ export const emptyModelFilter: ModelFilter = { providers: [], models: [] };
 export const filterStorageKey = 'model-picker:model-filter';
 
 // The filter bar adds a period in months (0 for all dates), the source
-// classes shown and whether only current models are listed. Named records are
-// behind sign-in, so they are not a class here.
+// classes shown, the basis of named use records and whether only current
+// models are listed. Named records are behind sign-in: without them the Named
+// class and the basis have nothing to filter.
 export const periods = [0, 24, 12, 6, 3] as const;
-export const sourceClasses = ['measured', 'crowd'] as const;
+export const sourceClasses = ['measured', 'named', 'crowd'] as const;
+// A use record's basis; a secondary source's "measured" counts as second-hand.
+export const basisClasses = ['first', 'measured', 'second', 'vendor'] as const;
 export type Period = (typeof periods)[number];
 export type SourceClass = (typeof sourceClasses)[number];
+export type BasisClass = (typeof basisClasses)[number];
 export type FilterBar = ModelFilter & {
   period: Period;
   classes: SourceClass[];
+  basis: BasisClass[];
   current: boolean;
 };
 export const defaultFilterBar: FilterBar = {
   ...emptyModelFilter,
   period: 0,
   classes: [...sourceClasses],
+  basis: [...basisClasses],
   current: true,
 };
 // Selections stored before the filter bar hold providers and models only.
@@ -52,6 +58,7 @@ export const storedFilterSchema = z.object({
   models: z.array(z.string()),
   period: z.literal([...periods]).default(defaultFilterBar.period),
   classes: z.array(z.enum(sourceClasses)).default(defaultFilterBar.classes),
+  basis: z.array(z.enum(basisClasses)).default(defaultFilterBar.basis),
   current: z.boolean().default(defaultFilterBar.current),
 });
 
@@ -300,17 +307,19 @@ export function scopePapers(
   };
 }
 
-// The bar with the model selection cleaned, the classes in their own order
-// and at least one class left on.
+// The bar with the model selection cleaned, the classes and bases in their
+// own order and at least one of each left on.
 export function cleanFilterBar(
   bar: FilterBar,
   catalogue: Catalogue,
 ): FilterBar {
   const classes = sourceClasses.filter((cls) => bar.classes.includes(cls));
+  const basis = basisClasses.filter((entry) => bar.basis.includes(entry));
   return {
     ...cleanFilter(bar, catalogue),
     period: bar.period,
     classes: classes.length > 0 ? classes : [...sourceClasses],
+    basis: basis.length > 0 ? basis : [...basisClasses],
     current: bar.current,
   };
 }
@@ -320,8 +329,33 @@ export function filterBarDefault(bar: FilterBar) {
     !filterActive(bar) &&
     bar.period === defaultFilterBar.period &&
     bar.current === defaultFilterBar.current &&
-    sourceClasses.every((cls) => bar.classes.includes(cls))
+    sourceClasses.every((cls) => bar.classes.includes(cls)) &&
+    basisClasses.every((entry) => bar.basis.includes(entry))
   );
+}
+
+// Turns one source class on or off. At least one class that the viewer can
+// see stays on, so the bands never all disappear; null when the change would
+// leave none.
+export function toggleClass(
+  classes: readonly SourceClass[],
+  cls: SourceClass,
+  available: readonly SourceClass[],
+): SourceClass[] | null {
+  const next = classes.includes(cls)
+    ? classes.filter((entry) => entry !== cls)
+    : [...classes, cls];
+  return next.some((entry) => available.includes(entry)) ? next : null;
+}
+
+export function toggleBasis(
+  basis: readonly BasisClass[],
+  entry: BasisClass,
+): BasisClass[] | null {
+  const next = basis.includes(entry)
+    ? basis.filter((value) => value !== entry)
+    : [...basis, entry];
+  return next.length > 0 ? next : null;
 }
 
 // Storage can be missing, blocked or hold anything, so every failure reads as

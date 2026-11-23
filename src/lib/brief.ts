@@ -7,7 +7,7 @@ import type {
 } from './core-schema.ts';
 import { hnThemeSchema } from './hn-published.ts';
 import type { HnTheme } from './hn-index.ts';
-import type { SourceClass } from './model-filter.ts';
+import type { BasisClass, SourceClass } from './model-filter.ts';
 import type { EvidenceRecord, JsonValue } from './records.ts';
 import type {
   Benchmark as SnapshotBenchmark,
@@ -78,6 +78,9 @@ export type BriefFilters = {
   // First day of the period, or '' for all dates.
   since: string;
   classes: readonly SourceClass[];
+  // The bases of named use records shown; they never touch measured or
+  // crowd records.
+  basis: readonly BasisClass[];
 };
 export type WithinOverlap = 'preferences' | 'cost';
 
@@ -318,6 +321,7 @@ export function briefFilters(
     period: number;
     current: boolean;
     classes: readonly SourceClass[];
+    basis: readonly BasisClass[];
   },
   inScope: (modelId: string) => boolean,
 ): BriefFilters {
@@ -326,6 +330,7 @@ export function briefFilters(
     current: bar.current,
     since: periodStart(data.end, bar.period),
     classes: bar.classes,
+    basis: bar.basis,
   };
 }
 

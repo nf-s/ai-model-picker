@@ -4,6 +4,7 @@ import { defineConfig } from 'vite';
 import type { Connect, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { z } from 'zod';
+import { namedParts } from './server/named.mjs';
 
 // Serves a local file at the path the published site uses for it. Only the
 // one fixed file is ever read by the local servers.
@@ -51,6 +52,64 @@ function localJson(
     },
     configurePreviewServer(server) {
       if (!loopbackOnly) server.middlewares.use(serve);
+    },
+  };
+}
+
+const loopback = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
+const NamedFile = z.object({
+  version: z.number(),
+  review: z.unknown(),
+  people: z.unknown(),
+  coverage: z.unknown(),
+  use: z.unknown(),
+  advice: z.unknown(),
+});
+
+// Practitioners' named records from the records build, split as the Pages
+// Function serves them, for loopback requests to the dev server only. The
+// published site serves them to approved accounts.
+function localNamed(): Plugin {
+  let file = '';
+  let remote = false;
+  const serve: Connect.NextHandleFunction = (request, response, next) => {
+    const path = new URL(request.url ?? '/', 'http://localhost').pathname;
+    const part =
+      path === '/api/named'
+        ? 'named'
+        : path === '/api/named/advice'
+          ? 'advice'
+          : null;
+    if (
+      request.method !== 'GET' ||
+      part === null ||
+      remote ||
+      !loopback.includes(request.socket.remoteAddress ?? '')
+    )
+      return next();
+    response.setHeader('Cache-Control', 'no-store');
+    readFile(file, 'utf8').then(
+      (text) => {
+        const parts = namedParts(NamedFile.parse(JSON.parse(text)));
+        response.setHeader('Content-Type', 'application/json');
+        response.end(JSON.stringify(parts[part]));
+      },
+      (error: unknown) => {
+        if (!(error instanceof Error && 'code' in error)) return next(error);
+        if (error.code !== 'ENOENT') return next(error);
+        response.statusCode = 404;
+        response.end();
+      },
+    );
+  };
+  return {
+    name: 'local-named',
+    configResolved(config) {
+      file = join(config.root, 'build', 'records', 'named-private.json');
+      remote = config.env.VITE_RESTRICTED === 'remote';
+    },
+    configureServer(server) {
+      server.middlewares.use(serve);
     },
   };
 }
@@ -140,6 +199,7 @@ export default defineConfig({
       ['.local', 'expert-articles', 'catalog.json'],
       true,
     ),
+    localNamed(),
     thirdPartyLicenses(),
   ],
   server: {

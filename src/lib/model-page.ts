@@ -14,6 +14,8 @@ import type {
   CoreUsage,
   Preference,
 } from './core-schema.ts';
+import { namedFor } from './named.ts';
+import type { NamedIndex, UseRecord } from './named.ts';
 import type { EvidenceRecord } from './records.ts';
 import type { ModelTarget } from './route.ts';
 
@@ -57,6 +59,9 @@ export type JobEvidence = {
   // null for all jobs; a job with id '' for records with no job.
   job: CoreJob | null;
   measured: EvidenceRecord[];
+  // Use records that name the target exactly, by the job the review gave
+  // them; empty without sign-in.
+  named: UseRecord[];
   tally: Tally;
   share: number | null;
 };
@@ -67,14 +72,15 @@ export const noJob: CoreJob = {
   benchmarks: [],
 };
 
-// Measured records and Hacker News labels for every job, with the same rules
-// as the bands, so a row's counts equal the bands for that job. A parent job
-// includes its sub-jobs. Jobs with nothing are left out; all jobs is always
-// listed first.
+// Measured records, named use records and Hacker News labels for every job,
+// with the same rules as the bands, so a row's counts equal the bands for
+// that job. A parent job includes its sub-jobs. Jobs with nothing are left
+// out; all jobs is always listed first.
 export function evidenceByJob(
   data: BriefData,
   target: PageTarget,
   filters: BriefFilters,
+  named: { index: NamedIndex; trusted: readonly string[] } | null = null,
 ): JobEvidence[] {
   const row = (job: CoreJob | null): JobEvidence => {
     const id = job === null ? null : job.id;
@@ -88,6 +94,9 @@ export function evidenceByJob(
     return {
       job,
       measured: [...band.results, ...band.reports],
+      named: named
+        ? namedFor(data, named.index, target.key, id, filters, named.trusted)
+        : [],
       tally,
       share: positiveShare(tally),
     };
@@ -98,6 +107,7 @@ export function evidenceByJob(
       (entry) =>
         entry.job === null ||
         entry.measured.length > 0 ||
+        entry.named.length > 0 ||
         tallyTotal(entry.tally) > 0,
     );
 }

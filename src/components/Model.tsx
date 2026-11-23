@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef } from 'react';
-import type { Access } from '../lib/access';
 import {
   briefFilters,
   crowdCommentIds,
@@ -25,6 +24,7 @@ import {
   usageLine,
 } from '../lib/model-page';
 import type { JobEvidence, PageTarget } from '../lib/model-page';
+import { outcomeTally } from '../lib/named';
 import { lineHref, modelHref, routeHref } from '../lib/route';
 import type { Route } from '../lib/route';
 import { percent, scopeHnData, useHnData } from '../lib/site-data';
@@ -35,7 +35,8 @@ import Bands, {
   hnTally,
   indexKey,
   measuredSpec,
-  NamedLine,
+  NamedBand,
+  namedSpec,
   RecordsStatus,
   tallyNote,
 } from './Bands';
@@ -43,6 +44,7 @@ import type { BandContext, BandJob } from './Bands';
 import Threads from './comment-views/Threads';
 import { EvidenceButton } from './EvidenceDrawer';
 import { formatDay } from './FilterBar';
+import { namedNote, OutcomeBar, useNamed } from './Named';
 import { SentimentBar } from './parts';
 import './model.css';
 
@@ -53,20 +55,17 @@ export default function Model({
   coreData,
   filter,
   scope,
-  access,
 }: {
   route: ModelRoute;
   coreData: CoreData;
   filter: FilterBar;
   scope: Scope;
-  access: Access;
 }) {
   const data = useBriefData(coreData);
   if (!data) return <RecordsStatus coreData={coreData} />;
   const ctx: BandContext = {
     data,
     filters: briefFilters(data, filter, scope.model),
-    access,
   };
   if (route.target === null) return <ModelList ctx={ctx} />;
   const target = findTarget(data, route.target);
@@ -165,7 +164,11 @@ function TargetPage({
               <p className="rd-band rd-note">
                 Measured results name exact models; open a model above.
               </p>
-              <NamedLine access={ctx.access} />
+              <NamedBand
+                ctx={ctx}
+                job={band}
+                target={{ key: target.key, name: target.name }}
+              />
               {ctx.filters.classes.includes('crowd') && (
                 <CrowdBand
                   ctx={ctx}
@@ -335,9 +338,17 @@ function EvidenceByJob({
   target: PageTarget;
 }) {
   const { data, filters } = ctx;
-  const rows = evidenceByJob(data, target, filters);
+  const { state, trusted } = useNamed();
+  const index = state.status === 'ready' ? state.value : null;
+  const rows = evidenceByJob(
+    data,
+    target,
+    filters,
+    index && { index, trusted },
+  );
   const measured =
     target.kind === 'model' && filters.classes.includes('measured');
+  const named = index !== null && filters.classes.includes('named');
   const crowd = filters.classes.includes('crowd');
   return (
     <section className="rd-panel rd-model-section">
@@ -348,6 +359,13 @@ function EvidenceByJob({
             <tr>
               <th>Job</th>
               {measured && <th className="rd-num">Measured</th>}
+              {named && (
+                <th className="rd-num">
+                  Named use records
+                  <div className="rd-note rd-th-sub">job by review</div>
+                </th>
+              )}
+              {named && <th>Outcome</th>}
               {crowd && <th className="rd-num">Crowd labels</th>}
               {crowd && <th>Crowd stance</th>}
             </tr>
@@ -361,6 +379,7 @@ function EvidenceByJob({
                 target={target}
                 row={row}
                 measured={measured}
+                named={named}
                 crowd={crowd}
               />
             ))}
@@ -369,6 +388,8 @@ function EvidenceByJob({
       </div>
       <p className="rd-note">
         Choose a job to see its bands below. A parent job includes its sub-jobs.
+        {named &&
+          ' Named use records carry the job the model review gave them; they never order a model.'}{' '}
         Hacker News labels are automatic and count{' '}
         {target.kind === 'model'
           ? 'this exact model only'
@@ -387,6 +408,7 @@ function JobRow({
   target,
   row,
   measured,
+  named,
   crowd,
 }: {
   ctx: BandContext;
@@ -394,9 +416,11 @@ function JobRow({
   target: PageTarget;
   row: JobEvidence;
   measured: boolean;
+  named: boolean;
   crowd: boolean;
 }) {
   const { data, filters } = ctx;
+  const { state } = useNamed();
   const id = row.job === null ? null : row.job.id;
   const label = row.job === null ? allJobs.label : row.job.label;
   const total = tallyTotal(row.tally);
@@ -429,6 +453,34 @@ function JobRow({
             >
               {row.measured.length.toLocaleString()}
             </EvidenceButton>
+          )}
+        </td>
+      )}
+      {named && (
+        <td className="rd-num">
+          {row.named.length === 0 ? (
+            <span className="rd-muted">—</span>
+          ) : (
+            <EvidenceButton
+              spec={() =>
+                namedSpec(
+                  `${target.name} · ${label} · use records`,
+                  row.named,
+                  namedNote(state),
+                )
+              }
+            >
+              {row.named.length.toLocaleString()}
+            </EvidenceButton>
+          )}
+        </td>
+      )}
+      {named && (
+        <td>
+          {row.named.length > 0 && (
+            <span className="rd-model-stance">
+              <OutcomeBar tally={outcomeTally(row.named)} />
+            </span>
           )}
         </td>
       )}

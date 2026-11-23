@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import type { Access } from '../lib/access';
 import {
   benchmarkKind,
   costUnit,
@@ -25,21 +24,29 @@ import { themeLabel } from '../lib/hn-insights';
 import type { Tally as HnTally } from '../lib/hn-insights';
 import { dollars } from '../lib/metrics';
 import { keyLabel, preferencePairs } from '../lib/model-page';
+import { namedBand, outcomeTally } from '../lib/named';
+import type { NamedRecord } from '../lib/named';
 import type { EvidenceRecord } from '../lib/records';
 import { routeHref } from '../lib/route';
 import { benchmarkById as pageBenchmarks, percent } from '../lib/site-data';
 import { EvidenceButton } from './EvidenceDrawer';
 import type { EvidenceSpec } from './EvidenceDrawer';
+import {
+  NamedCard,
+  namedNote,
+  NamedUnavailable,
+  OutcomeBar,
+  useNamed,
+} from './Named';
 import { SentimentBar } from './parts';
 import './bands.css';
 
-// The evidence bands every view shows for a model in a job: Measured, the
-// Named line and Crowd. A job of null means all jobs.
+// The evidence bands every view shows for a model in a job: Measured, Named
+// and Crowd. A job of null means all jobs.
 
 export type BandContext = {
   data: BriefData;
   filters: BriefFilters;
-  access: Access;
 };
 export type BandJob = { id: string | null; label: string };
 // A model (`model|<id>`) or a product line (`line|<name>`).
@@ -131,21 +138,103 @@ export function RecordsStatus({ coreData }: { coreData: CoreData }) {
   );
 }
 
-export function NamedLine({ access }: { access: Access }) {
+export function namedSpec(
+  title: string,
+  records: NamedRecord[],
+  note: string,
+): EvidenceSpec {
+  return { kind: 'named', title, note, records };
+}
+
+// Use records that name the model or line exactly, as cards in the order the
+// rules give; records that name only one of a model's lines are counted
+// apart. The counts order nothing. Without sign-in, one line says so.
+export function NamedBand({
+  ctx,
+  job,
+  target,
+  compact = false,
+}: {
+  ctx: BandContext;
+  job: BandJob;
+  target: BandTarget;
+  // Brief's cards show two records, other views four.
+  compact?: boolean;
+}) {
+  const named = useNamed();
+  const { state } = named;
+  if (state.status !== 'ready')
+    return (
+      <div className="rd-band">
+        <span>
+          <span className="rd-band-chip rd-band-named">Named</span>{' '}
+          <NamedUnavailable what="Practitioner records" />
+        </span>
+      </div>
+    );
+  if (!ctx.filters.classes.includes('named')) return null;
+  const band = namedBand(
+    ctx.data,
+    state.value,
+    target.key,
+    job.id,
+    ctx.filters,
+    named.trusted,
+  );
+  const line = target.key.startsWith('line|');
+  const note = namedNote(state);
   return (
     <div className="rd-band">
-      <span>
-        <span className="rd-band-chip rd-band-named">Named</span>{' '}
+      <p className="rd-band-head">
+        <span className="rd-band-chip rd-band-named">Named</span>
         <span className="rd-note">
-          Practitioner records need sign-in.
-          {access.kind === 'anonymous' && (
-            <>
-              {' '}
-              <a href={routeHref({ view: 'account', error: null })}>Sign in</a>
-            </>
-          )}
+          practitioners’ use records, job by review
         </span>
-      </span>
+      </p>
+      {band.records.length > 0 ? (
+        <>
+          <p className="rd-crowd-row">
+            <EvidenceButton
+              spec={() =>
+                namedSpec(
+                  `${target.name} · use records · ${job.label}`,
+                  band.records,
+                  note,
+                )
+              }
+            >
+              {`${plural(band.records.length, 'use record')} name ${line ? 'only this line' : 'this model'}`}
+            </EvidenceButton>
+            <OutcomeBar tally={outcomeTally(band.records)} />
+          </p>
+          <div className="rd-ncards">
+            {band.records.slice(0, compact ? 2 : 4).map((record) => (
+              <NamedCard key={record.id} record={record} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <p className="rd-note">
+          No use record names {line ? 'only this line' : 'this exact model'}
+          {job.id === null ? '' : ' in this job'}.
+        </p>
+      )}
+      {band.lines.map((entry) => (
+        <p key={entry.key} className="rd-crowd-row rd-note">
+          <EvidenceButton
+            spec={() =>
+              namedSpec(
+                `${entry.name} (any version) · use records · ${job.label}`,
+                entry.records,
+                `Records that name the product line without a version. They may be about an older model. ${note}`,
+              )
+            }
+          >
+            {`${plural(entry.records.length, 'use record')} name only the line ${entry.name}`}
+          </EvidenceButton>
+          <OutcomeBar tally={outcomeTally(entry.records)} />
+        </p>
+      ))}
     </div>
   );
 }
@@ -155,6 +244,7 @@ export default function Bands({
   job,
   model,
   detail = false,
+  compact = false,
   onOpenAll,
 }: {
   ctx: BandContext;
@@ -162,6 +252,7 @@ export default function Bands({
   model: { id: string; name: string };
   // The Model page adds themes and preferences by model to the Crowd band.
   detail?: boolean;
+  compact?: boolean;
   onOpenAll?: () => void;
 }) {
   return (
@@ -169,7 +260,12 @@ export default function Bands({
       {ctx.filters.classes.includes('measured') && (
         <MeasuredBand ctx={ctx} job={job} model={model} />
       )}
-      <NamedLine access={ctx.access} />
+      <NamedBand
+        ctx={ctx}
+        job={job}
+        target={{ key: `model|${model.id}`, name: model.name }}
+        compact={compact}
+      />
       {ctx.filters.classes.includes('crowd') && (
         <CrowdBand
           ctx={ctx}

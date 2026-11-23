@@ -1,17 +1,22 @@
 import { monthStart, periodStart } from '../lib/brief';
 import type { CoreJob } from '../lib/core-schema';
 import {
+  basisClasses,
   defaultFilterBar,
   filterBarDefault,
   periods,
   sourceClasses,
+  toggleBasis,
+  toggleClass,
 } from '../lib/model-filter';
 import type { FilterBar as Filters, SourceClass } from '../lib/model-filter';
+import { basisLabels } from '../lib/named';
 import ModelFilterControl from './ModelFilter';
 import './filter-bar.css';
 
 const classLabels: Record<SourceClass, string> = {
   measured: 'Measured',
+  named: 'Named',
   crowd: 'Crowd',
 };
 
@@ -25,8 +30,9 @@ export const formatDay = (day: string) =>
   dayFormat.format(new Date(`${day}T00:00:00Z`));
 
 // One bar for every filter. The job is in the address; the rest is kept in
-// this browser. Period, sources and current models apply to Brief, Model and
-// Switch; the other views use the model selection.
+// this browser. Period, sources, basis and current models apply to Brief,
+// Model, Switch and People; the other views use the model selection. Named
+// and the basis are enabled only when the named records are loaded.
 export default function FilterBar({
   filter,
   onChange,
@@ -34,6 +40,7 @@ export default function FilterBar({
   job,
   jobHref,
   full,
+  named,
   end,
 }: {
   filter: Filters;
@@ -43,16 +50,17 @@ export default function FilterBar({
   // Where choosing a job leads: the same view for that job, or its brief.
   jobHref: (job: string | null) => string;
   full: boolean;
+  // The named records are loaded: a signed-in, granted account.
+  named: boolean;
   // The last day of the collected evidence; periods count back from it.
   end: string | null;
 }) {
   const tops = (jobs ?? []).filter((entry) => entry.parent === undefined);
   const since = end ? periodStart(end, filter.period) : '';
+  const available = sourceClasses.filter((cls) => named || cls !== 'named');
   const toggle = (cls: SourceClass) => {
-    const next = filter.classes.includes(cls)
-      ? filter.classes.filter((entry) => entry !== cls)
-      : [...filter.classes, cls];
-    if (next.length > 0) onChange({ ...filter, classes: next });
+    const next = toggleClass(filter.classes, cls, available);
+    if (next) onChange({ ...filter, classes: next });
   };
   return (
     <div className="rd-filterbar" role="group" aria-label="Filters">
@@ -115,28 +123,58 @@ export default function FilterBar({
           <div className="rd-fb-group" role="group" aria-label="Sources">
             <span className="rd-fb-label">Sources</span>
             <span className="rd-chips">
-              {sourceClasses.map((cls) => (
-                <button
-                  key={cls}
-                  type="button"
-                  className="rd-chip"
-                  aria-pressed={filter.classes.includes(cls)}
-                  onClick={() => toggle(cls)}
-                >
-                  {classLabels[cls]}
-                </button>
-              ))}
-              <button
-                type="button"
-                className="rd-chip"
-                aria-pressed={false}
-                disabled
-                title="Practitioner records need sign-in"
-              >
-                Named <small>sign-in</small>
-              </button>
+              {sourceClasses.map((cls) =>
+                available.includes(cls) ? (
+                  <button
+                    key={cls}
+                    type="button"
+                    className="rd-chip"
+                    aria-pressed={filter.classes.includes(cls)}
+                    onClick={() => toggle(cls)}
+                  >
+                    {classLabels[cls]}
+                  </button>
+                ) : (
+                  <button
+                    key={cls}
+                    type="button"
+                    className="rd-chip"
+                    aria-pressed={false}
+                    disabled
+                    title="Practitioner records need sign-in"
+                  >
+                    {classLabels[cls]} <small>sign-in</small>
+                  </button>
+                ),
+              )}
             </span>
           </div>
+          {named && filter.classes.includes('named') && (
+            <div
+              className="rd-fb-group"
+              role="group"
+              aria-label="Basis of named records"
+              title="Applies to named use records. A secondary source’s “measured” counts as second-hand."
+            >
+              <span className="rd-fb-label">Basis</span>
+              <span className="rd-chips">
+                {basisClasses.map((entry) => (
+                  <button
+                    key={entry}
+                    type="button"
+                    className="rd-chip"
+                    aria-pressed={filter.basis.includes(entry)}
+                    onClick={() => {
+                      const next = toggleBasis(filter.basis, entry);
+                      if (next) onChange({ ...filter, basis: next });
+                    }}
+                  >
+                    {basisLabels[entry]}
+                  </button>
+                ))}
+              </span>
+            </div>
+          )}
           <label className="rd-fb-check">
             <input
               type="checkbox"

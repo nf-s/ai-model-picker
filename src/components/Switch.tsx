@@ -1,4 +1,3 @@
-import type { Access } from '../lib/access';
 import {
   benchmarkKind,
   briefFilters,
@@ -6,6 +5,7 @@ import {
   findJob,
   inPool,
   minimums,
+  plural,
 } from '../lib/brief';
 import type { BriefData } from '../lib/brief';
 import { useBriefData } from '../lib/core-client';
@@ -13,6 +13,7 @@ import type { CoreData } from '../lib/core-client';
 import type { CoreModel } from '../lib/core-schema';
 import { dollars } from '../lib/metrics';
 import type { FilterBar, Scope } from '../lib/model-filter';
+import { namedComparisons } from '../lib/named';
 import { modelHref, routeHref } from '../lib/route';
 import type { Route } from '../lib/route';
 import { percent } from '../lib/site-data';
@@ -27,11 +28,13 @@ import Bands, {
   BenchmarkName,
   commentSpec,
   measuredSpec,
+  namedSpec,
   preferenceIds,
   RecordsStatus,
 } from './Bands';
 import type { BandContext, BandJob } from './Bands';
 import { EvidenceButton } from './EvidenceDrawer';
+import { namedNote, NamedUnavailable, useNamed } from './Named';
 import './switch.css';
 
 type SwitchRoute = Extract<Route, { view: 'switch' }>;
@@ -41,20 +44,17 @@ export default function Switch({
   coreData,
   filter,
   scope,
-  access,
 }: {
   route: SwitchRoute;
   coreData: CoreData;
   filter: FilterBar;
   scope: Scope;
-  access: Access;
 }) {
   const data = useBriefData(coreData);
   if (!data) return <RecordsStatus coreData={coreData} />;
   const ctx: BandContext = {
     data,
     filters: briefFilters(data, filter, scope.model),
-    access,
   };
   const a = route.a === null ? null : (data.modelById.get(route.a) ?? null);
   const b = route.b === null ? null : (data.modelById.get(route.b) ?? null);
@@ -375,15 +375,61 @@ function Preferences({
           </p>
         </>
       )}
-      <p className="rd-note">
-        Practitioner comparisons need sign-in.
-        {ctx.access.kind === 'anonymous' && (
-          <>
-            {' '}
-            <a href={routeHref({ view: 'account', error: null })}>Sign in</a>
-          </>
-        )}
-      </p>
+      <NamedComparisons ctx={ctx} a={a} b={b} job={job} />
     </section>
+  );
+}
+
+// Practitioners' use records of one of the two that compare it with the
+// other. The count opens them and changes no order.
+function NamedComparisons({
+  ctx,
+  a,
+  b,
+  job,
+}: {
+  ctx: BandContext;
+  a: CoreModel;
+  b: CoreModel;
+  job: BandJob;
+}) {
+  const { state, trusted } = useNamed();
+  if (state.status !== 'ready')
+    return (
+      <p>
+        <NamedUnavailable what="Practitioner comparisons" />
+      </p>
+    );
+  if (!ctx.filters.classes.includes('named')) return null;
+  const records = namedComparisons(
+    ctx.data,
+    state.value,
+    a.id,
+    b.id,
+    job.id,
+    ctx.filters,
+    trusted,
+  );
+  return (
+    <p className="rd-note">
+      {records.length === 0 ? (
+        `No practitioner use record ${job.id === null ? '' : 'in this job '}compares these two exact models.`
+      ) : (
+        <>
+          <EvidenceButton
+            spec={() =>
+              namedSpec(
+                `${a.name} and ${b.name} · named comparisons · ${job.label}`,
+                records,
+                namedNote(state),
+              )
+            }
+          >
+            {plural(records.length, 'named comparison')}
+          </EvidenceButton>{' '}
+          between the two in practitioners’ use records, job by review.
+        </>
+      )}
+    </p>
   );
 }

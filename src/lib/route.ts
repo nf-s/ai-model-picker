@@ -20,7 +20,8 @@ export type Route =
     }
   | { view: 'switch'; a: string | null; b: string | null; job: string | null }
   | { view: 'papers'; key: string | null; area: ArxivArea | null }
-  | { view: 'expert-articles' }
+  // The people list, or one person's page; the job filters their records.
+  | { view: 'people'; name: string | null; job: string | null }
   | { view: 'benchmark'; id: string }
   | { view: 'apps' }
   | { view: 'data' }
@@ -115,7 +116,9 @@ export function parseRoute(hash: string): Route {
   }
   if (view === 'benchmark' && value) return { view, id: value };
   if (view === 'apps') return { view };
-  if (view === 'expert-articles') return { view };
+  if (view === 'people') return { view, name: value, job };
+  // Expert articles moved onto person pages.
+  if (view === 'expert-articles') return { view: 'people', name: null, job };
   if (view === 'data') return { view };
   if (view === 'account') return { view, error: query.get('error') };
   return { view: 'brief', job: null };
@@ -127,12 +130,9 @@ export function routeHref(route: Route) {
   if (route.view === 'board') return '#/board';
   if (route.view === 'benchmark')
     return `#/benchmark/${encodeURIComponent(route.id)}`;
-  if (
-    route.view === 'apps' ||
-    route.view === 'data' ||
-    route.view === 'expert-articles'
-  )
-    return `#/${route.view}`;
+  if (route.view === 'apps' || route.view === 'data') return `#/${route.view}`;
+  if (route.view === 'people')
+    return `#/people${route.name === null ? '' : `/${encodeURIComponent(route.name)}`}${jobQuery(route.job)}`;
   if (route.view === 'account')
     return `#/account${route.error ? `?${new URLSearchParams({ error: route.error })}` : ''}`;
   if (route.view === 'papers')
@@ -158,6 +158,9 @@ export const lineHref = (name: string, job: string | null = null) =>
     job,
     comments: false,
   });
+
+export const personHref = (name: string, job: string | null = null) =>
+  routeHref({ view: 'people', name, job });
 
 // A link from an older comment-index key (`model:<id>`, `family:<name>`).
 export function keyHref(key: string, comments = false) {

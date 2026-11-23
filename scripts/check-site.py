@@ -12,11 +12,13 @@ ROOT = Path(__file__).resolve().parent.parent
 # Cloudflare Pages accepts at most 25 MiB for one file.
 FILE_BYTES = 25 * 1024 * 1024
 MUST_BE_ZERO = ('mixedReleases', 'oversizeFiles', 'personalDetails', 'restrictedIdentifiers',
-                'expertArticleLeaks', 'localPaths', 'namedRecords', 'namedFiles')
+                'expertArticleLeaks', 'localPaths', 'namedRecords', 'namedFiles', 'personNames')
 # Practitioners' use records and method advice stay behind sign-in: their ids, and the file
 # the records build writes them to, must not reach a static build.
 NAMED_ID = re.compile(r'\b(?:ur|ma):[0-9a-f]{24}/\d+')
 NAMED_FILE = 'named-private.json'
+# Hacker News comment files hold public story titles and claims, which may name anyone.
+COMMENT_FILE = re.compile(r'hn-comments-\d+\.json')
 
 
 def load(path):
@@ -71,7 +73,18 @@ def expert_article_urls(catalog):
     return urls
 
 
-def site_report(dist, restricted, public, local_paths, expert_catalog, file_bytes=FILE_BYTES):
+def person_names(people_file):
+    """The names in the people file; a static build must name none of them."""
+    data = load(people_file)
+    if not isinstance(data, dict) or not isinstance(data.get('people'), list):
+        raise ValueError('Invalid people file.')
+    names = [person.get('name') if isinstance(person, dict) else None for person in data['people']]
+    if not names or any(not isinstance(name, str) or not name.strip() for name in names):
+        raise ValueError('Invalid people file.')
+    return names
+
+
+def site_report(dist, restricted, public, local_paths, expert_catalog, people_file, file_bytes=FILE_BYTES):
     """Totals for the build, and the counts in MUST_BE_ZERO, which block an upload when above zero."""
     snapshot = load(dist / 'hn-snapshot.json')
     core = load(dist / 'core.json')
@@ -85,6 +98,10 @@ def site_report(dist, restricted, public, local_paths, expert_catalog, file_byte
     json_files = [load(path) for path in files if path.suffix == '.json']
     article_urls = expert_article_urls(expert_catalog)
     article_links = re.compile('|'.join(map(re.escape, sorted(article_urls, key=len, reverse=True))))
+    # Named records stay behind sign-in, so no person's name belongs in a static file.
+    outside_comments = ''.join(
+        path.read_text(encoding='utf-8', errors='ignore') for path in files if not COMMENT_FILE.fullmatch(path.name)
+    )
     return {
         'commentFiles': len(parts),
         'comments': sum(len(part['comments']) for part in parts),
@@ -104,6 +121,7 @@ def site_report(dist, restricted, public, local_paths, expert_catalog, file_byte
             for path in files if path.suffix != '.json'
         ),
         'namedFiles': sum(path.name == NAMED_FILE for path in files),
+        'personNames': sum(name in outside_comments for name in person_names(people_file)),
     }
 
 
@@ -112,6 +130,7 @@ if __name__ == '__main__':
         report = site_report(
             ROOT / 'dist', ROOT / '.local/restricted/payload.json', ROOT / 'src/lib/snapshot.json',
             (ROOT, Path.home()), ROOT / '.local/expert-articles/catalog.json',
+            ROOT / '.local/people/people.json',
         )
     except (OSError, KeyError, TypeError, ValueError):
         raise SystemExit('Could not check the site build and private payloads. See docs/updating.md.') from None
