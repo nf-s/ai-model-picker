@@ -41,6 +41,30 @@ No background refresh, API keys or accounts are configured for the benchmark and
 
 Detailed source notes: [benchmarks](../research/benchmarks.md), [pricing](../research/pricing.md), [reports and creative benchmarks](../research/reports.md).
 
+## Shared records and the job list
+
+The app does not read these yet. Every source becomes the same record, defined twice with the same rules: `src/lib/records.ts` (Zod) and `scripts/records_schema.py` (for the build). `tests/records.test.ts` checks that both accept and reject the same fixtures in `tests/fixtures/`.
+
+| Field                            | Meaning                                                                                                                                                              |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                             | Stable across builds: `hn:<item id>`, `bm:<result id>`, `rp:<report id>`; `la:`, `ep:`, `ur:` and `ma:` are reserved for arena, Epoch, use and advice records        |
+| `cls`, `src`                     | `measured` (`benchmark`, `arena`, `report`), `named` (`use`, `advice`) or `crowd` (`hn`)                                                                             |
+| `keys`                           | Targets, each with a stance: `model\|<id>`, `line\|<name>` (a product line only), `version\|<name>` (an exact version not in the model list), `tool\|<name>`         |
+| `job`, `how`, `via`              | Job id or empty; how it was assigned (`label`, `keywords`, `review`); the label or rule that assigned it                                                             |
+| `stance`                         | `positive`, `critical`, `mixed` or `neutral`                                                                                                                         |
+| `text`, `quote`                  | One-sentence summary; the source's own words, kept on named records only                                                                                             |
+| `cond`, `tool`, `effort`         | Conditions, app or coding agent, and effort setting where stated                                                                                                     |
+| `setting`, `run`, `surface`      | `local` or `hosted`; `interactive`, `unattended` or `parallel`; `surface` is derived from `tool` (`coding-agent`, `chat-app`, `api`, `local-runner`), never labelled |
+| `date`, `checked`                | Source date; date the record was read against its source by a person (benchmark results and reports: the snapshot's checked date)                                    |
+| `person`, `url`, `title`, `kind` | Person or outlet (named records only), source link, source title, source-specific kind                                                                               |
+| `x`                              | Source extras, such as the benchmark id, score, interval, trials and cost, or Hacker News themes                                                                     |
+
+[`research/jobs.json`](../research/jobs.json) holds the job list as data. `status` is `draft` until the owner approves a list. Each job has an `id`, a `label`, an optional `parent` (one level only), the `benchmarks` that set its order in priority order and the App guide task it maps to (`guideTask`). `crosswalk` maps each source's own labels to a job: Hacker News task, Hacker News theme (used only when the task maps to no job, first listed theme first), report category and benchmark id. `keywords` holds the rules that refine or fill in a label's job; the first rule whose pattern matches and whose `within` list holds the label's job wins (`null` stands for no job). `surface` maps tool names to a surface. `replaces` maps an old job id to its new job (or `null`) and, where the old job became a field, its `setting` or `run`. Each table has its own `version`. Restricted benchmarks are not in the file.
+
+`npm run records:build` reads `src/lib/snapshot.json`, the App guide and the job file, and Hacker News from the served run in `.local/hn/` when a checkpoint exists, else from the published export in `dist/`. It never writes under `.local/` and never reads `.local/restricted/`. Reading the checkpoint uses a read-only SQLite connection, as the export does, which keeps SQLite's shared-memory index beside the database up to date. It writes `build/records/core.json` (ignored): models, product lines, jobs, benchmarks, measured records, Hacker News label counts per target, job and month, stated preferences, and coverage per job and source, which it also prints. A job id that is neither in the list nor in `replaces`, a source label the crosswalk does not list, a benchmark, parent or App guide task that does not exist, or a record that fails the schema stops the build and lists the records concerned.
+
+Options: `--hn-root <checkout>` reads `.local/hn/` or `dist/` from another checkout (for example from a worktree); `--hn-source checkpoint` or `export` chooses one; `--jobs` and `--out` change the job file and the output.
+
 ## Hacker News feedback
 
 The separate `research/hn-sentiment.json` snapshot contains 49 AI-assessed comments from 42 discussions, selected from 348 candidates returned by 20 model-name queries for 20 May–16 November 2026. Seventeen queried model identities have exact-version feedback. Gemini 4 Carbon and the dated DeepSeek releases remain explicit evidence gaps; unversioned DeepSeek comments are family evidence only.

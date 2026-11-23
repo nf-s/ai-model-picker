@@ -165,7 +165,8 @@ def published_directory(state_dir):
     return run_dir if review_finished(run_dir) else state_dir
 
 
-def export_snapshot(directory, output, part_bytes=PART_BYTES):
+def read_checkpoint(directory):
+    """Read the listed comments, their stories, the status and the results in one transaction."""
     database = directory / DATABASE
     check(database.is_file() and not database.is_symlink())
     model_data = json.loads((ROOT / 'src/lib/snapshot.json').read_text(encoding='utf-8'))
@@ -282,7 +283,11 @@ def export_snapshot(directory, output, part_bytes=PART_BYTES):
             state.status(), classifier, len(entries), len(comments), classified, failed, untracked,
         )
         results = state.results(status, labels)
+    return comments, published_stories, status, results
 
+
+def export_snapshot(directory, output, part_bytes=PART_BYTES):
+    comments, published_stories, status, results = read_checkpoint(directory)
     parts = comment_parts(comments, published_stories, part_bytes)
     check(len(parts) <= MAX_PARTS)
 

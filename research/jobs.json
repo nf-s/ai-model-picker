@@ -1,0 +1,338 @@
+{
+  "version": 1,
+  "status": "draft",
+  "jobs": [
+    {
+      "id": "coding",
+      "label": "Write or change code in a repository",
+      "benchmarks": ["terminal-bench-4-1", "swe-rebench-2026-05-15-2026-07-01"],
+      "guideTask": "bug-fixes"
+    },
+    {
+      "id": "bug-fix",
+      "label": "Fix a bug or diagnose a fault",
+      "parent": "coding",
+      "benchmarks": ["swe-rebench-2026-05-15-2026-07-01"],
+      "guideTask": "bug-fixes"
+    },
+    {
+      "id": "refactor",
+      "label": "Large refactor or migration",
+      "parent": "coding",
+      "benchmarks": [],
+      "guideTask": "bug-fixes"
+    },
+    {
+      "id": "review",
+      "label": "Code review",
+      "parent": "coding",
+      "benchmarks": [],
+      "guideTask": "bug-fixes"
+    },
+    {
+      "id": "tests",
+      "label": "Write or run tests",
+      "parent": "coding",
+      "benchmarks": [],
+      "guideTask": "bug-fixes"
+    },
+    {
+      "id": "interface",
+      "label": "Build a web interface",
+      "benchmarks": ["plato-web-clone-bench"],
+      "guideTask": "web-apps"
+    },
+    {
+      "id": "agents",
+      "label": "Long agent runs",
+      "benchmarks": ["terminal-bench-4-1"],
+      "guideTask": "subagents"
+    },
+    {
+      "id": "delegation",
+      "label": "Parallel agents and delegation",
+      "parent": "agents",
+      "benchmarks": [],
+      "guideTask": "subagents"
+    },
+    {
+      "id": "planning",
+      "label": "Architecture and planning",
+      "benchmarks": []
+    },
+    {
+      "id": "extraction",
+      "label": "Data extraction and classification",
+      "benchmarks": []
+    },
+    {
+      "id": "research",
+      "label": "Research with web search",
+      "benchmarks": ["epoch-eci"],
+      "guideTask": "research"
+    },
+    {
+      "id": "analysis",
+      "label": "Analysis of documents or data",
+      "benchmarks": [],
+      "guideTask": "research"
+    },
+    {
+      "id": "writing",
+      "label": "Writing and editing",
+      "benchmarks": [],
+      "guideTask": "writing"
+    },
+    {
+      "id": "reasoning",
+      "label": "Hard reasoning and maths",
+      "benchmarks": ["epoch-eci"],
+      "guideTask": "reasoning"
+    },
+    {
+      "id": "chat",
+      "label": "Everyday questions",
+      "benchmarks": ["epoch-eci"],
+      "guideTask": "quick-answers"
+    },
+    {
+      "id": "images",
+      "label": "Images and vision",
+      "benchmarks": [],
+      "guideTask": "images"
+    },
+    {
+      "id": "local",
+      "label": "Local or private use",
+      "benchmarks": []
+    }
+  ],
+  "crosswalk": {
+    "hn-task": {
+      "version": 1,
+      "labels": [
+        {
+          "label": "coding",
+          "job": "coding"
+        },
+        {
+          "label": "agents",
+          "job": "agents"
+        },
+        {
+          "label": "design",
+          "job": "interface"
+        },
+        {
+          "label": "research",
+          "job": "research"
+        },
+        {
+          "label": "writing",
+          "job": "writing"
+        },
+        {
+          "label": "reasoning",
+          "job": "reasoning"
+        },
+        {
+          "label": "chat",
+          "job": "chat"
+        },
+        {
+          "label": "images",
+          "job": "images"
+        },
+        {
+          "label": "other",
+          "job": null
+        }
+      ]
+    },
+    "hn-theme": {
+      "version": 1,
+      "labels": [
+        {
+          "label": "local-use",
+          "job": "local"
+        },
+        {
+          "label": "frontend-design",
+          "job": "interface"
+        },
+        {
+          "label": "writing-style",
+          "job": "writing"
+        },
+        {
+          "label": "agentic-work",
+          "job": "agents"
+        },
+        {
+          "label": "code-quality",
+          "job": "coding"
+        },
+        {
+          "label": "reasoning-depth",
+          "job": "reasoning"
+        }
+      ]
+    },
+    "report-category": {
+      "version": 1,
+      "labels": [
+        {
+          "label": "design",
+          "job": "interface"
+        },
+        {
+          "label": "coding",
+          "job": "coding"
+        },
+        {
+          "label": "agents",
+          "job": "agents"
+        }
+      ]
+    },
+    "benchmark": {
+      "version": 1,
+      "labels": [
+        {
+          "label": "terminal-bench-4-1",
+          "job": "coding"
+        },
+        {
+          "label": "swe-rebench-2026-05-15-2026-07-01",
+          "job": "bug-fix"
+        },
+        {
+          "label": "plato-web-clone-bench",
+          "job": "interface"
+        },
+        {
+          "label": "epoch-eci",
+          "job": null
+        }
+      ]
+    }
+  },
+  "keywords": {
+    "version": 1,
+    "rules": [
+      {
+        "job": "delegation",
+        "within": [null, "agents", "planning", "coding"],
+        "pattern": "\\bsub-?agents?\\b|\\bparallel (?:agents?|sessions?|tasks?)\\b|\\bagents? in parallel\\b|\\bmulti-agent\\b|\\borchestrat\\w+ (?:agents?|sub)|\\bdelegat\\w+ (?:to|work|tasks?)\\b|\\bswarm\\b",
+        "caseSensitive": false
+      },
+      {
+        "job": "review",
+        "within": [null, "coding"],
+        "pattern": "\\bcode reviews?\\b|\\breview(?:s|ed|ing)? (?:the |my |a |your |their )?(?:code|PRs?|pull requests?)\\b|\\bPR reviews?\\b|\\breview (?:bot|agent)s?\\b",
+        "caseSensitive": true
+      },
+      {
+        "job": "tests",
+        "within": [null, "coding"],
+        "pattern": "\\bunit tests?\\b|\\btest suites?\\b|\\b(?:write|writing|wrote|add|adding) (?:the |some |more )?tests\\b|\\btest coverage\\b|\\bintegration tests?\\b|\\be2e tests?\\b|\\bTDD\\b|\\bfailing tests?\\b|\\btests? (?:pass|fail)\\w*\\b",
+        "caseSensitive": true
+      },
+      {
+        "job": "bug-fix",
+        "within": [null, "coding"],
+        "pattern": "\\bdebug(?:s|ged|ging)?\\b|\\bdiagnos\\w+ (?:the |a |an |this |that )?(?:bug|issue|problem|error|failure|crash|fault)s?\\b|\\broot cause\\b|\\bstack ?traces?\\b|\\btraceback\\b|\\bfix(?:es|ed|ing)? (?:the |a |this |that )?bugs?\\b|\\bfind(?:s|ing)? (?:the |a )?bugs?\\b|\\btrack(?:ed|ing)? down\\b",
+        "caseSensitive": false
+      },
+      {
+        "job": "refactor",
+        "within": [null, "coding"],
+        "pattern": "\\brefactor\\w*|\\bmigrat\\w+ (?:the |a |our |my )?(?:code|codebase|project|app|repo)\\b|\\bport(?:ed|ing)? (?:the |a |our |my |it )?(?:code|codebase|project|library|app)?\\s*(?:from|to) (?:Rust|Go|Python|TypeScript|JavaScript|C\\+\\+|Swift|Kotlin|Java|Zig)\\b|\\brewrit\\w+ (?:the |a |our |my )?(?:code|codebase|app|project|library)\\b",
+        "caseSensitive": false
+      },
+      {
+        "job": "interface",
+        "within": [null, "coding"],
+        "pattern": "\\bfront-?end\\b|\\bUI\\b|\\buser interfaces?\\b|\\bCSS (?:layout|styling|styles)\\b|\\bTailwind\\b|\\bReact components?\\b|\\blanding pages?\\b|\\bweb design\\b|\\bFigma\\b",
+        "caseSensitive": true
+      },
+      {
+        "job": "planning",
+        "within": [null, "coding"],
+        "pattern": "\\bplan mode\\b|\\bplanning\\b|\\b(?:software|system|app|code|codebase) architecture\\b|\\barchitect(?:ing|ed) (?:the |a |an )?(?:system|app|feature|solution)\\b|\\bdesign docs?\\b|\\bspec-driven\\b|\\b(?:write|writing|wrote) (?:a |the )?spec\\b|\\bspecification\\b",
+        "caseSensitive": false
+      },
+      {
+        "job": "extraction",
+        "within": [null],
+        "pattern": "\\bextract\\w*|\\bclassif\\w+|\\bstructured outputs?\\b|\\bJSON schema\\b|\\bnamed entit\\w+|\\bOCR\\b",
+        "caseSensitive": true
+      },
+      {
+        "job": "analysis",
+        "within": [null, "research", "chat"],
+        "pattern": "\\bspreadsheets?\\b|\\bExcel\\b|\\bCSV\\b|\\bPDFs?\\b|\\bdata analysis\\b|\\banaly[sz](?:e|es|ed|ing) (?:the |my |our |a )?(?:data|documents?|logs|datasets?|reports?)\\b|\\bSQL quer\\w+",
+        "caseSensitive": true
+      },
+      {
+        "job": "research",
+        "within": [null, "chat"],
+        "pattern": "\\bdeep research\\b|\\bweb search\\b|\\bsearch(?:es|ing)? the web\\b|\\bbrowsing\\b|\\bliterature reviews?\\b|\\bcitations?\\b",
+        "caseSensitive": false
+      },
+      {
+        "job": "writing",
+        "within": [null, "chat"],
+        "pattern": "\\b(?:writ\\w+|edit\\w*) (?:prose|essays?|articles?|blog posts?|emails?|copy|fiction|stories|novels?)\\b|\\bproofread\\w*|\\bghostwrit\\w+|\\bcopywrit\\w+|\\btranslat\\w+|\\bfiction\\b|\\bprose\\b",
+        "caseSensitive": false
+      },
+      {
+        "job": "reasoning",
+        "within": [null, "chat"],
+        "pattern": "\\bmath\\w*|\\b(?:math|formal|mathematical) proofs?\\b|\\bprov(?:e|ing) (?:a |the )?theorems?\\b|\\btheorems?\\b|\\bolympiad\\b|\\bpuzzles?\\b|\\blogic problems?\\b",
+        "caseSensitive": false
+      },
+      {
+        "job": "images",
+        "within": [null],
+        "pattern": "\\bimage generat\\w+|\\bgenerat\\w+ (?:an |the )?images?\\b|\\bNano Banana\\b|\\bMidjourney\\b|\\bDALL-?E\\b|\\bStable Diffusion\\b|\\btext-to-image\\b|\\bvision model\\b",
+        "caseSensitive": true
+      },
+      {
+        "job": "local",
+        "within": [null, "chat"],
+        "pattern": "\\b(?:run(?:s|ning)?|use|using) (?:it |them |models? )?locally\\b|\\bOllama\\b|\\bllama\\.cpp\\b|\\bLM Studio\\b|\\bMLX\\b|\\bon-device\\b|\\bself-host\\w*|\\bVRAM\\b|\\bquantized (?:model|version|weights)s?\\b|\\bGGUF\\b",
+        "caseSensitive": true
+      },
+      {
+        "job": "agents",
+        "within": [null],
+        "pattern": "\\bautonomous\\w*|\\bunattended\\b|\\blong-running\\b|\\bagentic loops?\\b|\\bovernight\\b|\\bfor hours\\b",
+        "caseSensitive": false
+      }
+    ]
+  },
+  "surface": {
+    "version": 1,
+    "tools": {
+      "Aider": "coding-agent",
+      "Amp": "coding-agent",
+      "Antigravity": "coding-agent",
+      "Antigravity CLI": "coding-agent",
+      "Claude Code": "coding-agent",
+      "Cline": "coding-agent",
+      "Codex": "coding-agent",
+      "Cursor": "coding-agent",
+      "Gemini CLI": "coding-agent",
+      "GitHub Copilot": "coding-agent",
+      "Grok Build": "coding-agent",
+      "mini-SWE-agent": "coding-agent",
+      "mini-swe-agent": "coding-agent",
+      "Muse Code": "coding-agent",
+      "OpenCode": "coding-agent",
+      "Windsurf": "coding-agent",
+      "ChatGPT": "chat-app"
+    }
+  },
+  "replaces": {}
+}

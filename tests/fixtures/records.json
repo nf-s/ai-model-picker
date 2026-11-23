@@ -1,0 +1,273 @@
+{
+  "valid": [
+    {
+      "id": "bm:terminal-bench-4-1:1",
+      "cls": "measured",
+      "src": "benchmark",
+      "keys": [["model|example-model", "neutral"]],
+      "job": "coding",
+      "how": "label",
+      "via": "benchmark:terminal-bench-4-1",
+      "stance": "neutral",
+      "text": "Example Model: 71.2% on Terminal-Bench 4.1",
+      "quote": "",
+      "cond": "Mean trial cost.",
+      "tool": "Claude Code",
+      "effort": "high",
+      "setting": "",
+      "run": "",
+      "surface": "coding-agent",
+      "date": "",
+      "person": "",
+      "url": "https://example.com/results",
+      "title": "Terminal-Bench 4.1",
+      "kind": "benchmark result",
+      "x": {
+        "b": "terminal-bench-4-1",
+        "score": 71.2,
+        "cost": null,
+        "trials": 330
+      },
+      "checked": "2026-11-21"
+    },
+    {
+      "id": "rp:example-report",
+      "cls": "measured",
+      "src": "report",
+      "keys": [
+        ["model|example-model", "neutral"],
+        ["model|other-model", "neutral"]
+      ],
+      "job": "bug-fix",
+      "how": "keywords",
+      "via": "kw:bug-fix",
+      "stance": "neutral",
+      "text": "Both models fixed most seeded bugs.",
+      "quote": "",
+      "cond": "Twelve tasks.",
+      "tool": "",
+      "effort": "",
+      "setting": "",
+      "run": "",
+      "surface": "",
+      "date": "2026-10-01",
+      "person": "",
+      "url": "http://example.org/report?id=1",
+      "title": "Example Lab · Bug study",
+      "kind": "repeated experiment",
+      "x": { "config": "" },
+      "checked": ""
+    },
+    {
+      "id": "hn:41234567",
+      "cls": "crowd",
+      "src": "hn",
+      "keys": [
+        ["model|example-model", "positive"],
+        ["line|Example", "critical"]
+      ],
+      "job": "",
+      "how": "",
+      "via": "",
+      "stance": "neutral",
+      "text": "",
+      "quote": "",
+      "cond": "",
+      "tool": "",
+      "effort": "",
+      "setting": "local",
+      "run": "",
+      "surface": "",
+      "date": "2026-11-02",
+      "person": "",
+      "url": "https://news.ycombinator.com/item?id=41234567",
+      "title": "",
+      "kind": "other",
+      "x": { "themes": [] },
+      "checked": ""
+    },
+    {
+      "id": "ur:example-source/3",
+      "cls": "named",
+      "src": "use",
+      "keys": [
+        ["version|Example Model 0.9", "mixed"],
+        ["tool|Example Agent", "mixed"]
+      ],
+      "job": "review",
+      "how": "review",
+      "via": "review:review",
+      "stance": "mixed",
+      "text": "Reviewed a pull request; needed a second pass.",
+      "quote": "It caught the race on the second try.",
+      "cond": "one pull request",
+      "tool": "Example Agent",
+      "effort": "",
+      "setting": "hosted",
+      "run": "parallel",
+      "surface": "api",
+      "date": "2026-09-30",
+      "person": "Ada Example",
+      "url": "https://blog.example.net/post",
+      "title": "Notes",
+      "kind": "worked after rework",
+      "x": { "basis": "first", "nested": { "ok": [true, 1, "a", null] } },
+      "checked": "2026-11-23"
+    },
+    {
+      "id": "la:text/example-model/2026-11-20",
+      "cls": "measured",
+      "src": "arena",
+      "keys": [["model|example-model", "neutral"]],
+      "job": "chat",
+      "how": "label",
+      "via": "arena:text/overall",
+      "stance": "neutral",
+      "text": "Example Model: 1400 rating",
+      "quote": "",
+      "cond": "",
+      "tool": "",
+      "effort": "",
+      "setting": "",
+      "run": "",
+      "surface": "",
+      "date": "2026-11-20",
+      "person": "",
+      "url": "https://example.com/arena",
+      "title": "Text Arena",
+      "kind": "arena rating",
+      "x": null,
+      "checked": ""
+    },
+    {
+      "id": "ma:example-source/1",
+      "cls": "named",
+      "src": "advice",
+      "keys": [],
+      "job": "",
+      "how": "",
+      "via": "",
+      "stance": "neutral",
+      "text": "Write the plan down before starting.",
+      "quote": "",
+      "cond": "",
+      "tool": "",
+      "effort": "",
+      "setting": "",
+      "run": "unattended",
+      "surface": "chat-app",
+      "date": "",
+      "person": "Basil Sample",
+      "url": "https://basil.example.com/",
+      "title": "",
+      "kind": "method advice",
+      "x": null,
+      "checked": ""
+    }
+  ],
+  "invalid": [
+    { "why": "unknown id prefix", "base": 0, "patch": { "id": "xx:1" } },
+    { "why": "id with a space", "base": 0, "patch": { "id": "bm:a b" } },
+    {
+      "why": "hn id is not an item number",
+      "base": 2,
+      "patch": { "id": "hn:abc" }
+    },
+    {
+      "why": "hn id starts with zero",
+      "base": 2,
+      "patch": { "id": "hn:0123" }
+    },
+    {
+      "why": "id prefix does not match src",
+      "base": 1,
+      "patch": { "id": "bm:example-report" }
+    },
+    { "why": "unknown src", "base": 0, "patch": { "src": "paper" } },
+    { "why": "cls does not match src", "base": 0, "patch": { "cls": "crowd" } },
+    {
+      "why": "key of an unknown kind",
+      "base": 2,
+      "patch": { "keys": [["family|Example", "positive"]] }
+    },
+    {
+      "why": "key with padded name",
+      "base": 2,
+      "patch": { "keys": [["line| Example", "positive"]] }
+    },
+    {
+      "why": "repeated key",
+      "base": 2,
+      "patch": {
+        "keys": [
+          ["line|Example", "positive"],
+          ["line|Example", "critical"]
+        ]
+      }
+    },
+    {
+      "why": "key with unknown stance",
+      "base": 2,
+      "patch": { "keys": [["line|Example", "good"]] }
+    },
+    {
+      "why": "key is not a pair",
+      "base": 2,
+      "patch": { "keys": [["line|Example", "positive", 1]] }
+    },
+    { "why": "unknown stance", "base": 0, "patch": { "stance": "good" } },
+    { "why": "stance as a number", "base": 0, "patch": { "stance": 0 } },
+    { "why": "job is not a job id", "base": 0, "patch": { "job": "Coding" } },
+    { "why": "job without how", "base": 0, "patch": { "how": "" } },
+    { "why": "how without job", "base": 2, "patch": { "how": "label" } },
+    { "why": "unknown how", "base": 0, "patch": { "how": "guess" } },
+    {
+      "why": "job by review on a crowd record",
+      "base": 2,
+      "patch": { "job": "coding", "how": "review", "via": "review:coding" }
+    },
+    {
+      "why": "quote on a crowd record",
+      "base": 2,
+      "patch": { "quote": "Words." }
+    },
+    {
+      "why": "person on a measured record",
+      "base": 0,
+      "patch": { "person": "Ada Example" }
+    },
+    {
+      "why": "named record without a person",
+      "base": 3,
+      "patch": { "person": "" }
+    },
+    { "why": "unknown setting", "base": 0, "patch": { "setting": "cloud" } },
+    { "why": "unknown run", "base": 0, "patch": { "run": "batch" } },
+    { "why": "unknown surface", "base": 0, "patch": { "surface": "ide" } },
+    { "why": "impossible date", "base": 1, "patch": { "date": "2026-02-30" } },
+    {
+      "why": "date with time",
+      "base": 1,
+      "patch": { "date": "2026-10-01T00:00:00Z" }
+    },
+    {
+      "why": "checked is not a date",
+      "base": 0,
+      "patch": { "checked": "yesterday" }
+    },
+    { "why": "ftp link", "base": 0, "patch": { "url": "ftp://example.com/x" } },
+    {
+      "why": "script link",
+      "base": 0,
+      "patch": { "url": "javascript:alert(1)" }
+    },
+    { "why": "empty link", "base": 0, "patch": { "url": "" } },
+    { "why": "x is a list", "base": 0, "patch": { "x": [1, 2] } },
+    { "why": "x is text", "base": 0, "patch": { "x": "score" } },
+    { "why": "text is a number", "base": 0, "patch": { "text": 5 } },
+    { "why": "extra field", "base": 0, "patch": { "score": 71.2 } },
+    { "why": "missing field", "base": 0, "omit": ["checked"] },
+    { "why": "missing keys", "base": 2, "omit": ["keys"] },
+    { "why": "record is a list", "base": null, "value": [] }
+  ]
+}

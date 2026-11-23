@@ -1,0 +1,101 @@
+{
+  "valid": [
+    {
+      "version": 1,
+      "people": [
+        {
+          "name": "Ada Example",
+          "feeds": [
+            "https://blog.example.net/feed.xml",
+            "https://news.example.com/user?id=ada"
+          ],
+          "sourceClass": "first-hand",
+          "adviceOnly": false,
+          "trusted": true,
+          "added": { "date": "2026-11-23", "reason": "Dated first-hand use." },
+          "dropped": null
+        },
+        {
+          "name": "Basil Sample",
+          "feeds": ["https://basil.example.com/rss"],
+          "sourceClass": "secondary",
+          "adviceOnly": true,
+          "trusted": false,
+          "added": { "date": "2026-11-01", "reason": "Weekly digest." },
+          "dropped": { "date": "2026-11-23", "reason": "Stopped writing." }
+        }
+      ]
+    },
+    { "version": 2, "people": [] }
+  ],
+  "invalid": [
+    { "why": "version zero", "base": 0, "patch": { "version": 0 } },
+    {
+      "why": "extra top-level field",
+      "base": 0,
+      "patch": { "updated": "2026-11-23" }
+    },
+    { "why": "no feeds", "base": 0, "person": 0, "patch": { "feeds": [] } },
+    {
+      "why": "feed is not a link",
+      "base": 0,
+      "person": 0,
+      "patch": { "feeds": ["blog.example.net"] }
+    },
+    {
+      "why": "repeated feed",
+      "base": 0,
+      "person": 0,
+      "patch": { "feeds": ["https://a.example.com/", "https://a.example.com/"] }
+    },
+    {
+      "why": "unknown source class",
+      "base": 0,
+      "person": 0,
+      "patch": { "sourceClass": "primary" }
+    },
+    {
+      "why": "flag as text",
+      "base": 0,
+      "person": 0,
+      "patch": { "adviceOnly": "no" }
+    },
+    {
+      "why": "padded name",
+      "base": 0,
+      "person": 0,
+      "patch": { "name": " Ada Example" }
+    },
+    { "why": "empty name", "base": 0, "person": 0, "patch": { "name": "" } },
+    {
+      "why": "added without reason",
+      "base": 0,
+      "person": 0,
+      "patch": { "added": { "date": "2026-11-23", "reason": " " } }
+    },
+    {
+      "why": "added date is not a date",
+      "base": 0,
+      "person": 0,
+      "patch": { "added": { "date": "23 November", "reason": "x" } }
+    },
+    {
+      "why": "dropped before added",
+      "base": 0,
+      "person": 1,
+      "patch": { "dropped": { "date": "2026-10-01", "reason": "x" } }
+    },
+    {
+      "why": "extra person field",
+      "base": 0,
+      "person": 0,
+      "patch": { "email": "x" }
+    },
+    {
+      "why": "repeated name",
+      "base": 0,
+      "person": 1,
+      "patch": { "name": "Ada Example" }
+    }
+  ]
+}
