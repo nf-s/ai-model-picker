@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { arxivSnapshotSchema } from '../src/lib/arxiv-schema.ts';
 import { buildInsights, indexComments } from '../src/lib/hn-insights.ts';
 import type { HnIndexComment } from '../src/lib/hn-index.ts';
 import {
@@ -18,7 +17,6 @@ import {
   readStoredFilter,
   scopeIndex,
   scopeLabel,
-  scopePapers,
   sourceClasses,
   toggleBasis,
   toggleClass,
@@ -320,132 +318,6 @@ test('the comment index keeps only stated preferences with both sides in scope',
     [...(insights.targets.get('model:gpt-6-astra')?.preferences ?? [])],
     [['model:claude-fable-5-2', { over: 1, under: 0 }]],
   );
-});
-
-const counts = {
-  usage: 0,
-  evaluation: 0,
-  application: 0,
-  behaviour: 0,
-  release: 0,
-  survey: 0,
-  other: 0,
-};
-const topics = {
-  prompting: 0,
-  context: 0,
-  reasoning: 0,
-  agents: 0,
-  tools: 0,
-  retrieval: 0,
-  'structured-output': 0,
-  coding: 0,
-  cost: 0,
-  safety: 0,
-  multimodal: 0,
-  'fine-tuning': 0,
-};
-const snapshot = arxivSnapshotSchema.parse({
-  schemaVersion: 1,
-  updatedAt: '2026-11-17T11:05:57Z',
-  assessor: null,
-  startAt: '2026-05-16T14:00:00Z',
-  coverage: {
-    state: 'complete',
-    firstDay: '2026-05-16',
-    lastDay: '2026-11-17',
-    daysComplete: 186,
-    daysTotal: 186,
-    recordsScanned: 200,
-    recordsEligible: 150,
-    papers: 3,
-    assessed: 0,
-    assessmentFailures: 0,
-    results: 0,
-    resultFailures: 0,
-  },
-  models: [
-    {
-      modelId: 'gpt-6-astra',
-      papers: 2,
-      months: {},
-      kinds: counts,
-      topics,
-    },
-    {
-      modelId: 'gemini-4-carbon',
-      papers: 2,
-      months: {},
-      kinds: counts,
-      topics,
-    },
-  ],
-  families: [
-    { familyName: 'Claude', papers: 1, months: {}, kinds: counts, topics },
-    { familyName: 'GPT', papers: 1, months: {}, kinds: counts, topics },
-  ],
-  papers: [
-    {
-      id: '2611.00003',
-      title: 'Two Models Compared',
-      submittedAt: '2026-11-10T09:00:00Z',
-      categories: ['cs.CL'],
-      targets: [
-        { kind: 'model', target: 'gpt-6-astra' },
-        { kind: 'model', target: 'gemini-4-carbon' },
-      ],
-      assessment: null,
-      result: null,
-    },
-    {
-      id: '2611.00002',
-      title: 'One Model and a Family',
-      submittedAt: '2026-11-09T09:00:00Z',
-      categories: ['cs.CL'],
-      targets: [
-        { kind: 'model', target: 'gemini-4-carbon' },
-        { kind: 'family', target: 'Claude' },
-      ],
-      assessment: null,
-      result: null,
-    },
-    {
-      id: '2611.00001',
-      title: 'Two Labels for One Provider',
-      submittedAt: '2026-11-08T09:00:00Z',
-      categories: ['cs.CL'],
-      targets: [
-        { kind: 'model', target: 'gpt-6-astra' },
-        { kind: 'family', target: 'GPT' },
-      ],
-      assessment: null,
-      result: null,
-    },
-  ],
-});
-
-test('the paper index keeps only targets in scope', () => {
-  const scoped = scopePapers(snapshot, createScope(openai, catalogue).key);
-  assert.deepEqual(
-    scoped.models.map((row) => row.modelId),
-    ['gpt-6-astra'],
-  );
-  assert.deepEqual(
-    scoped.families.map((row) => row.familyName),
-    ['GPT'],
-  );
-  assert.deepEqual(
-    scoped.papers.map((paper) => [
-      paper.id,
-      paper.targets.map((ref) => ref.target),
-    ]),
-    [
-      ['2611.00003', ['gpt-6-astra']],
-      ['2611.00001', ['gpt-6-astra', 'GPT']],
-    ],
-  );
-  assert.equal(scoped.coverage, snapshot.coverage);
-  assert.equal(scopePapers(snapshot, never).papers.length, 0);
 });
 
 function memory(initial: string | null = null) {

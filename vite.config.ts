@@ -213,11 +213,6 @@ function thirdPartyLicenses(): Plugin {
 export default defineConfig({
   plugins: [
     react(),
-    localJson('arxiv-snapshot', '/arxiv-snapshot.json', [
-      '.local',
-      'arxiv',
-      'papers.json',
-    ]),
     // The records build's public output; `npm run build:pages` copies it
     // into dist/.
     localJson('records-core', '/core.json', ['build', 'records', 'core.json']),

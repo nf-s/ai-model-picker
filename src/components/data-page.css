@@ -154,3 +154,8 @@
     padding: 12px;
   }
 }
+.rd-dp-marked {
+  padding: 6px 10px;
+  border-left: 3px solid var(--rd-accent);
+  background: var(--rd-accent-soft);
+}

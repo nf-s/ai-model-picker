@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import type { ArxivSnapshot } from './arxiv-schema.ts';
-import { parseTargetKey, relatedNames, targetKey } from './hn-insights.ts';
+import { parseTargetKey, relatedNames } from './hn-insights.ts';
 import type { CommentIndex } from './hn-insights.ts';
 
 // The site-wide selection of models. A provider covers all of its models,
@@ -282,27 +281,6 @@ export function scopeIndex(
           ...(preferences === undefined ? {} : { preferences }),
         },
       ];
-    }),
-  };
-}
-
-// The paper index with only the targets the selection covers. Papers that
-// name none of them are dropped.
-export function scopePapers(
-  snapshot: ArxivSnapshot,
-  inScope: (key: string) => boolean,
-): ArxivSnapshot {
-  return {
-    ...snapshot,
-    models: snapshot.models.filter((row) =>
-      inScope(targetKey({ kind: 'model', target: row.modelId })),
-    ),
-    families: snapshot.families.filter((row) =>
-      inScope(targetKey({ kind: 'family', target: row.familyName })),
-    ),
-    papers: snapshot.papers.flatMap((paper) => {
-      const targets = paper.targets.filter((ref) => inScope(targetKey(ref)));
-      return targets.length > 0 ? [{ ...paper, targets }] : [];
     }),
   };
 }

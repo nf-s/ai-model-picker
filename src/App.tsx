@@ -10,7 +10,6 @@ import FilterBar from './components/FilterBar';
 import Model from './components/Model';
 import { OutsideFilter } from './components/ModelFilter';
 import { NamedContext, useNamedView } from './components/Named';
-import Papers from './components/Papers';
 import People from './components/People';
 import Search from './components/Search';
 import Switch from './components/Switch';
@@ -44,9 +43,8 @@ const views: { route: Route; label: string; also?: View }[] = [
   { route: { view: 'switch', a: null, b: null, job: null }, label: 'Switch' },
   { route: { view: 'people', name: null, job: null }, label: 'People' },
   { route: { view: 'search', words: '', job: null }, label: 'Search' },
-  { route: { view: 'papers', key: null, area: null }, label: 'Papers' },
   { route: { view: 'apps' }, label: 'App guide' },
-  { route: { view: 'data' }, label: 'Data' },
+  { route: { view: 'data', section: null }, label: 'Data' },
 ];
 
 // The comment-index key of a model page's target, for the model filter.
@@ -79,12 +77,7 @@ export default function App({ access }: { access: Access }) {
   );
   // A model or line opened by a direct link is shown even when the filter
   // leaves it out.
-  const linked =
-    route.view === 'model'
-      ? targetKey(route.target)
-      : route.view === 'papers'
-        ? route.key
-        : null;
+  const linked = route.view === 'model' ? targetKey(route.target) : null;
   const selection = useMemo(() => createScope(filter, models), [filter]);
   const outside =
     linked &&
@@ -133,7 +126,13 @@ export default function App({ access }: { access: Access }) {
     route.view === 'model' ? { ...route, comments: false } : route,
   );
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // An old Papers link opens the Data page at the line on removed papers.
+    const marked =
+      route.view === 'data' && route.section
+        ? document.getElementById(`data-${route.section}`)
+        : null;
+    if (marked) marked.scrollIntoView({ block: 'center' });
+    else window.scrollTo(0, 0);
   }, [page]);
   useEffect(() => {
     document.title = `${title} · Model picker`;
@@ -265,13 +264,6 @@ export default function App({ access }: { access: Access }) {
                 scope={scope}
               />
             )}
-            {route.view === 'papers' && (
-              <Papers
-                initialTarget={route.key}
-                initialArea={route.area}
-                scope={scope}
-              />
-            )}
             {route.view === 'benchmark' && (
               <Benchmark
                 key={route.id}
@@ -299,7 +291,9 @@ export default function App({ access }: { access: Access }) {
                 scope={scope}
               />
             )}
-            {route.view === 'data' && <DataPage pipeline={pipeline} />}
+            {route.view === 'data' && (
+              <DataPage pipeline={pipeline} section={route.section} />
+            )}
             {route.view === 'account' && (
               <Account access={access} error={route.error} />
             )}

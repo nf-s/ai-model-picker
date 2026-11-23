@@ -486,7 +486,13 @@ function Licences() {
   );
 }
 
-export default function DataPage({ pipeline }: { pipeline: HnPipeline }) {
+export default function DataPage({
+  pipeline,
+  section,
+}: {
+  pipeline: HnPipeline;
+  section: 'papers' | null;
+}) {
   const [query, setQuery] = useState('');
   const visibleSources = allSources.filter((source) =>
     `${source.name} ${source.kind} ${source.coverage}`
@@ -502,6 +508,15 @@ export default function DataPage({ pipeline }: { pipeline: HnPipeline }) {
           {results.length} published results · {reports.length} reports.{' '}
           {models.filter((model) => model.pricing).length} models have verified
           API prices. Benchmarks checked {checkedAt}
+        </p>
+        <p
+          id="data-papers"
+          className={section === 'papers' ? 'rd-dp-marked' : undefined}
+        >
+          arXiv papers were removed on 24 November 2026: on 23 November only 47
+          of 408 paper results ranked a current exact model, each from one line
+          of an abstract. A controlled study from arXiv is added as a reviewed
+          report instead.
         </p>
       </header>
       <Collection pipeline={pipeline} />

@@ -9,6 +9,3 @@
 
 /hn-comments-*
   Cache-Control: no-store
-
-/arxiv-snapshot.json
-  Cache-Control: no-store

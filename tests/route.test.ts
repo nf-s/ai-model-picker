@@ -8,60 +8,26 @@ import {
 } from '../src/lib/route.ts';
 import type { Route } from '../src/lib/route.ts';
 
-test('the papers route carries an optional area', () => {
-  assert.deepEqual(parseRoute('#/papers'), {
-    view: 'papers',
-    key: null,
-    area: null,
-  });
-  assert.deepEqual(parseRoute('#/papers?area=coding'), {
-    view: 'papers',
-    key: null,
-    area: 'coding',
-  });
-  assert.deepEqual(parseRoute('#/papers/model%3Agpt-6-astra?area=domain'), {
-    view: 'papers',
-    key: 'model:gpt-6-astra',
-    area: 'domain',
-  });
-  assert.deepEqual(parseRoute('#/redesign/papers/family%3AGPT?area=vision'), {
-    view: 'papers',
-    key: 'family:GPT',
-    area: 'vision',
-  });
-});
-
-test('an unknown or empty area is ignored', () => {
+test('old Papers links open the Data page at the line on removed papers', () => {
   for (const hash of [
-    '#/papers/model%3Aa?area=cooking',
-    '#/papers/model%3Aa?area=',
-    '#/papers/model%3Aa?area=Coding',
-    '#/papers/model%3Aa?topic=coding',
+    '#/papers',
+    '#/papers?area=coding',
+    '#/papers/model%3Agpt-6-astra?area=domain',
+    '#/papers/family%3AGPT',
+    '#/redesign/papers/family%3AGPT?area=vision',
   ])
     assert.deepEqual(
       parseRoute(hash),
-      { view: 'papers', key: 'model:a', area: null },
+      { view: 'data', section: 'papers' },
       hash,
     );
-});
-
-test('routeHref writes the area and parses back', () => {
-  const routes: Route[] = [
-    { view: 'papers', key: null, area: null },
-    { view: 'papers', key: null, area: 'coding' },
-    { view: 'papers', key: 'model:gpt-6-astra', area: null },
-    { view: 'papers', key: 'family:Claude ?&/', area: 'writing' },
-  ];
-  assert.deepEqual(
-    routes.map((route) => routeHref(route)),
-    [
-      '#/papers',
-      '#/papers?area=coding',
-      '#/papers/model%3Agpt-6-astra',
-      '#/papers/family%3AClaude%20%3F%26%2F?area=writing',
-    ],
-  );
-  for (const route of routes)
+  assert.equal(routeHref({ view: 'data', section: 'papers' }), '#/data/papers');
+  assert.deepEqual(parseRoute('#/data'), { view: 'data', section: null });
+  assert.deepEqual(parseRoute('#/data/other'), { view: 'data', section: null });
+  for (const route of [
+    { view: 'data', section: null },
+    { view: 'data', section: 'papers' },
+  ] satisfies Route[])
     assert.deepEqual(parseRoute(routeHref(route)), route);
 });
 

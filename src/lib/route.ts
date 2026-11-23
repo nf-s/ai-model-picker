@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { arxivAreaSchema } from './arxiv-schema.ts';
-import type { ArxivArea } from './arxiv-schema.ts';
 
 // A model page names one exact model or one product line; a line's records
 // are never merged into a model.
@@ -18,14 +16,15 @@ export type Route =
       comments: boolean;
     }
   | { view: 'switch'; a: string | null; b: string | null; job: string | null }
-  | { view: 'papers'; key: string | null; area: ArxivArea | null }
   // The people list, or one person's page; the job filters their records.
   | { view: 'people'; name: string | null; job: string | null }
   // Word search; the job filters the results.
   | { view: 'search'; words: string; job: string | null }
   | { view: 'benchmark'; id: string }
   | { view: 'apps' }
-  | { view: 'data' }
+  // `papers` marks the line saying why arXiv papers were removed, where old
+  // Papers links land.
+  | { view: 'data'; section: 'papers' | null }
   | { view: 'account'; error: string | null };
 
 // Hashes from the redesign period (`#/redesign/model/...`) keep working.
@@ -110,17 +109,17 @@ export function parseRoute(hash: string): Route {
     const [a, b] = rest.map(decode);
     return { view, a: a || null, b: b || null, job };
   }
-  if (view === 'papers') {
-    const area = arxivAreaSchema.safeParse(query.get('area'));
-    return { view, key: value, area: area.success ? area.data : null };
-  }
+  // arXiv papers left the app; old Papers links open the Data page at the
+  // line that says why.
+  if (view === 'papers') return { view: 'data', section: 'papers' };
   if (view === 'benchmark' && value) return { view, id: value };
   if (view === 'apps') return { view };
   if (view === 'people') return { view, name: value, job };
   if (view === 'search') return { view, words: value ?? '', job };
   // Expert articles moved onto person pages.
   if (view === 'expert-articles') return { view: 'people', name: null, job };
-  if (view === 'data') return { view };
+  if (view === 'data')
+    return { view, section: value === 'papers' ? value : null };
   if (view === 'account') return { view, error: query.get('error') };
   return { view: 'brief', job: null };
 }
@@ -130,15 +129,15 @@ export function routeHref(route: Route) {
     return route.job ? `#/brief/${encodeURIComponent(route.job)}` : '#/';
   if (route.view === 'benchmark')
     return `#/benchmark/${encodeURIComponent(route.id)}`;
-  if (route.view === 'apps' || route.view === 'data') return `#/${route.view}`;
+  if (route.view === 'apps') return '#/apps';
+  if (route.view === 'data')
+    return route.section ? `#/data/${route.section}` : '#/data';
   if (route.view === 'people')
     return `#/people${route.name === null ? '' : `/${encodeURIComponent(route.name)}`}${jobQuery(route.job)}`;
   if (route.view === 'search')
     return `#/search${route.words ? `/${encodeURIComponent(route.words)}` : ''}${jobQuery(route.job)}`;
   if (route.view === 'account')
     return `#/account${route.error ? `?${new URLSearchParams({ error: route.error })}` : ''}`;
-  if (route.view === 'papers')
-    return `#/papers${route.key ? `/${encodeURIComponent(route.key)}` : ''}${route.area ? `?area=${route.area}` : ''}`;
   if (route.view === 'model')
     return `${modelPath(route.target)}${jobQuery(route.job, route.comments && route.target !== null)}`;
   const a = route.a === null ? '' : `/${encodeURIComponent(route.a)}`;
