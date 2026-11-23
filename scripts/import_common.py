@@ -1,6 +1,6 @@
-"""Steps shared by the measured-source importers (scripts/import_lmarena.py, scripts/import_epoch.py).
+"""Steps shared by the importers (scripts/import_lmarena.py, scripts/import_epoch.py, scripts/import_openrouter.py).
 
-An importer downloads its public source into a new, empty folder under .local/imports/,
+An importer downloads its source into a new, empty folder under .local/imports/,
 validates what it reads, keeps the results whose model name has an exact entry in its alias
 table under research/aliases/, and writes one reviewed file under research/. It never adds a
 model and never writes src/lib/snapshot.json: an alias must name a model id that the snapshot
@@ -50,11 +50,16 @@ def is_date(value):
     return True
 
 
-def fetch(url, *, timeout=90, wait=10, sleep=time.sleep):
-    """The body at `url`. Retries rate limits, server errors and dropped connections."""
+def fetch(url, *, headers=None, timeout=90, wait=10, sleep=time.sleep):
+    """The body at `url`. Retries rate limits, server errors and dropped connections.
+
+    `headers` are sent to `url` only, never on to a redirect, and never appear in an error."""
     for attempt in range(1, ATTEMPTS + 1):
+        request = Request(url, headers={'User-Agent': USER_AGENT})
+        for name, value in (headers or {}).items():
+            request.add_unredirected_header(name, value)
         try:
-            with urlopen(Request(url, headers={'User-Agent': USER_AGENT}), timeout=timeout) as response:
+            with urlopen(request, timeout=timeout) as response:
                 return response.read()
         except HTTPError as error:
             if error.code not in RETRY_STATUS or attempt == ATTEMPTS:

@@ -1,10 +1,11 @@
-"""Check the LMArena and Epoch importers on saved samples of each source's format, with no network."""
+"""Check the LMArena, Epoch and OpenRouter importers on saved samples of each source's format, with no network."""
 
 import contextlib
 import datetime
 import hashlib
 import io
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -13,7 +14,9 @@ import zipfile
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.error import URLError
 from urllib.parse import parse_qs, urlparse
+from urllib.request import HTTPRedirectHandler, Request
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -21,6 +24,7 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 import import_common
 import import_epoch
 import import_lmarena
+import import_openrouter
 from import_common import SourceError
 
 FIXTURES = ROOT / 'tests/fixtures'
@@ -32,6 +36,16 @@ SAMPLE_BOARDS = tuple(
 SAMPLE_FILES = tuple(entry for entry in import_epoch.FILES if entry[0] == 'gpqa_diamond')
 LMARENA_ALIASES = import_common.read_aliases(ROOT / 'research/aliases/lmarena.json', SNAPSHOT_IDS)
 EPOCH_ALIASES = import_common.read_aliases(ROOT / 'research/aliases/epoch.json', SNAPSHOT_IDS)
+OPENROUTER_ALIASES = import_common.read_aliases(ROOT / 'research/aliases/openrouter.json', SNAPSHOT_IDS)
+# A made-up value in the shape of an OpenRouter key; no real key is used anywhere in the tests.
+FAKE_KEY = 'sk-or-v1-made-up-test-value-0123456789abcdef'
+
+
+def usage_model_ids(data):
+    """Every model id an OpenRouter usage file names, outside top-list places with no model."""
+    return {model['modelId'] for model in data['tokens30d']['models']} | {
+        top['modelId'] for tag in data['tasks7d']['tags'] for top in tag['top'] if top['modelId']
+    }
 
 
 def digest(path):
@@ -262,6 +276,225 @@ class TestEpochImport(Folder):
         self.assertEqual(len(data['results']), 3)
 
 
+# ---- OpenRouter --------------------------------------------------------------------------
+
+
+class FakeResponse(io.BytesIO):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_exception):
+        self.close()
+
+
+def openrouter_sample(folder):
+    shutil.copytree(FIXTURES / 'openrouter', folder)
+    return folder
+
+
+def edit_json(path, change):
+    data = json.loads(path.read_text(encoding='utf-8'))
+    change(data)
+    path.write_text(json.dumps(data), encoding='utf-8')
+
+
+class TestOpenrouterRoutes(unittest.TestCase):
+    def test_matches_are_exact_after_free(self):
+        match = import_openrouter.match
+        self.assertEqual(match('deepseek/deepseek-v4.1-flash-20261017', OPENROUTER_ALIASES), 'deepseek-flash')
+        self.assertEqual(match('nvidia/nemotron-3-ultra-550b-a55b-20260604:free', OPENROUTER_ALIASES), 'nemotron-3-ultra')
+        # The undated route served another release, and other variants are not the same model.
+        self.assertIsNone(match('deepseek/deepseek-v4.1-flash', OPENROUTER_ALIASES))
+        self.assertIsNone(match('deepseek/deepseek-v4.1-flash-20260910', OPENROUTER_ALIASES))
+        self.assertIsNone(match('anthropic/claude-opus-5.5-20260921:batch', OPENROUTER_ALIASES))
+        self.assertIsNone(match('meta/muse-spark-1.3-contributor-20260902', OPENROUTER_ALIASES))
+
+
+class TestOpenrouterImport(Folder):
+    def test_sample_usage(self):
+        data, counts, unmatched = import_openrouter.convert(FIXTURES / 'openrouter', OPENROUTER_ALIASES)
+        self.assertEqual(counts, {'rankings-daily (30 days)': (120, 90), 'classifications/task (7 days)': (87, 65)})
+        self.assertIn('deepseek/deepseek-v4.1-flash-20260910', unmatched)
+        self.assertNotIn('other', unmatched)
+        tokens = data['tokens30d']
+        self.assertEqual(tokens['meta'], {
+            'as_of': '2026-11-23T02:56:32.003Z', 'version': 'v1', 'start_date': '2026-10-24', 'end_date': '2026-11-22',
+        })
+        self.assertEqual(tokens['period'], {'start': '2026-10-24', 'end': '2026-11-22'})
+        self.assertEqual(tokens['totalTokens'], 404117634337576)
+        self.assertEqual([m['modelId'] for m in tokens['models']], ['deepseek-flash', 'claude-opus-5-5', 'nemotron-3-ultra'])
+        self.assertEqual(tokens['models'][0], {
+            'modelId': 'deepseek-flash', 'routes': ['deepseek/deepseek-v4.1-flash-20261017'], 'tokens': 238933994015213,
+            'share': 0.5912, 'daysInTop50': 30,
+        })
+        self.assertEqual(tokens['models'][2]['routes'], ['nvidia/nemotron-3-ultra-550b-a55b-20260604:free'])
+        tasks = data['tasks7d']
+        self.assertEqual(tasks['meta'], {'window_days': 7, 'as_of': '2026-11-22'})
+        self.assertEqual(tasks['period'], {'start': '2026-11-16', 'end': '2026-11-22'})
+        self.assertEqual(len(tasks['tags']), 29)
+        self.assertEqual(tasks['tags'][0]['top'][:3], [
+            {'route': 'typesafe/jev-1.13-20260917', 'modelId': '', 'share': 0.175, 'tokenShare': 0.12},
+            {'route': 'typesafe/jev-1.14-20261014', 'modelId': '', 'share': 0.128, 'tokenShare': 0.083},
+            {'route': 'openai/gpt-6-luna-20260922', 'modelId': 'gpt-6-luna', 'share': 0.08, 'tokenShare': 0.042},
+        ])
+        self.assertEqual(data['fetchedAt'], '2026-11-23')
+        self.assertEqual(data['checkedAt'], '')
+        line = 'Source: OpenRouter (openrouter.ai/rankings), as of {}. Licensed under CC BY 4.0.'
+        self.assertEqual(data['source']['attribution'], line.format('2026-11-23T02:56:32.003Z'))
+        self.assertEqual(tasks['attribution'], line.format('2026-11-22'))
+
+    def test_changed_format_stops_the_import(self):
+        def drop_other(data):
+            data['data'] = [row for row in data['data'] if not (row['model_permaslug'] == 'other' and row['date'] == '2026-11-01')]
+
+        rankings = [
+            (drop_other, 'rankings-daily 2026-11-01: no "other" row'),
+            (lambda data: data['data'][0].update(total_tokens='12e9'), 'total_tokens is not a count'),
+            (lambda data: data['data'][0].update(total_tokens=1.5), 'total_tokens is not a count'),
+            (lambda data: data['meta'].update(start_date='2026-11-16'), 'the window is 7 days, not 30'),
+            (lambda data: data['meta'].pop('as_of'), 'meta.as_of is not a timestamp'),
+            (lambda data: data['data'].append(dict(data['data'][0])), 'is listed twice'),
+            (lambda data: data['data'][0].update(date='2026-12-01'), 'outside the window'),
+        ]
+        tasks = [
+            (lambda data: data['data'].update(window_days=30), 'window_days is 30, not 7'),
+            (lambda data: data['data']['classifications'][0].update(usage_share=1.5), 'usage_share is not a share'),
+            (lambda data: data['data']['classifications'].pop(0), 'request shares add up to 0.678, not 1'),
+            (lambda data: data['data']['classifications'][1].update(tag='classification_tagging'), 'listed twice'),
+            (lambda data: data['data']['classifications'][0]['models'][0].pop('tag_usage_share'), 'tag_usage_share is not a share'),
+            (lambda data: data['data']['classifications'][0].update(macro_category='new'), 'unknown macro_category'),
+        ]
+        for number, (file, change, message) in enumerate(
+            [(import_openrouter.RANKINGS_FILE, *case) for case in rankings] + [(import_openrouter.TASKS_FILE, *case) for case in tasks]
+        ):
+            with self.subTest(message=message):
+                folder = openrouter_sample(self.root / str(number))
+                edit_json(folder / file, change)
+                with self.assertRaisesRegex(SourceError, message):
+                    import_openrouter.convert(folder, OPENROUTER_ALIASES)
+
+    def test_download_makes_two_calls_to_the_data_api(self):
+        requests, pauses = [], []
+        bodies = {
+            import_openrouter.RANKINGS_URL: (FIXTURES / 'openrouter/rankings-daily-30d.json').read_bytes(),
+            import_openrouter.TASKS_URL: (FIXTURES / 'openrouter/task-7d.json').read_bytes(),
+        }
+
+        def get(url):
+            requests.append(url)
+            return bodies[url]
+
+        folder = self.root / 'download'
+        folder.mkdir()
+        import_openrouter.download(folder, get=get, pause=pauses.append)
+        self.assertEqual(requests, [import_openrouter.RANKINGS_URL, import_openrouter.TASKS_URL])
+        self.assertTrue(all(url.startswith('https://openrouter.ai/api/v1/') for url in requests))
+        self.assertEqual(pauses, [import_openrouter.PAUSE])
+        self.assertEqual(sorted(path.name for path in folder.iterdir()), ['download.json', 'rankings-daily-30d.json', 'task-7d.json'])
+
+
+class TestOpenrouterKey(Folder):
+    """The key is read from the environment inside the call, sent only as a header to the Data API,
+    and never reaches a file, the printed report or an error message."""
+
+    def environment(self, **values):
+        clean = {name: value for name, value in os.environ.items() if name != import_openrouter.KEY_VARIABLE}
+        return patch.dict(os.environ, {**clean, **values}, clear=True)
+
+    def new_folder(self, source):
+        return import_common.new_download_dir(source, root=self.root / 'imports')
+
+    def run_main(self, *arguments):
+        with contextlib.redirect_stdout(io.StringIO()) as output, \
+                patch.object(import_openrouter, 'new_download_dir', self.new_folder), \
+                patch.object(import_openrouter, 'PAUSE', 0):
+            import_openrouter.main(list(arguments))
+        return output.getvalue()
+
+    def written(self):
+        return b''.join(path.read_bytes() for path in self.root.rglob('*') if path.is_file())
+
+    def test_the_key_never_reaches_the_output_or_the_report(self):
+        sent = []
+        bodies = {
+            import_openrouter.RANKINGS_URL: (FIXTURES / 'openrouter/rankings-daily-30d.json').read_bytes(),
+            import_openrouter.TASKS_URL: (FIXTURES / 'openrouter/task-7d.json').read_bytes(),
+        }
+
+        def opened(request, timeout):
+            sent.append(request)
+            return FakeResponse(bodies[request.full_url])
+
+        out = self.root / 'openrouter-usage.json'
+        with self.environment(OPENROUTER_API_KEY=FAKE_KEY), patch.object(import_common, 'urlopen', opened):
+            printed = self.run_main('--out', str(out))
+        self.assertEqual([request.full_url for request in sent], [import_openrouter.RANKINGS_URL, import_openrouter.TASKS_URL])
+        for request in sent:
+            self.assertEqual(request.unredirected_hdrs, {'Authorization': f'Bearer {FAKE_KEY}'})
+            self.assertNotIn('Authorization', request.headers)
+        self.assertIn('Downloading into', printed)
+        self.assertNotIn(FAKE_KEY, printed)
+        self.assertTrue(out.is_file())
+        self.assertNotIn(FAKE_KEY.encode(), self.written())
+
+    def test_the_key_never_reaches_an_error(self):
+        failures = [
+            import_common.HTTPError(import_openrouter.RANKINGS_URL, 401, 'Unauthorized', {}, None),
+            URLError('connection refused'),
+        ]
+        for failure in failures:
+            with self.subTest(failure=type(failure).__name__):
+                with self.environment(OPENROUTER_API_KEY=FAKE_KEY), patch.object(import_common, 'urlopen', side_effect=failure), \
+                        patch.object(import_common.time, 'sleep'), self.assertRaises(SystemExit) as raised:
+                    self.run_main('--out', str(self.root / 'openrouter-usage.json'))
+                self.assertIn('OpenRouter import stopped', str(raised.exception))
+                self.assertNotIn(FAKE_KEY, str(raised.exception))
+                self.assertNotIn(FAKE_KEY.encode(), self.written())
+
+    def test_a_response_that_repeats_the_key_is_not_saved(self):
+        def opened(request, timeout):
+            return FakeResponse(json.dumps({'error': f'bad key {FAKE_KEY}'}).encode())
+
+        with self.environment(OPENROUTER_API_KEY=FAKE_KEY), patch.object(import_common, 'urlopen', opened), \
+                self.assertRaises(SystemExit) as raised:
+            self.run_main('--out', str(self.root / 'openrouter-usage.json'))
+        self.assertIn('the response repeats the key, so it was not saved', str(raised.exception))
+        self.assertNotIn(FAKE_KEY, str(raised.exception))
+        self.assertNotIn(FAKE_KEY.encode(), self.written())
+
+    def test_the_key_is_not_passed_on_by_a_redirect(self):
+        request = Request(import_openrouter.RANKINGS_URL)
+        request.add_unredirected_header('Authorization', f'Bearer {FAKE_KEY}')
+        moved = HTTPRedirectHandler().redirect_request(request, None, 302, 'Found', {}, 'https://example.org/elsewhere')
+        self.assertNotIn('Authorization', moved.headers)
+        self.assertNotIn('Authorization', moved.unredirected_hdrs)
+
+    def test_the_key_is_sent_only_to_the_data_api(self):
+        with self.environment(OPENROUTER_API_KEY=FAKE_KEY), self.assertRaisesRegex(SourceError, 'outside the Data API') as raised:
+            import_openrouter.authorised_get('https://example.org/api/v1/datasets', get=lambda *_a, **_k: b'')
+        self.assertNotIn(FAKE_KEY, str(raised.exception))
+
+    def test_a_missing_variable_stops_before_any_download(self):
+        for value in ({}, {'OPENROUTER_API_KEY': ''}, {'OPENROUTER_API_KEY': '  '}):
+            with self.subTest(value=value):
+                with self.environment(**value), patch.object(import_common, 'urlopen') as opened, \
+                        self.assertRaises(SystemExit) as raised:
+                    self.run_main('--out', str(self.root / 'openrouter-usage.json'))
+                self.assertEqual(
+                    str(raised.exception),
+                    'OpenRouter import stopped: OPENROUTER_API_KEY is not set. '
+                    'Run the command in your own terminal with the key in that variable.',
+                )
+                opened.assert_not_called()
+                self.assertFalse((self.root / 'imports').exists())
+                self.assertFalse((self.root / 'openrouter-usage.json').exists())
+
+    def test_from_a_download_needs_no_key(self):
+        with self.environment():
+            printed = self.run_main('--from', str(FIXTURES / 'openrouter'), '--out', str(self.root / 'openrouter-usage.json'))
+        self.assertIn('155 results', printed)
+
+
 # ---- Shared steps ------------------------------------------------------------------------
 
 
@@ -283,7 +516,7 @@ class TestCommon(Folder):
             import_common.read_aliases(path, SNAPSHOT_IDS)
 
     def test_tracked_alias_tables_name_only_snapshot_models(self):
-        for name in ('lmarena', 'epoch'):
+        for name in ('lmarena', 'epoch', 'openrouter'):
             with self.subTest(table=name):
                 aliases = import_common.read_aliases(ROOT / f'research/aliases/{name}.json', SNAPSHOT_IDS)
                 self.assertTrue(aliases)
@@ -293,6 +526,20 @@ class TestCommon(Folder):
         self.assertEqual(import_common.date_range(['2026-11-22', '2026-11-09']), '9–22 November 2026')
         self.assertEqual(import_common.date_range(['2026-10-28', '2026-11-02']), '28 October–2 November 2026')
         self.assertEqual(import_common.date_range(['2025-12-30', '2026-01-02']), '30 December 2025–2 January 2026')
+
+    def test_headers_are_sent_unredirected(self):
+        sent = []
+
+        def opened(request, timeout):
+            sent.append(request)
+            return FakeResponse(b'{}')
+
+        with patch.object(import_common, 'urlopen', opened):
+            self.assertEqual(import_common.fetch('https://example.org', headers={'X-Test': 'value'}), b'{}')
+            import_common.fetch('https://example.org')
+        self.assertEqual(sent[0].unredirected_hdrs, {'X-test': 'value'})
+        self.assertEqual(sent[1].unredirected_hdrs, {})
+        self.assertEqual(sent[0].headers, {'User-agent': import_common.USER_AGENT})
 
     def test_retries_then_stops(self):
         waits = []
@@ -321,10 +568,14 @@ class TestNoNewModels(Folder):
         with patch.object(import_epoch, 'FILES', SAMPLE_FILES):
             printed = self.run_main(import_epoch, '--from', str(epoch_zip(self.root / 'epoch')), '--out', str(epoch_out))
         self.assertIn('3 results', printed)
+        openrouter_out = self.root / 'openrouter-usage.json'
+        printed = self.run_main(import_openrouter, '--from', str(FIXTURES / 'openrouter'), '--out', str(openrouter_out))
+        self.assertIn('deepseek/deepseek-v4.1-flash-20260910', printed)
         self.assertEqual(digest(import_common.SNAPSHOT), before)
         for path in (lmarena_out, epoch_out):
             ids = {result['modelId'] for result in json.loads(path.read_text(encoding='utf-8'))['results']}
             self.assertLessEqual(ids, SNAPSHOT_IDS)
+        self.assertLessEqual(usage_model_ids(json.loads(openrouter_out.read_text(encoding='utf-8'))), SNAPSHOT_IDS)
 
     def test_an_alias_to_a_new_model_stops_before_writing(self):
         aliases = json.loads((ROOT / 'research/aliases/lmarena.json').read_text(encoding='utf-8'))
@@ -341,6 +592,18 @@ class TestNoNewModels(Folder):
             with self.subTest(file=name):
                 data = json.loads((ROOT / f'research/{name}.json').read_text(encoding='utf-8'))
                 self.assertLessEqual({result['modelId'] for result in data['results']}, SNAPSHOT_IDS)
+        usage = json.loads((ROOT / 'research/openrouter-usage.json').read_text(encoding='utf-8'))
+        self.assertLessEqual(usage_model_ids(usage), SNAPSHOT_IDS)
+
+    def test_an_openrouter_alias_to_a_new_model_stops_before_writing(self):
+        aliases = json.loads((ROOT / 'research/aliases/openrouter.json').read_text(encoding='utf-8'))
+        aliases['aliases']['deepseek/deepseek-v4.1-flash-20260910'] = 'deepseek-v4-1-flash-0910'
+        path, out = self.root / 'aliases.json', self.root / 'openrouter-usage.json'
+        path.write_text(json.dumps(aliases), encoding='utf-8')
+        with self.assertRaises(SystemExit) as raised:
+            self.run_main(import_openrouter, '--from', str(FIXTURES / 'openrouter'), '--aliases', str(path), '--out', str(out))
+        self.assertIn('not in the snapshot', str(raised.exception))
+        self.assertFalse(out.exists())
 
     def test_output_under_local_is_refused(self):
         with self.assertRaisesRegex(SourceError, 'under .local'):

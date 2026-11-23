@@ -1,0 +1,788 @@
+{
+  "data": {
+    "window_days": 7,
+    "as_of": "2026-11-22",
+    "classifications": [
+      {
+        "tag": "classification_tagging",
+        "display_name": "Classification",
+        "macro_category": "general",
+        "usage_share": 0.322,
+        "token_share": 0.099,
+        "category_usage_share": 0.565,
+        "category_token_share": 0.37,
+        "models": [
+          {
+            "id": "typesafe/jev-1.13-20260917",
+            "tag_usage_share": 0.175,
+            "tag_token_share": 0.12
+          },
+          {
+            "id": "typesafe/jev-1.14-20261014",
+            "tag_usage_share": 0.128,
+            "tag_token_share": 0.083
+          },
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.08,
+            "tag_token_share": 0.042
+          }
+        ]
+      },
+      {
+        "tag": "data:extraction",
+        "display_name": "Data Extraction",
+        "macro_category": "data",
+        "usage_share": 0.109,
+        "token_share": 0.044,
+        "category_usage_share": 0.793,
+        "category_token_share": 0.694,
+        "models": [
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.089,
+            "tag_token_share": 0.048
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.079,
+            "tag_token_share": 0.169
+          },
+          {
+            "id": "mistralai/mistral-nemo",
+            "tag_usage_share": 0.064,
+            "tag_token_share": 0.015
+          }
+        ]
+      },
+      {
+        "tag": "agent:workflow_execution",
+        "display_name": "Workflow Execution",
+        "macro_category": "agent",
+        "usage_share": 0.106,
+        "token_share": 0.245,
+        "category_usage_share": 0.654,
+        "category_token_share": 0.703,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.273,
+            "tag_token_share": 0.406
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.201,
+            "tag_token_share": 0.212
+          },
+          {
+            "id": "z-ai/glm-5.3-flash-20260826",
+            "tag_usage_share": 0.059,
+            "tag_token_share": 0.036
+          }
+        ]
+      },
+      {
+        "tag": "roleplay_fiction",
+        "display_name": "Roleplay & Fiction",
+        "macro_category": "general",
+        "usage_share": 0.06,
+        "token_share": 0.021,
+        "category_usage_share": 0.105,
+        "category_token_share": 0.081,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4-flash-20260731",
+            "tag_usage_share": 0.128,
+            "tag_token_share": 0.054
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20260910",
+            "tag_usage_share": 0.108,
+            "tag_token_share": 0.069
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.087,
+            "tag_token_share": 0.143
+          }
+        ]
+      },
+      {
+        "tag": "content_writing",
+        "display_name": "Content Writing",
+        "macro_category": "general",
+        "usage_share": 0.052,
+        "token_share": 0.03,
+        "category_usage_share": 0.091,
+        "category_token_share": 0.114,
+        "models": [
+          {
+            "id": "qwen/qwen3.6-35b-a3b-20260415",
+            "tag_usage_share": 0.183,
+            "tag_token_share": 0.026
+          },
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.086,
+            "tag_token_share": 0.498
+          },
+          {
+            "id": "deepseek/deepseek-v4-flash-20260731",
+            "tag_usage_share": 0.084,
+            "tag_token_share": 0.02
+          }
+        ]
+      },
+      {
+        "tag": "agent:multi_step_planning",
+        "display_name": "Multi-step Planning",
+        "macro_category": "agent",
+        "usage_share": 0.035,
+        "token_share": 0.076,
+        "category_usage_share": 0.217,
+        "category_token_share": 0.217,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.231,
+            "tag_token_share": 0.261
+          },
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.188,
+            "tag_token_share": 0.316
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20260910",
+            "tag_usage_share": 0.05,
+            "tag_token_share": 0.051
+          }
+        ]
+      },
+      {
+        "tag": "code:general_impl",
+        "display_name": "Code Generation",
+        "macro_category": "code",
+        "usage_share": 0.033,
+        "token_share": 0.098,
+        "category_usage_share": 0.258,
+        "category_token_share": 0.305,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.31,
+            "tag_token_share": 0.372
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.237,
+            "tag_token_share": 0.243
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20260910",
+            "tag_usage_share": 0.045,
+            "tag_token_share": 0.039
+          }
+        ]
+      },
+      {
+        "tag": "qa_knowledge",
+        "display_name": "Q&A & Knowledge",
+        "macro_category": "general",
+        "usage_share": 0.029,
+        "token_share": 0.023,
+        "category_usage_share": 0.051,
+        "category_token_share": 0.087,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.09,
+            "tag_token_share": 0.162
+          },
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.082,
+            "tag_token_share": 0.038
+          },
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.077,
+            "tag_token_share": 0.316
+          }
+        ]
+      },
+      {
+        "tag": "data:transformation",
+        "display_name": "Data Transformation",
+        "macro_category": "data",
+        "usage_share": 0.029,
+        "token_share": 0.019,
+        "category_usage_share": 0.207,
+        "category_token_share": 0.306,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.116,
+            "tag_token_share": 0.503
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.101,
+            "tag_token_share": 0.173
+          },
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.078,
+            "tag_token_share": 0.022
+          }
+        ]
+      },
+      {
+        "tag": "code:file_read_write",
+        "display_name": "File I/O",
+        "macro_category": "code",
+        "usage_share": 0.026,
+        "token_share": 0.063,
+        "category_usage_share": 0.205,
+        "category_token_share": 0.196,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.366,
+            "tag_token_share": 0.476
+          },
+          {
+            "id": "z-ai/glm-5.3-flash-20260826",
+            "tag_usage_share": 0.176,
+            "tag_token_share": 0.048
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.171,
+            "tag_token_share": 0.19
+          }
+        ]
+      },
+      {
+        "tag": "code:debugging",
+        "display_name": "Debugging",
+        "macro_category": "code",
+        "usage_share": 0.023,
+        "token_share": 0.057,
+        "category_usage_share": 0.181,
+        "category_token_share": 0.179,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.236,
+            "tag_token_share": 0.347
+          },
+          {
+            "id": "z-ai/glm-5.3-flash-20260826",
+            "tag_usage_share": 0.2,
+            "tag_token_share": 0.056
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.182,
+            "tag_token_share": 0.23
+          }
+        ]
+      },
+      {
+        "tag": "conversational_reply",
+        "display_name": "Conversation",
+        "macro_category": "general",
+        "usage_share": 0.02,
+        "token_share": 0.027,
+        "category_usage_share": 0.035,
+        "category_token_share": 0.1,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.206,
+            "tag_token_share": 0.498
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.114,
+            "tag_token_share": 0.124
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20260910",
+            "tag_usage_share": 0.061,
+            "tag_token_share": 0.043
+          }
+        ]
+      },
+      {
+        "tag": "customer_support",
+        "display_name": "Customer Support",
+        "macro_category": "general",
+        "usage_share": 0.019,
+        "token_share": 0.008,
+        "category_usage_share": 0.034,
+        "category_token_share": 0.031,
+        "models": [
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.322,
+            "tag_token_share": 0.15
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.08,
+            "tag_token_share": 0.175
+          },
+          {
+            "id": "google/gemini-2.5-flash",
+            "tag_usage_share": 0.072,
+            "tag_token_share": 0.019
+          }
+        ]
+      },
+      {
+        "tag": "code:review_security",
+        "display_name": "Code Review",
+        "macro_category": "code",
+        "usage_share": 0.018,
+        "token_share": 0.029,
+        "category_usage_share": 0.139,
+        "category_token_share": 0.09,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.239,
+            "tag_token_share": 0.367
+          },
+          {
+            "id": "z-ai/glm-5.3-flash-20260826",
+            "tag_usage_share": 0.224,
+            "tag_token_share": 0.124
+          },
+          {
+            "id": "typesafe/jev-1.13-20260917",
+            "tag_usage_share": 0.108,
+            "tag_token_share": 0.006
+          }
+        ]
+      },
+      {
+        "tag": "summarization",
+        "display_name": "Summarization",
+        "macro_category": "general",
+        "usage_share": 0.016,
+        "token_share": 0.011,
+        "category_usage_share": 0.029,
+        "category_token_share": 0.042,
+        "models": [
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.089,
+            "tag_token_share": 0.034
+          },
+          {
+            "id": "mistralai/mistral-nemo",
+            "tag_usage_share": 0.086,
+            "tag_token_share": 0.013
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.071,
+            "tag_token_share": 0.083
+          }
+        ]
+      },
+      {
+        "tag": "translation",
+        "display_name": "Translation",
+        "macro_category": "general",
+        "usage_share": 0.016,
+        "token_share": 0.002,
+        "category_usage_share": 0.027,
+        "category_token_share": 0.008,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.115,
+            "tag_token_share": 0.084
+          },
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.103,
+            "tag_token_share": 0.052
+          },
+          {
+            "id": "google/gemini-2.5-flash-lite",
+            "tag_usage_share": 0.071,
+            "tag_token_share": 0.017
+          }
+        ]
+      },
+      {
+        "tag": "finance_trading",
+        "display_name": "Finance & Trading",
+        "macro_category": "general",
+        "usage_share": 0.013,
+        "token_share": 0.004,
+        "category_usage_share": 0.022,
+        "category_token_share": 0.014,
+        "models": [
+          {
+            "id": "nace-ai/drex-max-20261016",
+            "tag_usage_share": 0.278,
+            "tag_token_share": 0.009
+          },
+          {
+            "id": "nace-ai/drex-v1.5-20261009",
+            "tag_usage_share": 0.267,
+            "tag_token_share": 0.008
+          },
+          {
+            "id": "nace-ai/drex-v2.0-20261009",
+            "tag_usage_share": 0.116,
+            "tag_token_share": 0.003
+          }
+        ]
+      },
+      {
+        "tag": "code:shell_execution",
+        "display_name": "Shell Execution",
+        "macro_category": "code",
+        "usage_share": 0.011,
+        "token_share": 0.023,
+        "category_usage_share": 0.085,
+        "category_token_share": 0.073,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.209,
+            "tag_token_share": 0.308
+          },
+          {
+            "id": "z-ai/glm-5.3-flash-20260826",
+            "tag_usage_share": 0.199,
+            "tag_token_share": 0.061
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.198,
+            "tag_token_share": 0.236
+          }
+        ]
+      },
+      {
+        "tag": "security_audit",
+        "display_name": "Security Audit",
+        "macro_category": "general",
+        "usage_share": 0.011,
+        "token_share": 0.022,
+        "category_usage_share": 0.019,
+        "category_token_share": 0.082,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.539,
+            "tag_token_share": 0.638
+          },
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.088,
+            "tag_token_share": 0.099
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20260910",
+            "tag_usage_share": 0.062,
+            "tag_token_share": 0.063
+          }
+        ]
+      },
+      {
+        "tag": "code:frontend_ui",
+        "display_name": "Frontend & UI",
+        "macro_category": "code",
+        "usage_share": 0.009,
+        "token_share": 0.03,
+        "category_usage_share": 0.073,
+        "category_token_share": 0.095,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.501,
+            "tag_token_share": 0.557
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.101,
+            "tag_token_share": 0.115
+          },
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.043,
+            "tag_token_share": 0.026
+          }
+        ]
+      },
+      {
+        "tag": "agent:tool_dispatch",
+        "display_name": "Tool Dispatch",
+        "macro_category": "agent",
+        "usage_share": 0.008,
+        "token_share": 0.013,
+        "category_usage_share": 0.052,
+        "category_token_share": 0.037,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.261,
+            "tag_token_share": 0.314
+          },
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.101,
+            "tag_token_share": 0.214
+          },
+          {
+            "id": "z-ai/glm-5.3-flash-20260826",
+            "tag_usage_share": 0.09,
+            "tag_token_share": 0.053
+          }
+        ]
+      },
+      {
+        "tag": "agent:memory_extraction",
+        "display_name": "Memory Extraction",
+        "macro_category": "agent",
+        "usage_share": 0.007,
+        "token_share": 0.006,
+        "category_usage_share": 0.041,
+        "category_token_share": 0.017,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4-flash-20260731",
+            "tag_usage_share": 0.201,
+            "tag_token_share": 0.029
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20260910",
+            "tag_usage_share": 0.167,
+            "tag_token_share": 0.132
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.093,
+            "tag_token_share": 0.145
+          }
+        ]
+      },
+      {
+        "tag": "agent:web_search",
+        "display_name": "Web Search",
+        "macro_category": "agent",
+        "usage_share": 0.006,
+        "token_share": 0.009,
+        "category_usage_share": 0.036,
+        "category_token_share": 0.025,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.223,
+            "tag_token_share": 0.219
+          },
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.172,
+            "tag_token_share": 0.382
+          },
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.123,
+            "tag_token_share": 0.045
+          }
+        ]
+      },
+      {
+        "tag": "research_report",
+        "display_name": "Research & Reports",
+        "macro_category": "general",
+        "usage_share": 0.006,
+        "token_share": 0.012,
+        "category_usage_share": 0.01,
+        "category_token_share": 0.045,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.29,
+            "tag_token_share": 0.49
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.137,
+            "tag_token_share": 0.157
+          },
+          {
+            "id": "openai/gpt-6-luna-20260922",
+            "tag_usage_share": 0.092,
+            "tag_token_share": 0.03
+          }
+        ]
+      },
+      {
+        "tag": "math",
+        "display_name": "Math",
+        "macro_category": "general",
+        "usage_share": 0.005,
+        "token_share": 0.003,
+        "category_usage_share": 0.01,
+        "category_token_share": 0.01,
+        "models": [
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.145,
+            "tag_token_share": 0.382
+          },
+          {
+            "id": "deepseek/deepseek-v4-flash-20260423",
+            "tag_usage_share": 0.134,
+            "tag_token_share": 0.032
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20260910",
+            "tag_usage_share": 0.082,
+            "tag_token_share": 0.101
+          }
+        ]
+      },
+      {
+        "tag": "code:repo_scan",
+        "display_name": "Repo Scanning",
+        "macro_category": "code",
+        "usage_share": 0.005,
+        "token_share": 0.011,
+        "category_usage_share": 0.035,
+        "category_token_share": 0.034,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.376,
+            "tag_token_share": 0.405
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.166,
+            "tag_token_share": 0.199
+          },
+          {
+            "id": "z-ai/glm-5.3-flash-20260826",
+            "tag_usage_share": 0.149,
+            "tag_token_share": 0.054
+          }
+        ]
+      },
+      {
+        "tag": "code:sql_database",
+        "display_name": "SQL & Database",
+        "macro_category": "code",
+        "usage_share": 0.002,
+        "token_share": 0.004,
+        "category_usage_share": 0.013,
+        "category_token_share": 0.013,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.289,
+            "tag_token_share": 0.415
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.158,
+            "tag_token_share": 0.176
+          },
+          {
+            "id": "z-ai/glm-5.3-flash-20260826",
+            "tag_usage_share": 0.063,
+            "tag_token_share": 0.034
+          }
+        ]
+      },
+      {
+        "tag": "devops",
+        "display_name": "DevOps",
+        "macro_category": "general",
+        "usage_share": 0.002,
+        "token_share": 0.005,
+        "category_usage_share": 0.003,
+        "category_token_share": 0.018,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.374,
+            "tag_token_share": 0.417
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.148,
+            "tag_token_share": 0.193
+          },
+          {
+            "id": "z-ai/glm-5.3-flash-20260826",
+            "tag_usage_share": 0.075,
+            "tag_token_share": 0.034
+          }
+        ]
+      },
+      {
+        "tag": "code:devops_config",
+        "display_name": "DevOps & Config",
+        "macro_category": "code",
+        "usage_share": 0.002,
+        "token_share": 0.005,
+        "category_usage_share": 0.012,
+        "category_token_share": 0.014,
+        "models": [
+          {
+            "id": "tencent/hy4-flash-20261116",
+            "tag_usage_share": 0.343,
+            "tag_token_share": 0.379
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20261017",
+            "tag_usage_share": 0.18,
+            "tag_token_share": 0.176
+          },
+          {
+            "id": "deepseek/deepseek-v4.1-flash-20260910",
+            "tag_usage_share": 0.04,
+            "tag_token_share": 0.039
+          }
+        ]
+      }
+    ],
+    "macro_categories": [
+      {
+        "key": "code",
+        "label": "Code",
+        "usage_share": 0.129,
+        "token_share": 0.321
+      },
+      {
+        "key": "data",
+        "label": "Data",
+        "usage_share": 0.138,
+        "token_share": 0.064
+      },
+      {
+        "key": "agent",
+        "label": "Agent",
+        "usage_share": 0.162,
+        "token_share": 0.349
+      },
+      {
+        "key": "general",
+        "label": "General",
+        "usage_share": 0.571,
+        "token_share": 0.267
+      }
+    ]
+  }
+}

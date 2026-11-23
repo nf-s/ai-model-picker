@@ -19,6 +19,7 @@ test('the Data page credits each imported source with its file’s attribution l
   for (const [source, file] of [
     ['LMArena', 'lmarena.json'],
     ['Epoch AI benchmarking hub', 'epoch-runs.json'],
+    ['OpenRouter', 'openrouter-usage.json'],
   ]) {
     const entry = attributions.find((item) => item.source === source);
     assert.ok(entry, `${source} has no attribution entry`);

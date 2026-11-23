@@ -10,6 +10,7 @@ Nothing updates on its own. Each source is updated separately, and the published
 | arXiv papers                               | [arXiv papers](#arxiv-papers)                                                                 | Free                                          | No                   |
 | Benchmarks, prices, reports, the app guide | [Benchmarks, prices, reports and the app guide](#benchmarks-prices-reports-and-the-app-guide) | Free, but someone has to read the sources     | Yes                  |
 | LMArena ratings and Epoch runs             | [LMArena and Epoch runs](#lmarena-and-epoch-runs)                                             | Free                                          | Yes                  |
+| OpenRouter usage                           | [OpenRouter usage](#openrouter-usage)                                                         | Free; needs the owner's OpenRouter key        | Yes                  |
 | Practitioner findings                      | [Practitioner findings](#practitioner-findings)                                               | Free for existing reviewed findings           | Yes                  |
 | Expert articles                            | [Expert articles](#expert-articles)                                                           | Free for existing verified articles           | No                   |
 | Published site                             | [Publish](#publish)                                                                           | Free                                          | No                   |
@@ -234,6 +235,7 @@ The model list is the `models` array in `src/lib/snapshot.json`. It changes when
 - **arXiv:** the next `npm run arxiv:run` matches every stored paper again, without reading arXiv, in a few minutes. A paper whose matched models change loses its label until labelling runs again: on 21 November 2026, 22 new models left 18 labelled papers unlabelled. Nothing else is needed.
 - **Hacker News:** the reviewed run keeps being served, but `extend` refuses it with `checkpoint-configuration-mismatch` until it is retargeted, because it was scanned for the old names. Retargeting keeps every review, scans the six months again for the new names (free) and reviews only the comments that are new or that name a new model (paid). It does not work if a model `id` that some comment was reviewed for was removed: keep such models in the list.
 - **LMArena and Epoch runs:** an imported result or alias that names a model no longer in the list stops `npm run records:build` and the importers. A new model has no imported results until its exact source name is added as an alias. In both cases, run [LMArena and Epoch runs](#lmarena-and-epoch-runs) again after the change.
+- **OpenRouter usage:** the same holds for `research/openrouter-usage.json` and its aliases. Run steps 2 to 5 of [OpenRouter usage](#openrouter-usage) on the last download; a new download needs the owner.
 
 To retarget the Hacker News run, first make sure it is finished (step 1 of [Hacker News comments](#hacker-news-comments)) and copy the checkpoint (step 2). Then:
 
@@ -345,6 +347,75 @@ npm run format && npm run format:check
 ```
 
 Commit the changed files under `research/` and `src/lib/attribution.ts` by name. The site shows the new ratings and runs only after it is built and published.
+
+## OpenRouter usage
+
+This imports how much public OpenRouter traffic each model carries: 30-day token shares and 7-day task tags. It is free but needs the owner's OpenRouter key, and changes only tracked files: `research/openrouter-usage.json` and, when you add names, `research/aliases/openrouter.json`. It never adds a model or changes `src/lib/snapshot.json`. Usage orders nothing: never use it to fill in a job that has no measure, to order a list or to break a tie. What the file holds is in [data provenance](data.md#openrouter-usage).
+
+### 1. Import (the owner, in their own terminal)
+
+The key is read from the `OPENROUTER_API_KEY` environment variable for this one command. Only the owner runs this step. An agent does not look for the key, read it, print the environment or run the command; it starts at step 2 with the folder the owner names.
+
+```sh
+printf 'OpenRouter key: '; read -rs key; echo; OPENROUTER_API_KEY="$key" python3 -B scripts/import_openrouter.py; unset key
+```
+
+The key is typed at the prompt, not shown, kept out of the shell history and passed to this command only. Expected: `Downloading into` and a new folder under `.local/imports/openrouter/`, a table with the rows read and kept for `rankings-daily (30 days)` and `classifications/task (7 days)`, `Wrote … N results.`, then the routes that matched no alias, one per line. The import makes two calls to the Data API, a few seconds apart; its limits are 30 requests a minute and 500 a day. On 23 November 2026 the same two responses gave 38 models with 30-day tokens and 29 task tags. Leave the download folder in place; the owner removes old ones.
+
+| Output                                                                                                                  | Meaning                                                                       | What to do                                                                          |
+| ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `OPENROUTER_API_KEY is not set`                                                                                         | The key was not given. Nothing was fetched or written.                        | Run the command again and type the key at the prompt.                               |
+| `HTTP 401` or `HTTP 403`                                                                                                | The key was refused. Nothing was written.                                     | Check the key in the OpenRouter settings and run it again.                          |
+| `HTTP 429`, `HTTP 5xx` or a connection error                                                                            | The Data API could not be read after four tries. Nothing was written.         | Run it again later.                                                                 |
+| `the response repeats the key, so it was not saved`                                                                     | A response contained the key. Nothing was written.                            | Stop and report the message only.                                                   |
+| `no "other" row`, `is not a share`, `the window is …`, `request shares add up to …` or any other message naming a field | The Data API's format changed. Nothing was written.                           | Stop and report.                                                                    |
+| `… names <id>, which is not in the snapshot`                                                                            | An alias points to a model that has left the model list. Nothing was written. | Remove that alias, or put the model back through the benchmark refresh, and repeat. |
+
+### 2. Add aliases for exact matches
+
+Read the unmatched routes. Add a route to the `aliases` table of `research/aliases/openrouter.json` only when it names exactly a model in `src/lib/snapshot.json`, read with the table's `rule`. The importer takes out a `:free` suffix and nothing else. A date, a variant (`:batch`, `-contributor`, `-pro`) or an undated route that serves another release marks a different model, which stays out. Then run the importer again on the same download, without the key:
+
+```sh
+python3 -B scripts/import_openrouter.py --from .local/imports/openrouter/<folder from step 1>
+```
+
+Expected: the same table, with more rows kept and the added routes gone from the unmatched list.
+
+### 3. Review the import
+
+```sh
+git diff --stat research/openrouter-usage.json
+```
+
+Read the diff. `tokens30d.meta` and `tasks7d.meta` say what was published and when; `tokens30d.period` should end the day before the download, and `tasks7d.period` should end on its `as_of`. A model that appears or disappears should follow from the new period or an alias you changed. Compare three models' shares and three tags' top models with [openrouter.ai/rankings](https://openrouter.ai/rankings), which shows the same data. Then set `checkedAt` at the top of the file to today's date. The importer leaves it empty, and `npm run records:build` stops on an empty one.
+
+### 4. Update the attribution line
+
+The file's `source.attribution` names `tokens30d`'s `as_of`. Copy it word for word into the `credit` of the "OpenRouter" entry in `src/lib/attribution.ts`. `npm test` fails until they agree.
+
+### 5. Build and check
+
+```sh
+npm run records:build
+```
+
+Expected: the coverage table unchanged by this import, then `OpenRouter usage (orders nothing): N models with 30-day tokens as of <as_of>, N task tags as of <date>, checked <date>.` with the counts from step 1 or 2. In a worktree, add `-- --hn-root <main checkout>`.
+
+| Output                                                         | Meaning                                  | What to do                                                                                                   |
+| -------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `checkedAt is not set`                                         | Step 3 was skipped.                      | Do step 3.                                                                                                   |
+| `OpenRouter task tags are not in the openrouter-tag crosswalk` | OpenRouter added or renamed a task tag.  | Add it to `openrouter-tag` in `research/jobs.json` with the job whose work it describes, or `null` for none. |
+| `model is not in the snapshot` or `… is not in the snapshot`   | The model list changed after the import. | Run step 2 again on the last download.                                                                       |
+
+```sh
+npm test
+```
+
+```sh
+npm run format && npm run format:check
+```
+
+Commit `research/openrouter-usage.json`, any changed alias table, `research/jobs.json` if you changed it, and `src/lib/attribution.ts` by name. The site shows the new usage only after it is built and published.
 
 ## Practitioner findings
 

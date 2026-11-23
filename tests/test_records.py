@@ -35,6 +35,7 @@ JOBS = json.loads((ROOT / 'research/jobs.json').read_text(encoding='utf-8'))
 CLASSIFIER = json.loads((ROOT / 'research/hn-classifier-check.json').read_text(encoding='utf-8'))['classifierId']
 IMPORTED = {kind: json.loads(path.read_text(encoding='utf-8')) for kind, path in build['IMPORTED'].items()}
 IMPORTED_COUNT = sum(len(data['results']) for data in IMPORTED.values())
+USAGE = json.loads(build['USAGE'].read_text(encoding='utf-8'))
 MODEL = 'gpt-6-astra'
 START = 1_780_000_000
 END = START + 1000
@@ -278,6 +279,96 @@ class TestImported(unittest.TestCase):
         data['leaderboards'] = [entry for entry in data['leaderboards'] if entry['id'] != board]
         data['results'] = [result for result in data['results'] if result['leaderboard'] != 'search_style_control/overall']
         self.refused(f'job research: benchmark {board} does not exist')
+
+
+class TestUsage(unittest.TestCase):
+    """OpenRouter usage: a block of its own that orders nothing and is never counted with results."""
+
+    def setUp(self):
+        self.usage = copy.deepcopy(USAGE)
+        self.jobs = copy.deepcopy(JOBS)
+
+    def build(self, usage=None):
+        return build_core(SNAPSHOT, GUIDE, self.jobs, hn_export(), IMPORTED, usage)
+
+    def refused(self, *expected):
+        with self.assertRaises(BuildError) as raised:
+            self.build(self.usage)
+        for text in expected:
+            self.assertIn(text, str(raised.exception))
+
+    def test_usage_changes_no_ordering_and_no_coverage(self):
+        without, records_without = self.build()
+        with_usage, records_with = self.build(self.usage)
+        self.assertIsNone(without['usage'])
+        self.assertIsNotNone(with_usage['usage'])
+        self.assertEqual(records_with, records_without)
+        self.assertEqual({k: v for k, v in with_usage.items() if k != 'usage'}, {k: v for k, v in without.items() if k != 'usage'})
+        self.assertEqual([record['id'] for record in with_usage['measured']], [record['id'] for record in without['measured']])
+        self.assertEqual(with_usage['coverage'], without['coverage'])
+        self.assertNotIn('usage', with_usage['coverage']['sources'])
+
+    def test_reordered_usage_changes_nothing_else(self):
+        reordered = copy.deepcopy(self.usage)
+        reordered['tokens30d']['models'].reverse()
+        reordered['tasks7d']['tags'].reverse()
+        first, _ = self.build(self.usage)
+        second, _ = self.build(reordered)
+        self.assertEqual({k: v for k, v in first.items() if k != 'usage'}, {k: v for k, v in second.items() if k != 'usage'})
+
+    def test_usage_block(self):
+        core, _ = self.build(self.usage)
+        usage = core['usage']
+        self.assertEqual(len(usage['tokens']['models']), len(self.usage['tokens30d']['models']))
+        self.assertEqual(len(usage['tasks']['tags']), len(self.usage['tasks7d']['tags']))
+        for key, block in (('tokens30d', usage['tokens']), ('tasks7d', usage['tasks'])):
+            self.assertEqual(block['asOf'], self.usage[key]['asOf'])
+            self.assertEqual(block['meta'], self.usage[key]['meta'])
+            self.assertEqual(block['period'], self.usage[key]['period'])
+            self.assertTrue(block['attribution'].startswith('Source: OpenRouter (openrouter.ai/rankings), as of ' + block['asOf']))
+        crosswalk = {entry['label']: entry['job'] or '' for entry in JOBS['crosswalk']['openrouter-tag']['labels']}
+        self.assertEqual({tag['tag']: tag['job'] for tag in usage['tasks']['tags']}, crosswalk)
+        model_ids = {model['id'] for model in SNAPSHOT['models']}
+        self.assertLessEqual({model['modelId'] for model in usage['tokens']['models']}, model_ids)
+
+    def test_tracked_usage_matches_the_crosswalk(self):
+        tags = {tag['tag'] for tag in USAGE['tasks7d']['tags']}
+        labels = {entry['label'] for entry in JOBS['crosswalk']['openrouter-tag']['labels']}
+        self.assertEqual(tags, labels)
+
+    def test_unreviewed_usage_stops_the_build(self):
+        self.usage['checkedAt'] = ''
+        self.refused('openrouter-usage.json: checkedAt is not set')
+
+    def test_a_model_outside_the_snapshot_stops_the_build(self):
+        self.usage['tokens30d']['models'][0]['modelId'] = 'new-model'
+        self.refused('tokens30d new-model: model is not in the snapshot')
+        self.usage = copy.deepcopy(USAGE)
+        self.usage['tasks7d']['tags'][0]['top'][0]['modelId'] = 'new-model'
+        self.refused('new-model is not in the snapshot')
+
+    def test_an_unmapped_tag_stops_the_build(self):
+        entry = crosswalk_entry(self.jobs, 'openrouter-tag', 'math')
+        self.jobs['crosswalk']['openrouter-tag']['labels'].remove(entry)
+        self.refused('OpenRouter task tags are not in the openrouter-tag crosswalk: math')
+
+    def test_a_tag_mapped_to_an_unknown_job_stops_the_build(self):
+        crosswalk_entry(self.jobs, 'openrouter-tag', 'math')['job'] = 'sums'
+        self.refused('sums is neither a job nor replaced')
+
+    def test_each_block_keeps_its_meta_and_citation(self):
+        cases = [
+            (lambda usage: usage['tasks7d']['meta'].pop('as_of'), 'tasks7d has no meta block with its as_of'),
+            (lambda usage: usage['tokens30d'].update(attribution='Source: OpenRouter.'), 'tokens30d attribution does not cite its as_of'),
+            (lambda usage: usage['source'].update(attribution='Source: OpenRouter.'), 'source attribution differs from tokens30d'),
+            (lambda usage: usage['tasks7d'].update(period={'start': '2026-11-22', 'end': '2026-11-16'}), 'tasks7d period is not two dates'),
+            (lambda usage: usage['tokens30d']['models'][0].update(share=1.2), 'tokens or share out of range'),
+        ]
+        for change, message in cases:
+            with self.subTest(message=message):
+                self.usage = copy.deepcopy(USAGE)
+                change(self.usage)
+                self.refused(message)
 
 
 class TestStableIds(unittest.TestCase):

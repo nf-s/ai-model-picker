@@ -1,0 +1,760 @@
+{
+  "data": [
+    {
+      "date": "2026-10-24",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "4781179874821"
+    },
+    {
+      "date": "2026-10-24",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2249887235983"
+    },
+    {
+      "date": "2026-10-24",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1021751895698"
+    },
+    {
+      "date": "2026-10-24",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "624638737502"
+    },
+    {
+      "date": "2026-10-24",
+      "model_permaslug": "other",
+      "total_tokens": "1415669078907"
+    },
+    {
+      "date": "2026-10-25",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "5768118144049"
+    },
+    {
+      "date": "2026-10-25",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "1909618746794"
+    },
+    {
+      "date": "2026-10-25",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "831162827010"
+    },
+    {
+      "date": "2026-10-25",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "660206171350"
+    },
+    {
+      "date": "2026-10-25",
+      "model_permaslug": "other",
+      "total_tokens": "1418937654462"
+    },
+    {
+      "date": "2026-10-26",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "5422262059806"
+    },
+    {
+      "date": "2026-10-26",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2212730018806"
+    },
+    {
+      "date": "2026-10-26",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1040228036396"
+    },
+    {
+      "date": "2026-10-26",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "437471143422"
+    },
+    {
+      "date": "2026-10-26",
+      "model_permaslug": "other",
+      "total_tokens": "1803103875544"
+    },
+    {
+      "date": "2026-10-27",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "6042199685349"
+    },
+    {
+      "date": "2026-10-27",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2359656188412"
+    },
+    {
+      "date": "2026-10-27",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1098459808671"
+    },
+    {
+      "date": "2026-10-27",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "441714392438"
+    },
+    {
+      "date": "2026-10-27",
+      "model_permaslug": "other",
+      "total_tokens": "1859613346247"
+    },
+    {
+      "date": "2026-10-28",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "7296949088020"
+    },
+    {
+      "date": "2026-10-28",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2437191077264"
+    },
+    {
+      "date": "2026-10-28",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1012181097954"
+    },
+    {
+      "date": "2026-10-28",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "452571662951"
+    },
+    {
+      "date": "2026-10-28",
+      "model_permaslug": "other",
+      "total_tokens": "1794851757230"
+    },
+    {
+      "date": "2026-10-29",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "8056121268720"
+    },
+    {
+      "date": "2026-10-29",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2228076023048"
+    },
+    {
+      "date": "2026-10-29",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1312764511688"
+    },
+    {
+      "date": "2026-10-29",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "417289656595"
+    },
+    {
+      "date": "2026-10-29",
+      "model_permaslug": "other",
+      "total_tokens": "1884765241169"
+    },
+    {
+      "date": "2026-10-30",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "8163709696915"
+    },
+    {
+      "date": "2026-10-30",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "1826817188350"
+    },
+    {
+      "date": "2026-10-30",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "993366430375"
+    },
+    {
+      "date": "2026-10-30",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "411862399881"
+    },
+    {
+      "date": "2026-10-30",
+      "model_permaslug": "other",
+      "total_tokens": "1821068020154"
+    },
+    {
+      "date": "2026-10-31",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "7094390179753"
+    },
+    {
+      "date": "2026-10-31",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "1669373066820"
+    },
+    {
+      "date": "2026-10-31",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "620878966661"
+    },
+    {
+      "date": "2026-10-31",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "436856096832"
+    },
+    {
+      "date": "2026-10-31",
+      "model_permaslug": "other",
+      "total_tokens": "1415010302214"
+    },
+    {
+      "date": "2026-11-01",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "6004258462568"
+    },
+    {
+      "date": "2026-11-01",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2139663015197"
+    },
+    {
+      "date": "2026-11-01",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "654008541598"
+    },
+    {
+      "date": "2026-11-01",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "390156708936"
+    },
+    {
+      "date": "2026-11-01",
+      "model_permaslug": "other",
+      "total_tokens": "1371748527199"
+    },
+    {
+      "date": "2026-11-02",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "7788164635244"
+    },
+    {
+      "date": "2026-11-02",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2414354994444"
+    },
+    {
+      "date": "2026-11-02",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "978277206253"
+    },
+    {
+      "date": "2026-11-02",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "361081781830"
+    },
+    {
+      "date": "2026-11-02",
+      "model_permaslug": "other",
+      "total_tokens": "1705073334448"
+    },
+    {
+      "date": "2026-11-03",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "10346463525225"
+    },
+    {
+      "date": "2026-11-03",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2889427915489"
+    },
+    {
+      "date": "2026-11-03",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1097537423746"
+    },
+    {
+      "date": "2026-11-03",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "492987115784"
+    },
+    {
+      "date": "2026-11-03",
+      "model_permaslug": "other",
+      "total_tokens": "1793812495148"
+    },
+    {
+      "date": "2026-11-04",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "10181041984350"
+    },
+    {
+      "date": "2026-11-04",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "3007060338192"
+    },
+    {
+      "date": "2026-11-04",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1153893852184"
+    },
+    {
+      "date": "2026-11-04",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "425671088823"
+    },
+    {
+      "date": "2026-11-04",
+      "model_permaslug": "other",
+      "total_tokens": "1875236091240"
+    },
+    {
+      "date": "2026-11-05",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "6902555598586"
+    },
+    {
+      "date": "2026-11-05",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2571191470489"
+    },
+    {
+      "date": "2026-11-05",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1034836281011"
+    },
+    {
+      "date": "2026-11-05",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "396625580532"
+    },
+    {
+      "date": "2026-11-05",
+      "model_permaslug": "other",
+      "total_tokens": "1758500500662"
+    },
+    {
+      "date": "2026-11-06",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "7825657438622"
+    },
+    {
+      "date": "2026-11-06",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2543536454982"
+    },
+    {
+      "date": "2026-11-06",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1051708066279"
+    },
+    {
+      "date": "2026-11-06",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "404646867511"
+    },
+    {
+      "date": "2026-11-06",
+      "model_permaslug": "other",
+      "total_tokens": "1694163292454"
+    },
+    {
+      "date": "2026-11-07",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "6984338620815"
+    },
+    {
+      "date": "2026-11-07",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2120997947766"
+    },
+    {
+      "date": "2026-11-07",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "766377047063"
+    },
+    {
+      "date": "2026-11-07",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "455556110876"
+    },
+    {
+      "date": "2026-11-07",
+      "model_permaslug": "other",
+      "total_tokens": "1343395561251"
+    },
+    {
+      "date": "2026-11-08",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "6007650897365"
+    },
+    {
+      "date": "2026-11-08",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2062277359845"
+    },
+    {
+      "date": "2026-11-08",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "688253966328"
+    },
+    {
+      "date": "2026-11-08",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "458771075875"
+    },
+    {
+      "date": "2026-11-08",
+      "model_permaslug": "other",
+      "total_tokens": "1260889702092"
+    },
+    {
+      "date": "2026-11-09",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "7190121158762"
+    },
+    {
+      "date": "2026-11-09",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2332960331479"
+    },
+    {
+      "date": "2026-11-09",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "950980469198"
+    },
+    {
+      "date": "2026-11-09",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "525451886599"
+    },
+    {
+      "date": "2026-11-09",
+      "model_permaslug": "other",
+      "total_tokens": "1677299868151"
+    },
+    {
+      "date": "2026-11-10",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "8650076944740"
+    },
+    {
+      "date": "2026-11-10",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2271256626074"
+    },
+    {
+      "date": "2026-11-10",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1113498928964"
+    },
+    {
+      "date": "2026-11-10",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "575118929357"
+    },
+    {
+      "date": "2026-11-10",
+      "model_permaslug": "other",
+      "total_tokens": "1892090482491"
+    },
+    {
+      "date": "2026-11-11",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "9619105291745"
+    },
+    {
+      "date": "2026-11-11",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2397634091628"
+    },
+    {
+      "date": "2026-11-11",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1042019968842"
+    },
+    {
+      "date": "2026-11-11",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "326987158166"
+    },
+    {
+      "date": "2026-11-11",
+      "model_permaslug": "other",
+      "total_tokens": "1914477158848"
+    },
+    {
+      "date": "2026-11-12",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "9505249473798"
+    },
+    {
+      "date": "2026-11-12",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2234373816921"
+    },
+    {
+      "date": "2026-11-12",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1180322460341"
+    },
+    {
+      "date": "2026-11-12",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "447173894465"
+    },
+    {
+      "date": "2026-11-12",
+      "model_permaslug": "other",
+      "total_tokens": "1899386395326"
+    },
+    {
+      "date": "2026-11-13",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "8975720060236"
+    },
+    {
+      "date": "2026-11-13",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2387362718936"
+    },
+    {
+      "date": "2026-11-13",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1252887400889"
+    },
+    {
+      "date": "2026-11-13",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "415884770210"
+    },
+    {
+      "date": "2026-11-13",
+      "model_permaslug": "other",
+      "total_tokens": "2029904966952"
+    },
+    {
+      "date": "2026-11-14",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "8089023304435"
+    },
+    {
+      "date": "2026-11-14",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2014420988262"
+    },
+    {
+      "date": "2026-11-14",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "753601865603"
+    },
+    {
+      "date": "2026-11-14",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "447445278562"
+    },
+    {
+      "date": "2026-11-14",
+      "model_permaslug": "other",
+      "total_tokens": "1784721091417"
+    },
+    {
+      "date": "2026-11-15",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "7197661284965"
+    },
+    {
+      "date": "2026-11-15",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "1907118354544"
+    },
+    {
+      "date": "2026-11-15",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "690609657712"
+    },
+    {
+      "date": "2026-11-15",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "452525912474"
+    },
+    {
+      "date": "2026-11-15",
+      "model_permaslug": "other",
+      "total_tokens": "1724059239846"
+    },
+    {
+      "date": "2026-11-16",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "9133219587561"
+    },
+    {
+      "date": "2026-11-16",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2242840766764"
+    },
+    {
+      "date": "2026-11-16",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1332490242707"
+    },
+    {
+      "date": "2026-11-16",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "533147560948"
+    },
+    {
+      "date": "2026-11-16",
+      "model_permaslug": "other",
+      "total_tokens": "2294683156738"
+    },
+    {
+      "date": "2026-11-17",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "9425022094676"
+    },
+    {
+      "date": "2026-11-17",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2728405346967"
+    },
+    {
+      "date": "2026-11-17",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1277212016674"
+    },
+    {
+      "date": "2026-11-17",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "495406222001"
+    },
+    {
+      "date": "2026-11-17",
+      "model_permaslug": "other",
+      "total_tokens": "2460984111221"
+    },
+    {
+      "date": "2026-11-18",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "9811577846324"
+    },
+    {
+      "date": "2026-11-18",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2497644298112"
+    },
+    {
+      "date": "2026-11-18",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1144587195933"
+    },
+    {
+      "date": "2026-11-18",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "533388492537"
+    },
+    {
+      "date": "2026-11-18",
+      "model_permaslug": "other",
+      "total_tokens": "2420066264327"
+    },
+    {
+      "date": "2026-11-19",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "9575829904916"
+    },
+    {
+      "date": "2026-11-19",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2186937418709"
+    },
+    {
+      "date": "2026-11-19",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "1078021598503"
+    },
+    {
+      "date": "2026-11-19",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "541523203522"
+    },
+    {
+      "date": "2026-11-19",
+      "model_permaslug": "other",
+      "total_tokens": "2446844289364"
+    },
+    {
+      "date": "2026-11-20",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "9149589570674"
+    },
+    {
+      "date": "2026-11-20",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "2069280668492"
+    },
+    {
+      "date": "2026-11-20",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "976109018124"
+    },
+    {
+      "date": "2026-11-20",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "561294501003"
+    },
+    {
+      "date": "2026-11-20",
+      "model_permaslug": "other",
+      "total_tokens": "2048205090539"
+    },
+    {
+      "date": "2026-11-21",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "9030849816933"
+    },
+    {
+      "date": "2026-11-21",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "1704784515526"
+    },
+    {
+      "date": "2026-11-21",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "600740386579"
+    },
+    {
+      "date": "2026-11-21",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "557947819218"
+    },
+    {
+      "date": "2026-11-21",
+      "model_permaslug": "other",
+      "total_tokens": "1576740972809"
+    },
+    {
+      "date": "2026-11-22",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20261017",
+      "total_tokens": "8915886515240"
+    },
+    {
+      "date": "2026-11-22",
+      "model_permaslug": "deepseek/deepseek-v4.1-flash-20260910",
+      "total_tokens": "1922115043225"
+    },
+    {
+      "date": "2026-11-22",
+      "model_permaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604:free",
+      "total_tokens": "659705471939"
+    },
+    {
+      "date": "2026-11-22",
+      "model_permaslug": "anthropic/claude-opus-5.5-20260921",
+      "total_tokens": "599432922938"
+    },
+    {
+      "date": "2026-11-22",
+      "model_permaslug": "other",
+      "total_tokens": "1570036642332"
+    }
+  ],
+  "meta": {
+    "as_of": "2026-11-23T02:56:32.003Z",
+    "version": "v1",
+    "start_date": "2026-10-24",
+    "end_date": "2026-11-22"
+  }
+}

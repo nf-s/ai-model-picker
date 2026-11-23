@@ -50,6 +50,17 @@ export const attributions: Attribution[] = [
       'Selected leaderboards from the latest split. Models matched to this site’s model list by exact name, with the effort setting and harness read from the name; ratings rounded.',
   },
   {
+    source: 'OpenRouter',
+    material:
+      'Usage from the OpenRouter Data API: 30-day token shares per model and 7-day task tags with their top models',
+    url: 'https://openrouter.ai/rankings',
+    licence: ccBy,
+    credit:
+      'Source: OpenRouter (openrouter.ai/rankings), as of 2026-11-23T02:56:32.003Z. Licensed under CC BY 4.0.',
+    changes:
+      'Routes matched to this site’s model list by exact name, a free route counted with its model; token totals summed over the period. Usage only: it orders nothing.',
+  },
+  {
     source: 'SWE-rebench Team',
     material: 'SWE-rebench leaderboard results, 15 May–1 July 2026',
     url: 'https://huggingface.co/datasets/nebius/SWE-rebench-leaderboard',

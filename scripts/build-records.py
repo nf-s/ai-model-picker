@@ -2,14 +2,16 @@
 
 Reads, and never writes: src/lib/snapshot.json (models, benchmark results and published
 reports), research/lmarena.json and research/epoch-runs.json (imported arena ratings and
-Epoch runs), research/app-model-choices.json (App guide tasks), research/jobs.json (jobs,
+Epoch runs), research/openrouter-usage.json (OpenRouter usage), research/app-model-choices.json (App guide tasks), research/jobs.json (jobs,
 crosswalk, keyword rules) and Hacker News, from the local checkpoint when there is one,
 else from the published export in dist/. Restricted benchmarks are not read.
 
 Writes one ignored file, build/records/core.json by default: models, product lines, jobs,
 benchmarks, measured records, Hacker News counts per target, job and month, stated
-preferences and the coverage table. A job id the job file does not list, or a source label
-it does not map, stops the build with the records concerned.
+preferences, the coverage table and OpenRouter usage. Usage is not a record: it sits in its
+own block and never enters the measured records, the coverage counts or any ordering. A job
+id the job file does not list, or a source label it does not map, stops the build with the
+records concerned.
 
 Usage: python3 scripts/build-records.py [--hn-root DIR] [--hn-source auto|checkpoint|export]
                                         [--jobs FILE] [--out FILE]
@@ -45,8 +47,10 @@ CROSSWALK_SOURCES = (
 )
 # The sources this build loads. A label missing from a strict table stops the build;
 # Hacker News themes are optional, so a theme without an entry gives no job.
-LOADED_CROSSWALKS = ('hn-task', 'hn-theme', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run')
-STRICT_CROSSWALKS = ('hn-task', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run')
+LOADED_CROSSWALKS = (
+    'hn-task', 'hn-theme', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run', 'openrouter-tag',
+)
+STRICT_CROSSWALKS = ('hn-task', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run', 'openrouter-tag')
 IMPORTED = {'lmarena': ROOT / 'research/lmarena.json', 'epoch': ROOT / 'research/epoch-runs.json'}
 IMPORT_FIELDS = {
     'lmarena': ({'source', 'fetchedAt', 'checkedAt', 'leaderboards', 'results'}, 'leaderboards', 'leaderboard'),
@@ -61,6 +65,15 @@ RESULT_FIELDS = {
     'epoch': {'file', 'model', 'modelId', 'effort', 'score', 'mean', 'stderr', 'date', 'log', 'run'},
 }
 AGENT_FIELDS = {'sessions', 'costPerTask'}
+USAGE = ROOT / 'research/openrouter-usage.json'
+USAGE_FIELDS = {'source', 'fetchedAt', 'checkedAt', 'tokens30d', 'tasks7d'}
+USAGE_BLOCK_FIELDS = {'endpoint', 'meta', 'asOf', 'period', 'attribution', 'what'}
+USAGE_TOKEN_FIELDS = USAGE_BLOCK_FIELDS | {'totalTokens', 'rows', 'models'}
+USAGE_TASK_FIELDS = USAGE_BLOCK_FIELDS | {'tags'}
+USAGE_MODEL_FIELDS = {'modelId', 'routes', 'tokens', 'share', 'daysInTop50'}
+USAGE_TAG_FIELDS = {'tag', 'label', 'macroCategory', 'share', 'tokenShare', 'top'}
+USAGE_TOP_FIELDS = {'route', 'modelId', 'share', 'tokenShare'}
+USAGE_CITATION = 'Source: OpenRouter (openrouter.ai/rankings), as of {}. Licensed under CC BY 4.0.'
 METHODOLOGY = {
     'lmarena': 'Bradley-Terry rating from pairwise votes between anonymous models on visitors\' own prompts, '
                'latest published leaderboard; compares models on the same leaderboard and date only.',
@@ -550,6 +563,112 @@ def epoch_records(data, records, names):
     return out
 
 
+# ---- OpenRouter usage ------------------------------------------------------------------
+
+
+def share(value):
+    return number(value) and 0 <= value <= 1
+
+
+def check_usage(data, model_ids, jobs):
+    """Raise BuildError unless `data` is a reviewed OpenRouter usage file whose models are all in the
+    snapshot and whose task tags are all in the openrouter-tag crosswalk."""
+    name = USAGE.name
+    need(type(data) is dict and set(data) == USAGE_FIELDS, f'{name}: fields differ from {sorted(USAGE_FIELDS)}')
+    need(type(data['source']) is dict and is_text(data['source'].get('attribution')), f'{name}: no attribution line')
+    need(is_date(data['fetchedAt']), f'{name}: fetchedAt is not a date')
+    need(is_date(data['checkedAt']), f'{name}: checkedAt is not set; review the import and set it (docs/updating.md)')
+    blocks = (('tokens30d', USAGE_TOKEN_FIELDS), ('tasks7d', USAGE_TASK_FIELDS))
+    for key, fields in blocks:
+        block = data[key]
+        need(type(block) is dict and set(block) == fields, f'{name}: {key} fields differ from {sorted(fields)}')
+        need(type(block['meta']) is dict and block['meta'].get('as_of') == block['asOf'], f'{name}: {key} has no meta block with its as_of')
+        need(block['attribution'] == USAGE_CITATION.format(block['asOf']), f'{name}: {key} attribution does not cite its as_of')
+        period = block['period']
+        need(type(period) is dict and set(period) == {'start', 'end'} and is_date(period['start']) and is_date(period['end'])
+             and period['start'] <= period['end'], f'{name}: {key} period is not two dates')
+    need(data['source']['attribution'] == data['tokens30d']['attribution'], f'{name}: source attribution differs from tokens30d')
+    tokens = data['tokens30d']
+    need(type(tokens['totalTokens']) is int and tokens['totalTokens'] > 0, f'{name}: totalTokens is not a count')
+    need(type(tokens['models']) is list, f'{name}: tokens30d models is not a list')
+    seen = set()
+    for model in tokens['models']:
+        need(type(model) is dict and set(model) == USAGE_MODEL_FIELDS, f'{name}: a tokens30d model has other fields')
+        where = f'{name}: tokens30d {model["modelId"]}'
+        need(is_text(model['modelId']) and model['modelId'] in model_ids, f'{where}: model is not in the snapshot')
+        need(model['modelId'] not in seen, f'{where}: listed twice')
+        seen.add(model['modelId'])
+        need(type(model['tokens']) is int and 0 < model['tokens'] <= tokens['totalTokens'] and share(model['share']),
+             f'{where}: tokens or share out of range')
+        need(type(model['daysInTop50']) is int and model['daysInTop50'] >= 1, f'{where}: daysInTop50 is not a count')
+        need(type(model['routes']) is list and model['routes'] and all(is_text(r) and r for r in model['routes']), f'{where}: no routes')
+    tags = data['tasks7d']['tags']
+    need(type(tags) is list and tags, f'{name}: tasks7d has no tags')
+    unmapped = []
+    for tag in tags:
+        need(type(tag) is dict and set(tag) == USAGE_TAG_FIELDS, f'{name}: a task tag has other fields')
+        where = f'{name}: tasks7d {tag["tag"]}'
+        need(is_text(tag['tag']) and is_text(tag['label']) and tag['label'], f'{where}: no tag or label')
+        need(share(tag['share']) and share(tag['tokenShare']), f'{where}: share out of range')
+        label = jobs.label('openrouter-tag', tag['tag'])
+        if label is None:
+            unmapped.append(tag['tag'])
+        else:
+            need(jobs.resolve(label) is not None, f'{where}: {label} is neither a job nor replaced')
+        need(type(tag['top']) is list, f'{where}: top is not a list')
+        for top in tag['top']:
+            need(type(top) is dict and set(top) == USAGE_TOP_FIELDS, f'{where}: a top model has other fields')
+            need(is_text(top['route']) and top['route'], f'{where}: a top model has no route')
+            need(is_text(top['modelId']) and (top['modelId'] == '' or top['modelId'] in model_ids),
+                 f'{where}: {top["modelId"]} is not in the snapshot')
+            need(share(top['share']) and share(top['tokenShare']), f'{where}: {top["route"]} share out of range')
+    need(not unmapped, 'OpenRouter task tags are not in the openrouter-tag crosswalk: ' + ', '.join(unmapped))
+
+
+def tag_job(jobs, tag):
+    """The current job an OpenRouter task tag maps to, through `replaces`; '' for none."""
+    resolved = jobs.resolve(jobs.label('openrouter-tag', tag))
+    return resolved[0] if resolved else ''
+
+
+def usage_block(data, jobs):
+    """OpenRouter usage as core.json carries it, apart from the records: per model its 30-day share,
+    per task tag its share, job and top models, each block with its as_of, period, meta and citation."""
+    tokens, tasks = data['tokens30d'], data['tasks7d']
+    period = {key: {'asOf': data[key]['asOf'], 'period': data[key]['period'], 'meta': data[key]['meta'],
+                    'attribution': data[key]['attribution'], 'what': data[key]['what']}
+              for key in ('tokens30d', 'tasks7d')}
+    return {
+        'source': 'openrouter',
+        'url': data['source']['url'],
+        'licence': data['source']['licence'],
+        'terms': data['source']['terms'],
+        'fetchedAt': data['fetchedAt'],
+        'checkedAt': data['checkedAt'],
+        'note': 'Usage, not quality: volume follows price, free routes and app defaults. It orders nothing.',
+        'tokens': {
+            **period['tokens30d'],
+            'models': [
+                {'modelId': model['modelId'], 'share': model['share'], 'tokens': model['tokens'], 'days': model['daysInTop50']}
+                for model in tokens['models']
+            ],
+        },
+        'tasks': {
+            **period['tasks7d'],
+            'tags': [
+                {
+                    'tag': tag['tag'],
+                    'label': tag['label'],
+                    'job': tag_job(jobs, tag['tag']),
+                    'share': tag['share'],
+                    'top': [{'modelId': top['modelId'], 'route': top['route'], 'share': top['share']} for top in tag['top']],
+                }
+                for tag in tasks['tags']
+            ],
+        },
+    }
+
+
 # ---- Hacker News -----------------------------------------------------------------------
 
 
@@ -654,9 +773,10 @@ def crowd(hn, records, model_ids):
 # ---- Core ------------------------------------------------------------------------------
 
 
-def build_core(snapshot, guide, job_data, hn, imported):
+def build_core(snapshot, guide, job_data, hn, imported, usage=None):
     """Return (core, records) for the given inputs, or raise BuildError. `imported` holds the
-    reviewed LMArena and Epoch files by kind (see IMPORTED)."""
+    reviewed LMArena and Epoch files by kind (see IMPORTED); `usage` is the reviewed OpenRouter
+    usage file, which adds the usage block and changes nothing else."""
     model_ids = {model['id'] for model in snapshot['models']}
     names = {model['id']: model['name'] for model in snapshot['models']}
     for kind in IMPORTED:
@@ -666,6 +786,8 @@ def build_core(snapshot, guide, job_data, hn, imported):
     need(not benchmark_ids & set(imported_ids), 'An imported benchmark id is also in the snapshot: '
          + ', '.join(sorted(benchmark_ids & set(imported_ids))))
     jobs = Jobs(job_data, benchmark_ids | set(imported_ids), {task['id'] for task in guide['tasks']})
+    if usage is not None:
+        check_usage(usage, model_ids, jobs)
     records = Records(jobs)
     measured = (
         measured_records(snapshot, records)
@@ -749,6 +871,7 @@ def build_core(snapshot, guide, job_data, hn, imported):
         'crowd': {'stances': list(STANCES), 'counts': counts},
         'preferences': preferences,
         'coverage': {'sources': list(sources), 'rows': rows},
+        'usage': None if usage is None else usage_block(usage, jobs),
     }
     return core, measured + hn_rows
 
@@ -770,7 +893,7 @@ def coverage_table(core):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description='Build core.json from the snapshot, the reports, LMArena, Epoch runs and Hacker News.')
+        description='Build core.json from the snapshot, the reports, LMArena, Epoch runs, OpenRouter usage and Hacker News.')
     parser.add_argument('--hn-root', type=Path, default=ROOT, help='checkout whose .local/hn or dist/ holds Hacker News')
     parser.add_argument('--hn-source', choices=('auto', 'checkpoint', 'export'), default='auto')
     parser.add_argument('--jobs', type=Path, default=ROOT / 'research/jobs.json')
@@ -782,8 +905,9 @@ def main(argv=None):
         guide = read_json(ROOT / 'research/app-model-choices.json')
         job_data = read_json(args.jobs)
         imported = {kind: read_json(path) for kind, path in IMPORTED.items()}
+        usage = read_json(USAGE)
         hn = read_hn(args.hn_root, args.hn_source)
-        core, _ = build_core(snapshot, guide, job_data, hn, imported)
+        core, _ = build_core(snapshot, guide, job_data, hn, imported, usage)
         size, packed = write_json(args.out, core)
     except BuildError as error:
         raise SystemExit(str(error)) from None
@@ -791,6 +915,12 @@ def main(argv=None):
     for kind, label in (('lmarena', 'LMArena'), ('epoch', 'Epoch runs')):
         source = core['sources'][kind]
         print(f'{label}: {source["records"]:,} records, fetched {source["fetchedAt"]}, checked {source["checkedAt"]}.')
+    usage = core['usage']
+    print(
+        f'OpenRouter usage (orders nothing): {len(usage["tokens"]["models"]):,} models with 30-day tokens as of '
+        f'{usage["tokens"]["asOf"]}, {len(usage["tasks"]["tags"]):,} task tags as of {usage["tasks"]["asOf"]}, '
+        f'checked {usage["checkedAt"]}.'
+    )
     print(
         f'Hacker News from the {core["sources"]["hn"]["from"]}: {core["sources"]["hn"]["comments"]:,} comments. '
         f'Wrote {args.out}: {size:,} bytes, {packed:,} gzipped.'

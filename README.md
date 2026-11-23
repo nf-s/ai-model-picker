@@ -98,6 +98,7 @@ npm run format:check
 - `.local/restricted/` (not in Git): benchmarks that cannot be republished. Without it the app shows public data only; `npm run data:build` and the Pages deploy need it.
 - `src/lib/attribution.ts`: source licences and credits.
 - `scripts/import_lmarena.py`, `scripts/import_epoch.py`, `research/lmarena.json`, `research/epoch-runs.json`, `research/aliases/`: imported LMArena ratings and Epoch runs, and the exact model names each maps to a model id.
+- `scripts/import_openrouter.py`, `research/openrouter-usage.json`: imported OpenRouter usage, which orders nothing.
 - `src/components/parts.tsx`: shared sentiment bars, weekly chart and comment stream.
 - `src/components/comment-views/`, `src/lib/hn-threads.ts`: the Discussion comment section, which lists comments under their stories and nests them by reply, with its thread loader.
 - `src/lib/site-data.ts`: benchmark standings joined to HN aggregates.
@@ -126,6 +127,7 @@ Original code and documentation are dedicated to the public domain under [CC0 1.
 | [Epoch AI](https://epoch.ai/eci)                                                 | Epoch Capabilities Index scores                                              | CC BY 4.0                                                     |
 | [Epoch AI](https://epoch.ai/benchmarks/use-this-data)                            | Results of Epoch's own benchmark runs (not the external results it copies)   | CC BY 4.0                                                     |
 | [LMArena](https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset)        | Arena leaderboard dataset: ratings, confidence bounds, vote counts and ranks | CC BY 4.0                                                     |
+| [OpenRouter](https://openrouter.ai/rankings)                                     | Usage from the Data API: 30-day token shares and 7-day task tags             | CC BY 4.0; not to be re-served as a competing API             |
 | [SWE-rebench](https://huggingface.co/datasets/nebius/SWE-rebench-leaderboard)    | Leaderboard results (Badertdinov et al., 2025, arXiv:2505.20411)             | CC BY 4.0                                                     |
 | [TokenSave](https://tokensave.app/data/claude-effort-cost)                       | Effort, cost and coding experiment datasets                                  | CC BY 4.0                                                     |
 | [Terminal-Bench](https://www.tbench.ai/)                                         | Leaderboard runs                                                             | Apache-2.0 (benchmark code)                                   |

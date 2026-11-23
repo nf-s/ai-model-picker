@@ -334,6 +334,127 @@
           "job": "coding"
         }
       ]
+    },
+    "openrouter-tag": {
+      "version": 1,
+      "labels": [
+        {
+          "label": "code:general_impl",
+          "job": "coding"
+        },
+        {
+          "label": "code:debugging",
+          "job": "bug-fix"
+        },
+        {
+          "label": "code:review_security",
+          "job": "review"
+        },
+        {
+          "label": "code:frontend_ui",
+          "job": "interface"
+        },
+        {
+          "label": "code:repo_scan",
+          "job": "coding"
+        },
+        {
+          "label": "code:file_read_write",
+          "job": "coding"
+        },
+        {
+          "label": "code:shell_execution",
+          "job": "coding"
+        },
+        {
+          "label": "code:sql_database",
+          "job": "coding"
+        },
+        {
+          "label": "code:devops_config",
+          "job": "coding"
+        },
+        {
+          "label": "devops",
+          "job": "coding"
+        },
+        {
+          "label": "agent:workflow_execution",
+          "job": "agents"
+        },
+        {
+          "label": "agent:tool_dispatch",
+          "job": "agents"
+        },
+        {
+          "label": "agent:multi_step_planning",
+          "job": "planning"
+        },
+        {
+          "label": "agent:memory_extraction",
+          "job": "extraction"
+        },
+        {
+          "label": "agent:web_search",
+          "job": "research"
+        },
+        {
+          "label": "research_report",
+          "job": "research"
+        },
+        {
+          "label": "data:extraction",
+          "job": "extraction"
+        },
+        {
+          "label": "classification_tagging",
+          "job": "extraction"
+        },
+        {
+          "label": "data:transformation",
+          "job": "extraction"
+        },
+        {
+          "label": "content_writing",
+          "job": "writing"
+        },
+        {
+          "label": "translation",
+          "job": "writing"
+        },
+        {
+          "label": "summarization",
+          "job": "analysis"
+        },
+        {
+          "label": "finance_trading",
+          "job": "analysis"
+        },
+        {
+          "label": "qa_knowledge",
+          "job": "chat"
+        },
+        {
+          "label": "conversational_reply",
+          "job": "chat"
+        },
+        {
+          "label": "customer_support",
+          "job": "chat"
+        },
+        {
+          "label": "math",
+          "job": "reasoning"
+        },
+        {
+          "label": "security_audit",
+          "job": "review"
+        },
+        {
+          "label": "roleplay_fiction",
+          "job": null
+        }
+      ]
     }
   },
   "keywords": {
