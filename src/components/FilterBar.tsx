@@ -7,7 +7,6 @@ import {
   sourceClasses,
 } from '../lib/model-filter';
 import type { FilterBar as Filters, SourceClass } from '../lib/model-filter';
-import { routeHref } from '../lib/route';
 import ModelFilterControl from './ModelFilter';
 import './filter-bar.css';
 
@@ -26,21 +25,24 @@ export const formatDay = (day: string) =>
   dayFormat.format(new Date(`${day}T00:00:00Z`));
 
 // One bar for every filter. The job is in the address; the rest is kept in
-// this browser. Period, sources and current models apply to Brief; the other
-// views use the model selection.
+// this browser. Period, sources and current models apply to Brief, Model and
+// Switch; the other views use the model selection.
 export default function FilterBar({
   filter,
   onChange,
   jobs,
   job,
-  brief,
+  jobHref,
+  full,
   end,
 }: {
   filter: Filters;
   onChange: (next: Filters) => void;
   jobs: readonly CoreJob[] | null;
   job: string | null;
-  brief: boolean;
+  // Where choosing a job leads: the same view for that job, or its brief.
+  jobHref: (job: string | null) => string;
+  full: boolean;
   // The last day of the collected evidence; periods count back from it.
   end: string | null;
 }) {
@@ -61,10 +63,7 @@ export default function FilterBar({
           value={job ?? ''}
           disabled={jobs === null}
           onChange={(event) => {
-            window.location.hash = routeHref({
-              view: 'brief',
-              job: event.target.value || null,
-            });
+            window.location.hash = jobHref(event.target.value || null);
           }}
         >
           <option value="">All jobs</option>
@@ -92,7 +91,7 @@ export default function FilterBar({
           onChange={(next) => onChange({ ...filter, ...next })}
         />
       </div>
-      {brief && (
+      {full && (
         <>
           <label className="rd-fb-group">
             <span className="rd-fb-label">Period</span>
@@ -159,7 +158,7 @@ export default function FilterBar({
           Reset filters
         </button>
       )}
-      {brief && since && (
+      {full && since && (
         <p className="rd-note rd-fb-period">
           From {formatDay(since)}. Hacker News counts are monthly and start{' '}
           {formatDay(monthStart(since))}.

@@ -9,7 +9,7 @@ import {
   restrictedEvidence,
   results,
 } from '../lib/data';
-import { routeHref } from '../lib/route';
+import { modelHref } from '../lib/route';
 import { adviceForTask } from '../lib/practitioner';
 import {
   benchmarkLabel,
@@ -72,9 +72,7 @@ function ModelLink({ choice, hn }: { choice: AppChoice; hn: HnData }) {
   const total = insightFor(hn, modelKey(modelId))?.total;
   return (
     <span className="rd-ag-model">
-      <a href={routeHref({ view: 'model', key: modelKey(modelId) })}>
-        {model?.name ?? modelId}
-      </a>
+      <a href={modelHref(modelId)}>{model?.name ?? modelId}</a>
       {hn.status === 'ready' && total ? (
         <span className="rd-muted">
           {' '}

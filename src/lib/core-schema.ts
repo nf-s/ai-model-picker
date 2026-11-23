@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { hnThemeSchema } from './hn-published.ts';
 import { recordSchema, stances } from './records.ts';
 
 // build/records/core.json as `npm run records:build` writes it. The app reads
@@ -138,6 +139,14 @@ export const coreSchema = z
       counts: z.record(
         targetKey,
         z.record(z.union([z.literal(''), jobId]), z.record(month, tally)),
+      ),
+      // The same counts for each theme of a label, toward that label's target.
+      themes: z.record(
+        targetKey,
+        z.record(
+          z.union([z.literal(''), jobId]),
+          z.record(month, z.partialRecord(hnThemeSchema, tally)),
+        ),
       ),
       comments: z.record(
         z.union([z.literal(''), jobId]),

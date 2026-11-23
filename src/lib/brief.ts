@@ -5,6 +5,8 @@ import type {
   CoreUsage,
   Preference,
 } from './core-schema.ts';
+import { hnThemeSchema } from './hn-published.ts';
+import type { HnTheme } from './hn-index.ts';
 import type { SourceClass } from './model-filter.ts';
 import type { EvidenceRecord, JsonValue } from './records.ts';
 import type {
@@ -22,7 +24,8 @@ export const minimums = {
   preferences: 5,
   // Clearly positive or critical Hacker News labels for a positive share.
   clearLabels: 10,
-  // Models a job's own benchmark must cover before the general index is not used.
+  // Models a job's own benchmark must cover before the general index is not
+  // used, and before a sub-job orders by its own benchmark, not its parent's.
   models: 3,
 } as const;
 // Lower cost: at most this share of the first choice's cost ...
@@ -307,6 +310,25 @@ export function prepareBrief(
   };
 }
 
+// The filter bar's period, sources and current-models setting as the rules
+// read them.
+export function briefFilters(
+  data: BriefData,
+  bar: {
+    period: number;
+    current: boolean;
+    classes: readonly SourceClass[];
+  },
+  inScope: (modelId: string) => boolean,
+): BriefFilters {
+  return {
+    inScope,
+    current: bar.current,
+    since: periodStart(data.end, bar.period),
+    classes: bar.classes,
+  };
+}
+
 export function findJob(data: BriefData, id: string | null) {
   return id === null ? null : (data.jobById.get(id) ?? null);
 }
@@ -325,8 +347,10 @@ export function monthStart(since: string) {
   return since ? `${since.slice(0, 7)}-01` : '';
 }
 
-// A job and its sub-jobs.
-export function jobSet(data: BriefData, id: string) {
+// A job and its sub-jobs; for null (all jobs), every job and records with
+// no job.
+export function jobSet(data: BriefData, id: string | null) {
+  if (id === null) return new Set(['', ...data.jobs.map((job) => job.id)]);
   return new Set([
     id,
     ...data.jobs.filter((job) => job.parent === id).map((job) => job.id),
@@ -354,9 +378,9 @@ export function benchmarksFor(data: BriefData, id: string) {
 export function recordInJob(
   data: BriefData,
   record: EvidenceRecord,
-  jobId: string,
+  jobId: string | null,
 ) {
-  if (jobSet(data, jobId).has(record.job)) return true;
+  if (jobId === null || jobSet(data, jobId).has(record.job)) return true;
   const benchmark = recordBenchmark(record);
   return benchmark !== '' && benchmarksFor(data, jobId).ids.includes(benchmark);
 }
@@ -373,7 +397,7 @@ function exactModels(record: EvidenceRecord) {
 export function measuredPasses(
   data: BriefData,
   record: EvidenceRecord,
-  jobId: string,
+  jobId: string | null,
   filters: BriefFilters,
   anyModel = false,
 ) {
@@ -401,7 +425,7 @@ export function inPool(model: CoreModel, filters: BriefFilters) {
 export function crowdTally(
   data: BriefData,
   key: string,
-  jobId: string,
+  jobId: string | null,
   since: string,
 ): Tally {
   const tally: Tally = [0, 0, 0, 0];
@@ -427,7 +451,7 @@ export function positiveShare(tally: Tally) {
 export function preferencesFor(
   data: BriefData,
   key: string,
-  jobId: string,
+  jobId: string | null,
   since: string,
 ): Preference[] {
   const jobs = jobSet(data, jobId);
@@ -440,8 +464,40 @@ export function preferencesFor(
   );
 }
 
-// The comments behind a crowd count: item ids of the job and its sub-jobs.
-export function crowdCommentIds(data: BriefData, jobId: string) {
+// Theme tallies toward one target, most labels first. A theme belongs to one
+// label, so a comment counts toward the themes of each target it names.
+export function themeTallies(
+  data: BriefData,
+  key: string,
+  jobId: string | null,
+  since: string,
+) {
+  const byTheme = new Map<HnTheme, Tally>();
+  const byJob = data.core.crowd.themes[key];
+  if (!byJob) return [];
+  const from = monthStart(since).slice(0, 7);
+  for (const job of jobSet(data, jobId))
+    for (const [month, themes] of Object.entries(byJob[job] ?? {}))
+      if (month >= from)
+        for (const theme of hnThemeSchema.options) {
+          const counts = themes[theme];
+          if (!counts) continue;
+          const tally = byTheme.get(theme) ?? [0, 0, 0, 0];
+          for (const i of [0, 1, 2, 3] as const) tally[i] += counts[i];
+          byTheme.set(theme, tally);
+        }
+  return [...byTheme]
+    .map(([theme, tally]) => ({ theme, tally }))
+    .sort((a, b) => tallyTotal(b.tally) - tallyTotal(a.tally));
+}
+
+// The comments behind a crowd count: item ids of the job and its sub-jobs, or
+// null for all jobs, which is every comment.
+export function crowdCommentIds(
+  data: BriefData,
+  jobId: string | null,
+): ReadonlySet<number> | null {
+  if (jobId === null) return null;
   const ids = new Set<number>();
   for (const job of jobSet(data, jobId))
     for (const id of data.core.crowd.comments[job] ?? []) ids.add(id);
@@ -552,12 +608,15 @@ function crowdValue(
   };
 }
 
+const benchmarkSignals = (data: BriefData, ids: readonly string[]) =>
+  ids.flatMap((id): Signal[] => {
+    const benchmark = data.benchmarkById.get(id);
+    return benchmark ? [{ kind: 'benchmark', benchmark }] : [];
+  });
+
 export function signalsFor(data: BriefData, jobId: string): Signal[] {
   return [
-    ...benchmarksFor(data, jobId).ids.flatMap((id): Signal[] => {
-      const benchmark = data.benchmarkById.get(id);
-      return benchmark ? [{ kind: 'benchmark', benchmark }] : [];
-    }),
+    ...benchmarkSignals(data, benchmarksFor(data, jobId).ids),
     { kind: 'preferences' },
     { kind: 'crowd' },
   ];
@@ -681,6 +740,15 @@ export type Brief = {
   pool: number;
   hasBenchmarks: boolean;
   from: string | null;
+  // A sub-job whose own benchmarks cover fewer than three models within the
+  // filters is ordered by its parent's; its own stay in the table.
+  borrowed: Borrowed | null;
+};
+export type Borrowed = {
+  parent: CoreJob;
+  own: Benchmark[];
+  // The most models one of its own benchmarks covers within the filters.
+  covered: number;
 };
 
 function competitionRanks(values: readonly (SignalValue | null)[]) {
@@ -690,13 +758,12 @@ function competitionRanks(values: readonly (SignalValue | null)[]) {
   );
 }
 
-export function computeBrief(
+function evaluate(
   data: BriefData,
   job: CoreJob,
   filters: BriefFilters,
-  within: WithinOverlap = 'preferences',
-): Brief {
-  const signals = signalsFor(data, job.id);
+  signals: Signal[],
+) {
   const all = data.models.map((model, index) => ({
     model,
     index,
@@ -704,17 +771,81 @@ export function computeBrief(
       signalValue(data, signal, model.id, job.id, filters.since),
     ),
   }));
+  const pool = all.filter((entry) => inPool(entry.model, filters));
+  const covered = signals.map(
+    (_, i) => pool.filter((entry) => entry.values[i]).length,
+  );
+  return { signals, all, pool, covered, basis: chooseOrder(signals, covered) };
+}
+
+// A sub-job whose own benchmarks cover fewer than three models within the
+// filters takes its parent's benchmarks as further columns, and the order
+// comes from those when one covers three; otherwise its own still orders.
+function borrowParent(
+  data: BriefData,
+  job: CoreJob,
+  filters: BriefFilters,
+  own: ReturnType<typeof evaluate>,
+) {
+  const { ids, from } = benchmarksFor(data, job.id);
+  const parent =
+    job.parent === undefined ? undefined : data.jobById.get(job.parent);
+  if (!parent || from !== null || ids.length === 0) return null;
+  const ownCovered = Math.max(
+    0,
+    ...own.signals.map((signal, i) =>
+      signal.kind === 'benchmark' && !signal.benchmark.general
+        ? (own.covered[i] ?? 0)
+        : 0,
+    ),
+  );
+  if (ownCovered >= minimums.models) return null;
+  const added = benchmarksFor(data, parent.id).ids.filter(
+    (id) => !ids.includes(id),
+  );
+  const signals = [
+    ...benchmarkSignals(data, [...ids, ...added]),
+    { kind: 'preferences' } satisfies Signal,
+    { kind: 'crowd' } satisfies Signal,
+  ];
+  const combined = evaluate(data, job, filters, signals);
+  // Only the parent's benchmarks may set the order.
+  const basis = chooseOrder(
+    signals,
+    combined.covered.map((count, i) => {
+      const signal = signals[i];
+      return signal?.kind === 'benchmark' && added.includes(signal.benchmark.id)
+        ? count
+        : 0;
+    }),
+  );
+  if (basis.kind !== 'benchmark' || basis.covered < minimums.models)
+    return null;
+  return {
+    evaluated: { ...combined, basis },
+    borrowed: {
+      parent,
+      own: ids.flatMap((id) => data.benchmarkById.get(id) ?? []),
+      covered: ownCovered,
+    },
+  };
+}
+
+export function computeBrief(
+  data: BriefData,
+  job: CoreJob,
+  filters: BriefFilters,
+  within: WithinOverlap = 'preferences',
+): Brief {
+  const own = evaluate(data, job, filters, signalsFor(data, job.id));
+  const fallback = borrowParent(data, job, filters, own);
+  const { signals, all, pool, covered, basis } = fallback?.evaluated ?? own;
   const ranks = signals.map((_, i) =>
     competitionRanks(all.map((entry) => entry.values[i] ?? null)),
   );
   const field = signals.map(
     (_, i) => all.filter((entry) => entry.values[i]).length,
   );
-  const pool = all.filter((entry) => inPool(entry.model, filters));
-  const covered = signals.map(
-    (_, i) => pool.filter((entry) => entry.values[i]).length,
-  );
-  const basis = chooseOrder(signals, covered);
   const { ids, from } = benchmarksFor(data, job.id);
   const base = {
     job,
@@ -726,6 +857,7 @@ export function computeBrief(
     pool: pool.length,
     hasBenchmarks: ids.length > 0,
     from,
+    borrowed: fallback?.borrowed ?? null,
   };
   if (basis.kind === 'none')
     return {
@@ -827,6 +959,11 @@ export function computeBrief(
 // What the note above the cards says besides naming the benchmark.
 export function orderExplanation(data: BriefData, brief: Brief) {
   const job = brief.job.label.toLowerCase();
+  const borrowed = brief.borrowed;
+  if (borrowed) {
+    const names = borrowed.own.map((entry) => entry.name).join(', ');
+    return `${names}, the benchmark of ${job} itself, has results for only ${plural(borrowed.covered, 'model')} within the filters, so the order comes from the benchmark of ${borrowed.parent.label.toLowerCase()}. ${names} stays in the table and in the Measured band.`;
+  }
   const parent = brief.from ? data.jobById.get(brief.from) : undefined;
   const parentText = parent
     ? `No benchmark measures ${job} itself; this is the benchmark of ${parent.label.toLowerCase()} with the most models in the filters.`
@@ -909,7 +1046,7 @@ export function chooserRows(data: BriefData, filters: BriefFilters) {
 export function measuredBand(
   data: BriefData,
   modelId: string,
-  jobId: string,
+  jobId: string | null,
   filters: BriefFilters,
 ) {
   const records = (data.measuredByModel.get(modelId) ?? []).filter((record) =>
@@ -928,22 +1065,24 @@ export function measuredBand(
   };
 }
 
+// The Crowd band for a model (`model|<id>`) or a product line
+// (`line|<name>`). A model's band lists the labels that name only one of its
+// lines apart; they are never added to the model's own counts.
 export function crowdBand(
   data: BriefData,
-  modelId: string,
-  jobId: string,
+  key: string,
+  jobId: string | null,
   since: string,
 ) {
-  const key = modelKey(modelId);
   const preferences = preferencesFor(data, key, jobId, since);
+  const modelId = key.startsWith('model|') ? key.slice(6) : null;
   return {
     key,
     tally: crowdTally(data, key, jobId, since),
     preferences,
     wins: preferences.filter((preference) => preference.winner === key),
-    // Labels that name only a product line stay under the line.
     lines: data.core.lines
-      .filter((line) => line.models.includes(modelId))
+      .filter((line) => modelId !== null && line.models.includes(modelId))
       .map((line) => ({
         name: line.name,
         key: lineKey(line.name),

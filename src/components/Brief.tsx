@@ -1,114 +1,58 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Access } from '../lib/access';
 import {
   benchmarkKind,
+  briefFilters,
   chooserRows,
   computeBrief,
   costUnit,
-  crowdBand,
   crowdCommentIds,
   findJob,
   guideSelections,
   lowerCostMissing,
-  measuredBand,
-  monthStart,
   orderExplanation,
   orderRules,
-  periodStart,
   plural,
-  positiveShare,
-  prepareBrief,
-  recordBenchmark,
-  recordConfig,
-  recordCost,
-  recordInterval,
-  recordScore,
-  scoreText,
   signalLabel,
-  tallyTotal,
   usageForJob,
 } from '../lib/brief';
 import type {
   Benchmark,
   Brief as BriefResult,
   BriefData,
-  BriefFilters,
   BriefRow,
   Signal,
   SignalValue,
-  Tally,
   WithinOverlap,
 } from '../lib/brief';
+import { useBriefData } from '../lib/core-client';
 import type { CoreData } from '../lib/core-client';
 import type { CoreJob, CoreModel, CoreUsage } from '../lib/core-schema';
-import { restrictedData } from '../lib/data';
 import { guide } from '../lib/guide';
-import type { Tally as HnTally } from '../lib/hn-insights';
 import { dollars } from '../lib/metrics';
 import type { FilterBar, Scope } from '../lib/model-filter';
-import type { EvidenceRecord } from '../lib/records';
-import { routeHref } from '../lib/route';
-import { benchmarkById as pageBenchmarks, percent } from '../lib/site-data';
+import { modelHref, routeHref } from '../lib/route';
+import Bands, {
+  BenchmarkName,
+  commentSpec,
+  measuredSpec,
+  preferenceIds,
+  RecordsStatus,
+} from './Bands';
+import type { BandContext } from './Bands';
 import { EvidenceButton } from './EvidenceDrawer';
 import type { EvidenceSpec } from './EvidenceDrawer';
 import { formatDay } from './FilterBar';
 import { RankNote } from './ModelFilter';
-import { SentimentBar } from './parts';
 import './brief.css';
 
-type Context = {
-  data: BriefData;
-  filters: BriefFilters;
-  access: Access;
-};
-
-const modelHref = (id: string) =>
-  routeHref({ view: 'model', key: `model:${id}` });
-// Core keys name a line `line|<name>`; the comment index calls it a family.
-const indexKey = (key: string) =>
-  key.startsWith('line|') ? `family:${key.slice(5)}` : key.replace('|', ':');
-
-function hnTally(tally: Tally): HnTally {
-  return {
-    positive: tally[0],
-    negative: tally[1],
-    mixed: tally[2],
-    neutral: tally[3],
-    unclear: 0,
-  };
-}
+type Context = BandContext;
 
 function priceText(model: CoreModel) {
   return model.input === null || model.output === null
     ? 'no verified API price'
     : `${dollars(model.input)} in / ${dollars(model.output)} out per million tokens`;
-}
-
-function measuredSpec(
-  data: BriefData,
-  title: string,
-  records: EvidenceRecord[],
-  note?: string,
-): EvidenceSpec {
-  return { kind: 'measured', title, note, data, records };
-}
-
-function commentSpec(
-  title: string,
-  ids: ReadonlySet<number> | null,
-  target: string | null,
-  since: string,
-  note?: string,
-): EvidenceSpec {
-  return {
-    kind: 'comments',
-    title,
-    note,
-    ids,
-    target,
-    from: monthStart(since),
-  };
 }
 
 // The records behind one value in the table or a card.
@@ -129,9 +73,7 @@ function valueSpec(
   if (signal.kind === 'preferences')
     return commentSpec(
       `${model.name} · stated preferences · ${brief.job.label}`,
-      new Set(
-        value.preferences.map((preference) => Number(preference.id.slice(3))),
-      ),
+      preferenceIds(value.preferences),
       null,
       '',
       'Comments on this job that say one named model is better than another, where this model is one of the two. Labels are automatic.',
@@ -160,43 +102,9 @@ export default function Brief({
   scope: Scope;
   access: Access;
 }) {
-  const core = coreData.status === 'ready' ? coreData.core : null;
-  const data = useMemo(
-    () =>
-      core
-        ? prepareBrief(
-            core,
-            restrictedData.benchmarks.length > 0 ? restrictedData : null,
-          )
-        : null,
-    [core],
-  );
-  if (coreData.status === 'failed')
-    return (
-      <div className="rd-page">
-        <p className="rd-alert" role="alert">
-          The records could not be loaded.
-          {import.meta.env.DEV && (
-            <>
-              {' '}
-              Run <code>npm run records:build</code> and reload.
-            </>
-          )}
-        </p>
-      </div>
-    );
-  if (!data)
-    return (
-      <div className="rd-page">
-        <p className="rd-note">Loading records…</p>
-      </div>
-    );
-  const filters: BriefFilters = {
-    inScope: scope.model,
-    current: filter.current,
-    since: periodStart(data.end, filter.period),
-    classes: filter.classes,
-  };
+  const data = useBriefData(coreData);
+  if (!data) return <RecordsStatus coreData={coreData} />;
+  const filters = briefFilters(data, filter, scope.model);
   const ctx = { data, filters, access };
   if (job === null) return <JobChooser ctx={ctx} />;
   const found = findJob(data, job);
@@ -379,18 +287,6 @@ function benchmarkSource(data: BriefData, benchmark: Benchmark) {
   return `published results checked ${formatDay(data.core.sources.snapshot)}${dates ? `, run ${dates}` : ', undated'}`;
 }
 
-function BenchmarkName({ benchmark }: { benchmark: Benchmark }) {
-  return pageBenchmarks.has(benchmark.id) ? (
-    <a href={routeHref({ view: 'benchmark', id: benchmark.id })}>
-      {benchmark.name}
-    </a>
-  ) : (
-    <a href={benchmark.url} target="_blank" rel="noopener noreferrer">
-      {benchmark.name}
-    </a>
-  );
-}
-
 function OrderNote({ ctx, brief }: { ctx: Context; brief: BriefResult }) {
   const explanation = orderExplanation(ctx.data, brief);
   const primary = brief.primary;
@@ -529,235 +425,12 @@ function Card({
           {selection.lines.join('; ')}
         </p>
       )}
-      <Bands ctx={ctx} job={brief.job} model={row.model} />
+      <Bands
+        ctx={ctx}
+        job={{ id: brief.job.id, label: brief.job.label }}
+        model={row.model}
+      />
     </section>
-  );
-}
-
-function Bands({
-  ctx,
-  job,
-  model,
-}: {
-  ctx: Context;
-  job: CoreJob;
-  model: CoreModel;
-}) {
-  return (
-    <div className="rd-bands">
-      {ctx.filters.classes.includes('measured') && (
-        <MeasuredBand ctx={ctx} job={job} model={model} />
-      )}
-      <div className="rd-band">
-        <span className="rd-band-chip rd-band-named">Named</span>{' '}
-        <span className="rd-note">
-          Practitioner records need sign-in.
-          {ctx.access.kind === 'anonymous' && (
-            <>
-              {' '}
-              <a href={routeHref({ view: 'account', error: null })}>Sign in</a>
-            </>
-          )}
-        </span>
-      </div>
-      {ctx.filters.classes.includes('crowd') && (
-        <CrowdBand ctx={ctx} job={job} model={model} />
-      )}
-    </div>
-  );
-}
-
-const shownResults = 4;
-
-function MeasuredBand({
-  ctx,
-  job,
-  model,
-}: {
-  ctx: Context;
-  job: CoreJob;
-  model: CoreModel;
-}) {
-  const { results, reports } = measuredBand(
-    ctx.data,
-    model.id,
-    job.id,
-    ctx.filters,
-  );
-  return (
-    <div className="rd-band">
-      <p className="rd-band-head">
-        <span className="rd-band-chip">Measured</span>
-        <span className="rd-note">benchmarks, arena ratings and reports</span>
-      </p>
-      {results.length === 0 ? (
-        <p className="rd-note">No benchmark result in this job.</p>
-      ) : (
-        <ul className="rd-band-list">
-          {results.slice(0, shownResults).map((record) => {
-            const benchmark = ctx.data.benchmarkById.get(
-              recordBenchmark(record),
-            );
-            const score = recordScore(record);
-            const cost = recordCost(record);
-            if (!benchmark || score === null) return null;
-            return (
-              <li key={record.id}>
-                <span className="rd-band-line">
-                  <EvidenceButton
-                    spec={() =>
-                      measuredSpec(
-                        ctx.data,
-                        `${model.name} · ${benchmark.name}`,
-                        [record],
-                      )
-                    }
-                  >
-                    {benchmark.name}
-                  </EvidenceButton>
-                  <strong>{scoreText(score, benchmark)}</strong>
-                </span>
-                <span className="rd-note">
-                  {[
-                    benchmarkKind(benchmark),
-                    recordConfig(record),
-                    recordInterval(record).split(' · ')[0],
-                    record.date || 'undated',
-                    cost === null
-                      ? ''
-                      : `${dollars(cost)} ${costUnit(benchmark.id)}`,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      {(results.length > shownResults || reports.length > 0) && (
-        <p className="rd-note">
-          {results.length > shownResults && (
-            <EvidenceButton
-              spec={() =>
-                measuredSpec(
-                  ctx.data,
-                  `${model.name} · ${job.label} · results`,
-                  results,
-                )
-              }
-            >
-              {`All ${results.length} results`}
-            </EvidenceButton>
-          )}
-          {results.length > shownResults && reports.length > 0 && ' · '}
-          {reports.length > 0 && (
-            <EvidenceButton
-              spec={() =>
-                measuredSpec(
-                  ctx.data,
-                  `${model.name} · ${job.label} · reports`,
-                  reports,
-                )
-              }
-            >
-              {plural(reports.length, 'published report')}
-            </EvidenceButton>
-          )}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function CrowdBand({
-  ctx,
-  job,
-  model,
-}: {
-  ctx: Context;
-  job: CoreJob;
-  model: CoreModel;
-}) {
-  const since = ctx.filters.since;
-  const band = crowdBand(ctx.data, model.id, job.id, since);
-  const total = tallyTotal(band.tally);
-  const share = positiveShare(band.tally);
-  const ids = crowdCommentIds(ctx.data, job.id);
-  const [positive, critical, mixed, neutral] = band.tally;
-  return (
-    <div className="rd-band">
-      <p className="rd-band-head">
-        <span className="rd-band-chip rd-band-crowd">Crowd</span>
-        <span className="rd-note">Hacker News, automatic labels</span>
-      </p>
-      {total > 0 ? (
-        <p className="rd-crowd-row">
-          <EvidenceButton
-            spec={() =>
-              commentSpec(
-                `${model.name} · Hacker News · ${job.label}`,
-                ids,
-                `model:${model.id}`,
-                since,
-                `${positive} positive, ${critical} critical, ${mixed} mixed, ${neutral} neutral labels. Labels are automatic.`,
-              )
-            }
-          >
-            {plural(total, 'label')}
-          </EvidenceButton>
-          <SentimentBar tally={hnTally(band.tally)} />
-          <span className="rd-note">
-            {share === null
-              ? 'fewer than 10 clear labels'
-              : `${percent(share)} positive of clear`}
-          </span>
-        </p>
-      ) : (
-        <p className="rd-note">
-          No comment names this exact model in this job.
-        </p>
-      )}
-      {band.preferences.length > 0 && (
-        <p>
-          <EvidenceButton
-            spec={() =>
-              commentSpec(
-                `${model.name} · stated preferences · ${job.label}`,
-                new Set(
-                  band.preferences.map((preference) =>
-                    Number(preference.id.slice(3)),
-                  ),
-                ),
-                null,
-                since,
-                `Comments that say one named model is better than another, where ${model.name} is one of the two. ${band.wins.length} prefer it.`,
-              )
-            }
-          >
-            {`Preferred in ${band.wins.length} of ${band.preferences.length} stated preferences`}
-          </EvidenceButton>
-        </p>
-      )}
-      {band.lines.map((line) => (
-        <p key={line.key} className="rd-crowd-row rd-note">
-          <EvidenceButton
-            spec={() =>
-              commentSpec(
-                `${line.name} (any version) · Hacker News · ${job.label}`,
-                ids,
-                indexKey(line.key),
-                since,
-                'Comments that name the product line without a version. They may be about an older model.',
-              )
-            }
-          >
-            {`${plural(tallyTotal(line.tally), 'label')} name only the line ${line.name}`}
-          </EvidenceButton>
-          <SentimentBar tally={hnTally(line.tally)} />
-        </p>
-      ))}
-    </div>
   );
 }
 

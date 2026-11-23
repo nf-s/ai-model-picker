@@ -1,0 +1,54 @@
+.rd-switch-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 8px 14px;
+}
+.rd-switch-pick {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.rd-switch-pick .rd-select {
+  max-width: 100%;
+}
+.rd-switch-section {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+}
+.rd-switch-prefs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+.rd-split {
+  display: inline-flex;
+  width: 120px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--rd-unc);
+}
+.rd-split-a {
+  background: var(--rd-accent);
+}
+.rd-split-b {
+  background: var(--rd-neu);
+}
+.rd-switch-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .rd-switch-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

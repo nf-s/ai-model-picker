@@ -1,0 +1,36 @@
+.rd-model-section {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+}
+.rd-model-compare {
+  padding: 8px 14px;
+}
+.rd-model-members,
+.rd-model-lines {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-model tr[aria-current='true'] td {
+  background: var(--rd-accent-soft);
+}
+.rd-model-stance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rd-model-stance .rd-bar {
+  width: 80px;
+}
+.rd-model-reader-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}

@@ -44,61 +44,6 @@
 .rd .rd-card-model a {
   color: var(--rd-ink);
 }
-.rd-bands {
-  display: grid;
-  gap: 0;
-  margin-top: 4px;
-}
-.rd-band {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  padding: 8px 0;
-  border-top: 1px solid var(--rd-line2);
-}
-.rd-band-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-.rd-band-list {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.rd-band-list li {
-  display: grid;
-  gap: 1px;
-  overflow-wrap: anywhere;
-}
-.rd-band-line {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-.rd-band-line strong {
-  white-space: nowrap;
-}
-.rd-crowd-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-}
-.rd-crowd-row .rd-bar {
-  width: 80px;
-}
-.rd-scroll {
-  max-width: 100%;
-  overflow-x: auto;
-}
-.rd-nowrap {
-  white-space: nowrap;
-}
 .rd-brief-table {
   display: grid;
   gap: 10px;

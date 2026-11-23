@@ -1,8 +1,8 @@
 import { ArrowUpRight } from 'lucide-react';
 import type { Report } from '../lib/data';
 import { dollars, formatNumber } from '../lib/metrics';
-import { routeHref } from '../lib/route';
-import { modelById, modelKey } from '../lib/site-data';
+import { modelHref } from '../lib/route';
+import { modelById } from '../lib/site-data';
 import './reports.css';
 
 function plain(label: string) {
@@ -73,10 +73,7 @@ export default function Reports({
                   {omitModelId ? 'Also covers' : 'Covers'}
                 </span>
                 {others.map((model) => (
-                  <a
-                    key={model.id}
-                    href={routeHref({ view: 'model', key: modelKey(model.id) })}
-                  >
+                  <a key={model.id} href={modelHref(model.id)}>
                     {model.name}
                   </a>
                 ))}

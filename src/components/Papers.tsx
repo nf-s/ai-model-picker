@@ -27,8 +27,8 @@ import { parseTargetKey, targetKey } from '../lib/hn-insights';
 import { hnPublished } from '../lib/hn-published';
 import { scopePapers } from '../lib/model-filter';
 import type { Scope } from '../lib/model-filter';
-import { routeHref } from '../lib/route';
-import { keyName, modelById, modelKey } from '../lib/site-data';
+import { modelHref } from '../lib/route';
+import { keyName, modelById } from '../lib/site-data';
 import './papers.css';
 
 type TargetOption = { key: string; name: string; papers: number };
@@ -524,9 +524,7 @@ function Explorer({
           </button>
         )}
         {fileModel && (
-          <a href={routeHref({ view: 'model', key: modelKey(fileModel.id) })}>
-            Open {fileModel.name} file
-          </a>
+          <a href={modelHref(fileModel.id)}>Open {fileModel.name} file</a>
         )}
       </div>
 

@@ -150,6 +150,12 @@ function makeCore(): Core {
           guideTask: 'fixes',
         },
         { id: 'refactor', label: 'Refactor', parent: 'coding', benchmarks: [] },
+        {
+          id: 'bug-fix',
+          label: 'Fix bugs',
+          parent: 'coding',
+          benchmarks: ['swe'],
+        },
         { id: 'reasoning', label: 'Reasoning', benchmarks: ['eci'] },
         { id: 'writing', label: 'Writing', benchmarks: ['arena', 'pct'] },
         { id: 'planning', label: 'Planning', benchmarks: [] },
@@ -203,6 +209,7 @@ function makeCore(): Core {
         'model|b': { planning: { '2026-10': [5, 4, 1, 0] } },
         'model|c': { planning: { '2026-10': [5, 4, 0, 0] } },
       },
+      themes: {},
       comments: { planning: [11, 12] },
     },
     preferences: [
@@ -415,6 +422,56 @@ test('a sub-job without a benchmark uses its parent’s and says so', () => {
     orderExplanation(data, refactor),
     'No benchmark measures refactor itself; this is the benchmark of write code with the most models in the filters.',
   );
+});
+
+test('a sub-job whose own benchmark covers fewer than three models takes its parent’s order', () => {
+  const { data, brief: fix } = brief('bug-fix');
+  // swe covers a and b only; the parent's tb covers four current models.
+  assert.equal(fix.primary && signalLabel(fix.primary), 'Bench tb');
+  assert.deepEqual(
+    fix.signals.map((signal) =>
+      signal.kind === 'benchmark' ? signal.benchmark.id : signal.kind,
+    ),
+    ['swe', 'tb', 'preferences', 'crowd'],
+  );
+  assert.equal(fix.borrowed?.parent.id, 'coding');
+  assert.equal(fix.borrowed?.covered, 2);
+  assert.equal(fix.from, null);
+  // No stated preference is on this sub-job, so the overlap keeps the result order.
+  assert.deepEqual(names(fix.rows), ['a', 'b', 'e', 'c']);
+  assert.equal(
+    orderExplanation(data, fix),
+    'Bench swe, the benchmark of fix bugs itself, has results for only 2 models within the filters, so the order comes from the benchmark of write code. Bench swe stays in the table and in the Measured band.',
+  );
+  // Its own benchmark still holds its results.
+  assert.equal(fix.rows.find((row) => row.model.id === 'a')?.values[0]?.n, 50);
+});
+
+test('a sub-job keeps its own order when its benchmark covers three models', () => {
+  const core = makeCore();
+  core.measured.push(result('swe', 'c', 30));
+  const data = prepareBrief(core);
+  const job = findJob(data, 'bug-fix');
+  assert.ok(job);
+  const fix = computeBrief(data, job, all);
+  assert.equal(fix.borrowed, null);
+  assert.equal(fix.primary && signalLabel(fix.primary), 'Bench swe');
+  assert.deepEqual(names(fix.rows), ['a', 'b', 'c']);
+});
+
+test('a sub-job keeps its own few results when the parent’s benchmark covers fewer than three', () => {
+  const { brief: fix } = brief('bug-fix', {
+    ...all,
+    inScope: (id) => id === 'a' || id === 'b',
+  });
+  assert.equal(fix.borrowed, null);
+  assert.equal(fix.primary && signalLabel(fix.primary), 'Bench swe');
+  assert.deepEqual(fix.basis, {
+    kind: 'benchmark',
+    signal: 0,
+    why: 'few',
+    covered: 2,
+  });
 });
 
 test('without a benchmark the order is reported evidence and the note says so', () => {

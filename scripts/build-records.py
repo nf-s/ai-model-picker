@@ -36,6 +36,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
+from hn_local.classify import THEMES as HN_THEMES
 from hn_local.sources import PipelineError
 from hn_local.state import DATABASE
 from people_local.review import (
@@ -731,6 +732,8 @@ def check_comment(comment):
     for assessment in comment['assessments']:
         need(assessment.get('kind') in HN_KEY_KINDS and is_text(assessment.get('target')), f'hn:{comment["id"]}: unknown target')
         need(assessment.get('sentiment') in HN_STANCE, f'hn:{comment["id"]}: unknown sentiment')
+        themes = assessment.get('themes', [])
+        need(type(themes) is list and all(theme in HN_THEMES for theme in themes), f'hn:{comment["id"]}: unknown theme')
     for preference in comment.get('prefers', []):
         for side in ('winner', 'loser'):
             need(preference[side].get('kind') in HN_KEY_KINDS, f'hn:{comment["id"]}: unknown preference target')
@@ -741,12 +744,16 @@ def hn_key(target):
 
 
 def crowd(hn, records, model_ids):
-    """Hacker News records, counts per target, job and month, stated preferences, and the item ids
-    of the comments in each job, so the app can open the comments behind a count."""
+    """Hacker News records, counts per target, job and month, the same counts per theme of the
+    label, stated preferences, and the item ids of the comments in each job, so the app can open the
+    comments behind a count. The app renders every count from these aggregates and loads the
+    comments themselves only when someone opens them."""
     jobs = records.jobs
     themes_order = list(jobs.crosswalk['hn-theme'])
     stories = {story['id']: story.get('title', '') for story in hn['stories']}
     counts = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0, 0, 0])))
+    theme_counts = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(
+        lambda: collections.defaultdict(lambda: [0, 0, 0, 0]))))
     preferences = []
     comment_ids = collections.defaultdict(list)
     unknown_models = collections.defaultdict(list)
@@ -788,6 +795,11 @@ def crowd(hn, records, model_ids):
         comment_ids[record['job']].append(comment['id'])
         for key, stance in keys:
             counts[key][record['job']][date[:7]][STANCES.index(stance)] += 1
+        # A theme belongs to one label, so it counts toward that label's target only.
+        for assessment in comment['assessments']:
+            stance = STANCES.index(HN_STANCE[assessment['sentiment']])
+            for theme in assessment.get('themes', []):
+                theme_counts[hn_key(assessment)][record['job']][date[:7]][theme][stance] += 1
         for preference in comment.get('prefers', []):
             preferences.append({
                 'winner': hn_key(preference['winner']),
@@ -798,7 +810,8 @@ def crowd(hn, records, model_ids):
             })
     need(not unknown_models, 'Hacker News names models that are not in the snapshot:\n  ' + '\n  '.join(
         f'{model}: {", ".join(ids[:LIST_LIMIT])}' for model, ids in sorted(unknown_models.items())))
-    return rows, counts, preferences, {job: sorted(ids) for job, ids in sorted(comment_ids.items())}
+    return rows, {'counts': counts, 'themes': theme_counts}, preferences, {
+        job: sorted(ids) for job, ids in sorted(comment_ids.items())}
 
 
 # ---- Named: the people review ------------------------------------------------------------
@@ -1030,7 +1043,8 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
         + arena_records(imported['lmarena'], records, names)
         + epoch_records(imported['epoch'], records, names)
     )
-    hn_rows, counts, preferences, comment_ids = crowd(hn, records, model_ids)
+    hn_rows, aggregates, preferences, comment_ids = crowd(hn, records, model_ids)
+    counts = aggregates['counts']
     categories = {}
     for category, label in jobs.crosswalk['benchmark-category'].items():
         resolved = jobs.resolve(label)
@@ -1111,7 +1125,8 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
             for benchmark in snapshot['benchmarks']
         ] + [entry for kind in IMPORTED for entry in imported_benchmarks(kind, imported[kind], jobs)],
         'measured': measured,
-        'crowd': {'stances': list(STANCES), 'counts': counts, 'comments': comment_ids},
+        'crowd': {'stances': list(STANCES), 'counts': counts, 'themes': aggregates['themes'],
+                  'comments': comment_ids},
         'preferences': preferences,
         'coverage': {'sources': list(sources), 'rows': rows},
         'usage': None if usage is None else usage_block(usage, jobs),

@@ -399,6 +399,90 @@ class TestStableIds(unittest.TestCase):
         self.assertEqual(json.dumps(first), json.dumps(second))
 
 
+class TestCrowdAggregates(unittest.TestCase):
+    """The app renders Hacker News counts from core.json's aggregates and loads the comment parts
+    only to list comments, so the aggregates must equal what the parts give."""
+
+    def export(self, root):
+        comments = [
+            {'id': 210, 'createdAt': '2026-11-02T10:00:00Z', 'task': 'coding',
+             'assessments': [assessment('model', MODEL, 'positive', ['code-quality', 'speed']),
+                             assessment('family', 'GPT', 'negative', ['pricing'])]},
+            {'id': 209, 'createdAt': '2026-10-30T10:00:00Z', 'task': 'other',
+             'assessments': [assessment('model', MODEL, 'mixed', ['local-use'])]},
+            {'id': 208, 'createdAt': '2026-10-01T10:00:00Z', 'task': 'writing',
+             'assessments': [assessment('model', MODEL, 'unclear', ['writing-style']),
+                             assessment('model', 'gpt-6-luna', 'positive')]},
+            {'id': 207, 'createdAt': '2026-09-15T10:00:00Z', 'task': 'coding',
+             'assessments': [assessment('model', MODEL, 'negative', ['code-quality'])]},
+        ]
+        published = '2026-11-21T00:00:00+00:00'
+        status = {'classifier': CLASSIFIER, 'startAt': '2026-05-20T00:00:00Z', 'endAt': '2026-11-20T00:00:00Z',
+                  'totals': {'candidates': 4, 'commentsAboutTargets': 4}}
+        dist = root / 'dist'
+        dist.mkdir()
+        (dist / 'hn-snapshot.json').write_text(json.dumps(
+            {'publishedAt': published, 'commentParts': 2, 'status': status}), encoding='utf-8')
+        for number, part in ((1, comments[:2]), (2, comments[2:])):
+            (dist / f'hn-comments-{number}.json').write_text(json.dumps(
+                {'publishedAt': published, 'comments': part, **({'stories': []} if number == 1 else {})}),
+                encoding='utf-8')
+        return dist
+
+    def test_aggregates_equal_counts_from_the_comment_parts(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        dist = self.export(Path(directory.name))
+        core, records = build_core(SNAPSHOT, GUIDE, JOBS, build['read_hn'](directory.name, 'export'), IMPORTED)
+        core = json.loads(json.dumps(core))
+        jobs = {record['id']: record['job'] for record in records}
+        kinds = {'model': 'model', 'family': 'line'}
+        stances = {'positive': 0, 'negative': 1, 'mixed': 2, 'neutral': 3, 'unclear': 3}
+        counts, themes = {}, {}
+        for number in (1, 2):
+            for comment in json.loads((dist / f'hn-comments-{number}.json').read_text(encoding='utf-8'))['comments']:
+                job_id, month = jobs[f'hn:{comment["id"]}'], comment['createdAt'][:7]
+                for label in comment['assessments']:
+                    key, stance = f'{kinds[label["kind"]]}|{label["target"]}', stances[label['sentiment']]
+                    tally = counts.setdefault(key, {}).setdefault(job_id, {}).setdefault(month, [0, 0, 0, 0])
+                    tally[stance] += 1
+                    for theme in label.get('themes', []):
+                        by_theme = themes.setdefault(key, {}).setdefault(job_id, {}).setdefault(month, {})
+                        by_theme.setdefault(theme, [0, 0, 0, 0])[stance] += 1
+        self.assertEqual(core['crowd']['counts'], counts)
+        self.assertEqual(core['crowd']['themes'], themes)
+        self.assertEqual(core['crowd']['themes']['line|GPT'], {'coding': {'2026-11': {'pricing': [0, 1, 0, 0]}}})
+        self.assertNotIn('model|gpt-6-luna', core['crowd']['themes'])
+
+    def test_unknown_theme_stops_the_build(self):
+        hn = hn_export()
+        hn['comments'][0]['assessments'][0]['themes'] = ['cooking']
+        with self.assertRaisesRegex(BuildError, 'hn:101: unknown theme'):
+            build_core(SNAPSHOT, GUIDE, JOBS, hn, IMPORTED)
+
+    def test_the_copy_into_dist_stops_when_the_export_is_from_another_collection(self):
+        copy_core = runpy.run_path(str(ROOT / 'scripts/export-records-site.py'))
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        root = Path(directory.name)
+        dist = self.export(root)
+        core, _ = build_core(SNAPSHOT, GUIDE, JOBS, build['read_hn'](directory.name, 'export'), IMPORTED)
+        source = root / 'core.json'
+        source.write_text(json.dumps({**core, 'namedBehindSignIn': False}), encoding='utf-8')
+        copy_core['export_core'](source, dist / 'core.json', dist / 'hn-snapshot.json')
+        self.assertTrue((dist / 'core.json').is_file())
+        snapshot = json.loads((dist / 'hn-snapshot.json').read_text(encoding='utf-8'))
+        for change in ({'commentsAboutTargets': 5}, {'endAt': '2026-11-21T00:00:00Z'}):
+            changed = copy.deepcopy(snapshot)
+            if 'endAt' in change:
+                changed['status'].update(change)
+            else:
+                changed['status']['totals'].update(change)
+            (dist / 'hn-snapshot.json').write_text(json.dumps(changed), encoding='utf-8')
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'different collections'):
+                copy_core['export_core'](source, dist / 'core.json', dist / 'hn-snapshot.json')
+
+
 def tree(directory):
     """Every file under `directory` with a hash of its contents."""
     return {

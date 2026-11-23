@@ -100,12 +100,19 @@ function Collection({ pipeline }: { pipeline: HnPipeline }) {
         Hacker News collection
       </h2>
       <p className="rd-note">
+        Comments open from the Crowd band of each{' '}
         <a
           className="rd-dp-link"
-          href={routeHref({ view: 'discussion', key: null })}
+          href={routeHref({
+            view: 'model',
+            target: null,
+            job: null,
+            comments: false,
+          })}
         >
-          Browse comments
+          model page
         </a>
+        .
       </p>
       <div className="rd-panel rd-dp-collection">
         <div className="rd-dp-top">

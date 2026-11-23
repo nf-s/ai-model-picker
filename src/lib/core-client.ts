@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { prepareBrief } from './brief';
 import { coreSchema } from './core-schema';
 import type { Core } from './core-schema';
+import { restrictedData } from './data';
 
 export type CoreData =
   | { status: 'loading' }
@@ -48,4 +50,20 @@ export function useCoreData(): CoreData {
     };
   }, []);
   return data;
+}
+
+// The records the views show, with the restricted payload's results added
+// for a signed-in, granted account and on the local dev server.
+export function useBriefData(coreData: CoreData) {
+  const core = coreData.status === 'ready' ? coreData.core : null;
+  return useMemo(
+    () =>
+      core
+        ? prepareBrief(
+            core,
+            restrictedData.benchmarks.length > 0 ? restrictedData : null,
+          )
+        : null,
+    [core],
+  );
 }

@@ -19,10 +19,11 @@ import {
   recordTrials,
 } from '../lib/brief';
 import type { BriefData } from '../lib/brief';
+import type { HnTheme } from '../lib/hn-index';
 import { emptyFilter } from '../lib/hn-insights';
 import { dollars } from '../lib/metrics';
 import type { EvidenceRecord } from '../lib/records';
-import { routeHref } from '../lib/route';
+import { modelHref } from '../lib/route';
 import type { HnData } from '../lib/site-data';
 import { CommentStream } from './parts';
 import './evidence-drawer.css';
@@ -37,6 +38,8 @@ export type EvidenceSpec = { title: string; note?: string } & (
       ids: ReadonlySet<number> | null;
       // A comment-index target key ("model:<id>", "family:<name>"), or null.
       target: string | null;
+      // A theme the target's label must carry, or null.
+      theme: HnTheme | null;
       // First day of the period, or '' for all dates.
       from: string;
     }
@@ -142,7 +145,7 @@ function CommentList({
   spec: Extract<EvidenceSpec, { kind: 'comments' }>;
   hn: HnData;
 }) {
-  if (hn.status === 'loading')
+  if (hn.status === 'loading' || hn.status === 'idle')
     return <p className="rd-note">Loading Hacker News comments…</p>;
   if (hn.status === 'failed')
     return (
@@ -161,7 +164,7 @@ function CommentList({
   return (
     <CommentStream
       index={index}
-      filter={{ ...emptyFilter, target: spec.target }}
+      filter={{ ...emptyFilter, target: spec.target, theme: spec.theme }}
       focusKey={spec.target}
     />
   );
@@ -254,9 +257,7 @@ function MeasuredRecord({
           {models.map((model, i) => (
             <span key={model.id}>
               {i > 0 && ', '}
-              <a href={routeHref({ view: 'model', key: `model:${model.id}` })}>
-                {model.name}
-              </a>
+              <a href={modelHref(model.id)}>{model.name}</a>
             </span>
           ))}
         </p>

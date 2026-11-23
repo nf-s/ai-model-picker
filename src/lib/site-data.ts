@@ -142,6 +142,8 @@ export function appSelections(modelId: string) {
 }
 
 export type HnData =
+  // Not requested: the comment index loads only when a view lists comments.
+  | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'failed' }
   | {
@@ -174,10 +176,19 @@ function loadHnData() {
   return shared;
 }
 
-export function useHnData(): HnData {
-  const [data, setData] = useState<HnData>({ status: 'loading' });
+// The comment index for views that list comments. In the published build it
+// is every comment part, so other views pass `enabled` false and render their
+// counts from core.json.
+export function useHnData(enabled = true): HnData {
+  const [data, setData] = useState<HnData>({
+    status: enabled ? 'loading' : 'idle',
+  });
   useEffect(() => {
+    if (!enabled) return;
     let current = true;
+    setData((previous) =>
+      previous.status === 'idle' ? { status: 'loading' } : previous,
+    );
     loadHnData().then(
       (ready) => {
         if (current) setData(ready);
@@ -189,7 +200,7 @@ export function useHnData(): HnData {
     return () => {
       current = false;
     };
-  }, []);
+  }, [enabled]);
   return data;
 }
 

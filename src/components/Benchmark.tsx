@@ -4,13 +4,12 @@ import { benchmarks, reports, results } from '../lib/data';
 import type { BenchmarkResult } from '../lib/data';
 import type { Scope } from '../lib/model-filter';
 import { dollars, duration } from '../lib/metrics';
-import { routeHref } from '../lib/route';
+import { modelHref, routeHref } from '../lib/route';
 import {
   benchmarkById,
   benchmarkLabel,
   formatScore,
   modelById,
-  modelKey,
   standing,
 } from '../lib/site-data';
 import { RankNote } from './ModelFilter';
@@ -246,12 +245,7 @@ export default function Benchmark({ id, scope }: { id: string; scope: Scope }) {
                   >
                     <td className="rd-num">{place}</td>
                     <th scope="row">
-                      <a
-                        href={routeHref({
-                          view: 'model',
-                          key: modelKey(result.modelId),
-                        })}
-                      >
+                      <a href={modelHref(result.modelId)}>
                         {model?.name ?? result.modelId}
                       </a>
                       {model && <small>{model.provider}</small>}

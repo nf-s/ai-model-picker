@@ -5,103 +5,123 @@ import Benchmark from './components/Benchmark';
 import Board from './components/Board';
 import Brief from './components/Brief';
 import DataPage from './components/DataPage';
-import Discussion from './components/Discussion';
 import EvidenceDrawer, { EvidenceContext } from './components/EvidenceDrawer';
 import type { EvidenceSpec } from './components/EvidenceDrawer';
 import ExpertArticles from './components/ExpertArticles';
 import FilterBar from './components/FilterBar';
-import ModelFile from './components/ModelFile';
+import Model from './components/Model';
 import { OutsideFilter } from './components/ModelFilter';
 import Papers from './components/Papers';
+import Switch from './components/Switch';
 import type { Access } from './lib/access';
 import { useCoreData } from './lib/core-client';
 import { checkedAt, models } from './lib/data';
 import { formatHnRange, useHnPipeline } from './lib/hn-client';
-import { parseTargetKey } from './lib/hn-insights';
 import { hnPublished } from './lib/hn-published';
 import { createScope } from './lib/model-filter';
 import type { ModelFilter } from './lib/model-filter';
 import { parseRoute, routeHref, useHash } from './lib/route';
-import type { Route } from './lib/route';
+import type { ModelTarget, Route } from './lib/route';
 import {
   benchmarkById,
-  keyName,
   modelById,
-  scopeHnData,
   useHnData,
   useModelFilter,
 } from './lib/site-data';
 
 type View = Route['view'];
 // The Board left the navigation for Brief and stays at #/board until it is
-// removed.
+// removed. Discussion left it for the thread reader under each model's Crowd
+// band; its links open the model page.
 const views: { route: Route; label: string; also?: View }[] = [
   { route: { view: 'brief', job: null }, label: 'Brief', also: 'benchmark' },
-  { route: { view: 'model', key: null }, label: 'Models' },
-  { route: { view: 'discussion', key: null }, label: 'Discussion' },
+  {
+    route: { view: 'model', target: null, job: null, comments: false },
+    label: 'Models',
+  },
+  { route: { view: 'switch', a: null, b: null, job: null }, label: 'Switch' },
   { route: { view: 'papers', key: null, area: null }, label: 'Papers' },
   { route: { view: 'expert-articles' }, label: 'Expert articles' },
   { route: { view: 'apps' }, label: 'App guide' },
   { route: { view: 'data' }, label: 'Data' },
 ];
 
+// The comment-index key of a model page's target, for the model filter.
+function targetKey(target: ModelTarget | null) {
+  if (target === null) return null;
+  return target.kind === 'model'
+    ? `model:${target.id}`
+    : `family:${target.name}`;
+}
+
 export default function App({ access }: { access: Access }) {
   const hash = useHash();
   const route = parseRoute(hash);
   const location = routeHref(route);
-  const hn = useHnData();
   const pipeline = useHnPipeline();
   const { filter, setFilter } = useModelFilter();
   const coreData = useCoreData();
   const [evidence, setEvidence] = useState<EvidenceSpec | null>(null);
+  // The comment index is requested only by views that list comments; Brief,
+  // Model and Switch count from core.json.
+  const hn = useHnData(
+    route.view === 'board' ||
+      route.view === 'apps' ||
+      evidence?.kind === 'comments',
+  );
   const closeEvidence = useCallback(() => setEvidence(null), []);
   const setSelection = useCallback(
     (next: ModelFilter) => setFilter({ ...filter, ...next }),
     [filter, setFilter],
   );
-  // A model or family opened by a direct link is shown even when the filter
+  // A model or line opened by a direct link is shown even when the filter
   // leaves it out.
   const linked =
-    route.view === 'model' ||
-    route.view === 'discussion' ||
-    route.view === 'papers'
-      ? route.key
-      : null;
+    route.view === 'model'
+      ? targetKey(route.target)
+      : route.view === 'papers'
+        ? route.key
+        : null;
   const selection = useMemo(() => createScope(filter, models), [filter]);
-  const linkedRef = linked ? parseTargetKey(linked) : null;
   const outside =
     linked &&
-    linkedRef &&
     !selection.key(linked) &&
-    (linkedRef.kind === 'family' || modelById.has(linkedRef.target))
+    (linked.startsWith('family:') || modelById.has(linked.slice(6)))
       ? linked
       : null;
   const scope = useMemo(
     () => (outside ? createScope(filter, models, outside) : selection),
     [filter, selection, outside],
   );
-  // Only the Models and Discussion views read the comments, so the others do
-  // not pay for narrowing them.
-  const readsComments = route.view === 'model' || route.view === 'discussion';
-  const scopedHn = useMemo(
-    () => (readsComments ? scopeHnData(hn, scope) : hn),
-    [hn, scope, readsComments],
-  );
   const title =
     route.view === 'benchmark'
       ? (benchmarkById.get(route.id)?.name ?? 'Benchmark')
-      : route.view === 'model' && route.key
-        ? keyName(route.key)
+      : route.view === 'model' && route.target
+        ? route.target.kind === 'model'
+          ? (modelById.get(route.target.id)?.name ?? 'Model')
+          : route.target.name
         : route.view === 'account'
           ? 'Account'
           : route.view === 'board'
             ? 'Board'
             : (views.find((view) => view.route.view === route.view)?.label ??
               'Brief');
+  const core = coreData.status === 'ready' ? coreData.core : null;
+  // Model and Switch keep the job in their own address; elsewhere choosing a
+  // job opens its brief.
+  const jobHref = (job: string | null) =>
+    route.view === 'model' || route.view === 'switch'
+      ? routeHref({ ...route, job })
+      : routeHref({ view: 'brief', job });
 
+  // A new page starts at the top; opening or closing the thread reader on the
+  // same page does not move it.
+  const page = routeHref(
+    route.view === 'model' ? { ...route, comments: false } : route,
+  );
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [location]);
+  }, [page]);
   useEffect(() => {
     document.title = `${title} · Model picker`;
   }, [title]);
@@ -147,13 +167,13 @@ export default function App({ access }: { access: Access }) {
             ))}
           </nav>
           <p className="rd-top-meta">
-            {hn.status === 'ready' && hn.startAt && hn.endAt && (
+            {core && (
               <span>
-                HN {formatHnRange(hn.startAt, hn.endAt)} ·{' '}
-                {hn.insights.commentCount.toLocaleString()} comments
+                HN{' '}
+                {formatHnRange(core.sources.hn.startAt, core.sources.hn.endAt)}{' '}
+                · {core.sources.hn.comments.toLocaleString()} comments
               </span>
             )}
-            {hn.status === 'loading' && <span>Loading HN comments…</span>}
             <span>Benchmarks checked {checkedAt}</span>
           </p>
           {access.kind !== 'local' && (
@@ -169,14 +189,21 @@ export default function App({ access }: { access: Access }) {
         <FilterBar
           filter={filter}
           onChange={setFilter}
-          jobs={coreData.status === 'ready' ? coreData.core.jobs.list : null}
-          job={route.view === 'brief' ? route.job : null}
-          brief={route.view === 'brief'}
-          end={
-            coreData.status === 'ready'
-              ? coreData.core.sources.hn.endAt.slice(0, 10)
+          jobs={core ? core.jobs.list : null}
+          job={
+            route.view === 'brief' ||
+            route.view === 'model' ||
+            route.view === 'switch'
+              ? route.job
               : null
           }
+          jobHref={jobHref}
+          full={
+            route.view === 'brief' ||
+            route.view === 'model' ||
+            route.view === 'switch'
+          }
+          end={core ? core.sources.hn.endAt.slice(0, 10) : null}
         />
         {hn.status === 'failed' && (
           <p className="rd-alert" role="alert">
@@ -210,10 +237,22 @@ export default function App({ access }: { access: Access }) {
           )}
           {route.view === 'board' && <Board hn={hn} scope={scope} />}
           {route.view === 'model' && (
-            <ModelFile hn={scopedHn} selected={route.key} scope={scope} />
+            <Model
+              route={route}
+              coreData={coreData}
+              filter={filter}
+              scope={scope}
+              access={access}
+            />
           )}
-          {route.view === 'discussion' && (
-            <Discussion hn={scopedHn} initialTarget={route.key} scope={scope} />
+          {route.view === 'switch' && (
+            <Switch
+              route={route}
+              coreData={coreData}
+              filter={filter}
+              scope={scope}
+              access={access}
+            />
           )}
           {route.view === 'papers' && (
             <Papers

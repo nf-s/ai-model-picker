@@ -26,7 +26,7 @@ import {
 import type { HnData, Standing } from '../lib/site-data';
 import type { Scope } from '../lib/model-filter';
 import { RankNote } from './ModelFilter';
-import { routeHref } from '../lib/route';
+import { keyHref, modelHref, routeHref } from '../lib/route';
 import './board.css';
 
 type Task = 'all' | Category;
@@ -240,11 +240,7 @@ function formatChange(change: number) {
 }
 
 function ModelLink({ model }: { model: Model }) {
-  return (
-    <a href={routeHref({ view: 'model', key: modelKey(model.id) })}>
-      {model.name}
-    </a>
-  );
+  return <a href={modelHref(model.id)}>{model.name}</a>;
 }
 
 type Leader = { model: Model; value: string; rank: number };
@@ -636,7 +632,7 @@ function BoardRow({
                   <span className="rd-board-pair">
                     <Sparkline values={fact.weekly} width={64} height={18} />
                     <a
-                      href={routeHref({ view: 'discussion', key: fact.key })}
+                      href={keyHref(fact.key, true)}
                       title={`Open discussion of ${model.name}`}
                     >
                       {insight.total.toLocaleString()}
