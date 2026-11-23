@@ -1,0 +1,45 @@
+.rd-filterbar {
+  position: relative;
+  z-index: 15;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 8px 20px;
+  background: var(--rd-panel);
+  border-bottom: 1px solid var(--rd-line);
+}
+.rd-fb-group,
+.rd-fb-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.rd-fb-label {
+  color: var(--rd-ink3);
+  font-size: 12px;
+  font-weight: 550;
+}
+.rd-fb-group select {
+  max-width: 300px;
+}
+.rd-fb-check {
+  color: var(--rd-ink2);
+  font-size: 12.5px;
+}
+.rd-fb-check input {
+  margin: 0;
+}
+.rd-fb-period {
+  flex-basis: 100%;
+}
+@media (max-width: 760px) {
+  .rd-filterbar {
+    gap: 8px 12px;
+    padding: 8px 12px;
+  }
+  .rd-fb-group select {
+    max-width: calc(100vw - 80px);
+  }
+}

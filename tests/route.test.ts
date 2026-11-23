@@ -69,7 +69,6 @@ test('other views are unchanged', () => {
     view: 'benchmark',
     id: 'swe',
   });
-  assert.deepEqual(parseRoute(''), { view: 'board' });
   assert.equal(
     routeHref({ view: 'model', key: 'model:a' }),
     '#/model/model%3Aa',
@@ -92,4 +91,54 @@ test('Expert articles has a standalone bookmarkable route', () => {
   const hash = routeHref({ view: 'expert-articles' });
   assert.equal(hash, '#/expert-articles');
   assert.deepEqual(parseRoute(hash), { view: 'expert-articles' });
+});
+
+test('Brief is the home page and the job is in the address', () => {
+  assert.deepEqual(parseRoute(''), { view: 'brief', job: null });
+  assert.deepEqual(parseRoute('#/'), { view: 'brief', job: null });
+  assert.deepEqual(parseRoute('#/brief'), { view: 'brief', job: null });
+  assert.deepEqual(parseRoute('#/brief/bug-fix'), {
+    view: 'brief',
+    job: 'bug-fix',
+  });
+  for (const route of [
+    { view: 'brief', job: null },
+    { view: 'brief', job: 'coding' },
+    { view: 'board' },
+  ] satisfies Route[])
+    assert.deepEqual(parseRoute(routeHref(route)), route);
+  assert.equal(routeHref({ view: 'brief', job: null }), '#/');
+  assert.equal(
+    routeHref({ view: 'brief', job: 'interface' }),
+    '#/brief/interface',
+  );
+});
+
+test('an unknown job id stays in the route for Brief to report', () => {
+  // Brief shows a notice for a job the job list does not have; the route
+  // does not swap in another job.
+  assert.deepEqual(parseRoute('#/brief/no-such-job'), {
+    view: 'brief',
+    job: 'no-such-job',
+  });
+});
+
+test('old Board links land on Brief and the Board keeps its own route', () => {
+  for (const hash of [
+    '',
+    '#',
+    '#/',
+    '#/redesign',
+    '#/redesign/',
+    '#/redesign/board',
+    '#/redesign/unknown',
+    '#/unknown',
+  ])
+    assert.deepEqual(parseRoute(hash), { view: 'brief', job: null }, hash);
+  assert.deepEqual(parseRoute('#/board'), { view: 'board' });
+  assert.equal(routeHref({ view: 'board' }), '#/board');
+  assert.deepEqual(parseRoute('#/redesign/model/model%3Aa'), {
+    view: 'model',
+    key: 'model:a',
+  });
 });

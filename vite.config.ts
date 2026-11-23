@@ -124,6 +124,9 @@ export default defineConfig({
       'arxiv',
       'papers.json',
     ]),
+    // The records build's public output; `npm run build:pages` copies it
+    // into dist/.
+    localJson('records-core', '/core.json', ['build', 'records', 'core.json']),
     // Benchmarks that cannot be republished; the published site serves them
     // to approved accounts from a Pages Function instead.
     localJson('restricted-payload', '/api/restricted', [

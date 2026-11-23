@@ -15,6 +15,8 @@ CLAIM = 'Synthetic claim about the example model.'
 TITLE = 'Synthetic story about the example model'
 LOCAL_PATH = Path('/synthetic/checkout')
 ARTICLE_URL = 'https://example.test/synthetic-article'
+MEASURED = {'id': 'bm:synthetic-result', 'cls': 'measured', 'quote': ''}
+NAMED_ID = 'ur:0123456789abcdef01234567/3'
 
 
 class TestSiteCheck(unittest.TestCase):
@@ -47,6 +49,7 @@ class TestSiteCheck(unittest.TestCase):
         })
         self.write(self.dist / 'hn-comments-2.json', {'publishedAt': second_release, 'comments': [{'id': 0}]})
         (self.dist / 'assets/index.js').write_text(script, encoding='utf-8')
+        self.write(self.dist / 'core.json', {'measured': [MEASURED], 'namedBehindSignIn': True})
 
     def report(self, **options):
         return site_report(self.dist, self.restricted, self.public, (LOCAL_PATH,), self.expert_catalog, **options)
@@ -63,6 +66,25 @@ class TestSiteCheck(unittest.TestCase):
         )
         # An identifier that the public snapshot also holds is not a restricted one.
         self.assertEqual(report['restrictedOnlyIdentifiers'], 2)
+        self.assertEqual(report['measuredRecords'], 1)
+
+    def test_a_named_record_anywhere_in_the_build_blocks_an_upload(self):
+        for record in (
+            {'id': 'synthetic', 'cls': 'named'},
+            {'id': NAMED_ID, 'cls': 'measured'},
+            {'id': 'bm:synthetic', 'cls': 'measured', 'quote': 'Words a person wrote.'},
+        ):
+            with self.subTest(record=record):
+                self.write(self.dist / 'core.json', {'measured': [MEASURED, record]})
+                self.assertEqual(self.report()['namedRecords'], 1)
+                self.assertEqual(self.failed(), ['namedRecords'])
+        self.write(self.dist / 'core.json', {'measured': [MEASURED]})
+        self.build(script=f'const record = "{NAMED_ID}";')
+        self.assertEqual(self.failed(), ['namedRecords'])
+
+    def test_the_private_named_file_blocks_an_upload(self):
+        self.write(self.dist / 'named-private.json', {'use': []})
+        self.assertEqual(self.failed(), ['namedFiles'])
 
     def test_a_part_from_another_export_is_counted(self):
         self.build(second_release='earlier-release')

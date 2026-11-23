@@ -4,12 +4,12 @@ import type { Benchmark, BenchmarkResult, Model } from './data';
 import { guide } from './guide';
 import { loadHnIndex } from './hn-index';
 import {
-  cleanFilter,
+  cleanFilterBar,
   readStoredFilter,
   scopeIndex,
   writeStoredFilter,
 } from './model-filter';
-import type { ModelFilter, Scope } from './model-filter';
+import type { FilterBar, Scope } from './model-filter';
 import {
   buildInsights,
   indexComments,
@@ -208,13 +208,13 @@ function browserStorage() {
   }
 }
 
-// The site-wide model filter, remembered in this browser when storage works.
+// The site-wide filter bar, remembered in this browser when storage works.
 export function useModelFilter() {
   const [filter, setFilter] = useState(() =>
     readStoredFilter(browserStorage(), models),
   );
-  const change = useCallback((next: ModelFilter) => {
-    const cleaned = cleanFilter(next, models);
+  const change = useCallback((next: FilterBar) => {
+    const cleaned = cleanFilterBar(next, models);
     setFilter(cleaned);
     writeStoredFilter(browserStorage(), cleaned);
   }, []);

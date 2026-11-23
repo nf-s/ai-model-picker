@@ -12,7 +12,11 @@ ROOT = Path(__file__).resolve().parent.parent
 # Cloudflare Pages accepts at most 25 MiB for one file.
 FILE_BYTES = 25 * 1024 * 1024
 MUST_BE_ZERO = ('mixedReleases', 'oversizeFiles', 'personalDetails', 'restrictedIdentifiers',
-                'expertArticleLeaks', 'localPaths')
+                'expertArticleLeaks', 'localPaths', 'namedRecords', 'namedFiles')
+# Practitioners' use records and method advice stay behind sign-in: their ids, and the file
+# the records build writes them to, must not reach a static build.
+NAMED_ID = re.compile(r'\b(?:ur|ma):[0-9a-f]{24}/\d+')
+NAMED_FILE = 'named-private.json'
 
 
 def load(path):
@@ -30,6 +34,20 @@ def identifiers(value, found):
         for item in value:
             identifiers(item, found)
     return found
+
+
+def named_records(value):
+    """Records at any depth that are named, carry a named id or keep a quote."""
+    if isinstance(value, list):
+        return sum(named_records(item) for item in value)
+    if not isinstance(value, dict):
+        return 0
+    own = int(
+        value.get('cls') == 'named'
+        or (isinstance(value.get('id'), str) and NAMED_ID.fullmatch(value['id']) is not None)
+        or (isinstance(value.get('quote'), str) and value['quote'] != '')
+    )
+    return own + sum(named_records(item) for item in value.values())
 
 
 def expert_article_urls(catalog):
@@ -56,6 +74,7 @@ def expert_article_urls(catalog):
 def site_report(dist, restricted, public, local_paths, expert_catalog, file_bytes=FILE_BYTES):
     """Totals for the build, and the counts in MUST_BE_ZERO, which block an upload when above zero."""
     snapshot = load(dist / 'hn-snapshot.json')
+    core = load(dist / 'core.json')
     parts = [load(dist / f'hn-comments-{number}.json') for number in range(1, snapshot['commentParts'] + 1)]
     # The only free text in the comment files: claims written by the model and story titles.
     texts = [comment['claim'] for part in parts for comment in part['comments'] if 'claim' in comment]
@@ -63,12 +82,14 @@ def site_report(dist, restricted, public, local_paths, expert_catalog, file_byte
     files = [path for path in dist.rglob('*') if path.is_file()]
     bundle = ''.join(path.read_text(encoding='utf-8', errors='ignore') for path in files)
     restricted_only = identifiers(load(restricted), set()) - identifiers(load(public), set())
+    json_files = [load(path) for path in files if path.suffix == '.json']
     article_urls = expert_article_urls(expert_catalog)
     article_links = re.compile('|'.join(map(re.escape, sorted(article_urls, key=len, reverse=True))))
     return {
         'commentFiles': len(parts),
         'comments': sum(len(part['comments']) for part in parts),
         'claimsAndTitles': len(texts),
+        'measuredRecords': len(core['measured']),
         'restrictedOnlyIdentifiers': len(restricted_only),
         'mixedReleases': len({snapshot['publishedAt'], *(part['publishedAt'] for part in parts)}) - 1,
         'oversizeFiles': sum(path.stat().st_size > file_bytes for path in files),
@@ -78,6 +99,11 @@ def site_report(dist, restricted, public, local_paths, expert_catalog, file_byte
             path.name == expert_catalog.name for path in files
         ),
         'localPaths': sum(str(path) in bundle for path in local_paths),
+        'namedRecords': sum(named_records(data) for data in json_files) + sum(
+            len(NAMED_ID.findall(path.read_text(encoding='utf-8', errors='ignore')))
+            for path in files if path.suffix != '.json'
+        ),
+        'namedFiles': sum(path.name == NAMED_FILE for path in files),
     }
 
 

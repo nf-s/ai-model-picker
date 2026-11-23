@@ -134,6 +134,14 @@ class TestJobFile(unittest.TestCase):
         self.assertEqual((records['hn:103']['job'], records['hn:103']['stance']), ('writing', 'neutral'))
         self.assertEqual(core['crowd']['counts']['line|GPT']['writing']['2026-09'], [0, 0, 1, 0])
         self.assertEqual(core['preferences'], [{'winner': 'model|' + MODEL, 'loser': 'line|GPT', 'job': 'local', 'date': '2026-10-02', 'id': 'hn:102'}])
+        self.assertEqual(core['crowd']['comments'], {'bug-fix': [101], 'local': [102], 'writing': [103]})
+        self.assertEqual(core['jobs']['categories']['design'], 'interface')
+        self.assertEqual(core['jobs']['categories']['general'], '')
+
+    def test_every_snapshot_benchmark_category_needs_a_job_entry(self):
+        table = self.jobs['crosswalk']['benchmark-category']['labels']
+        table[:] = [entry for entry in table if entry['label'] != 'coding']
+        self.refused('crosswalk benchmark-category has no entry for coding')
 
     def test_unknown_job_id_stops_the_build_and_lists_its_records(self):
         crosswalk_entry(self.jobs, 'hn-task', 'writing')['job'] = 'writting'

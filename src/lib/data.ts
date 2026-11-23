@@ -24,6 +24,12 @@ const publicSnapshot = {
 // builds read the same payload from .local/restricted/ through the dev server.
 export const restrictedRemote = import.meta.env?.VITE_RESTRICTED === 'remote';
 export const restrictedEvidence: RestrictedPayload['evidence'] = [];
+// The payload's own benchmarks and results, for views that add them to the
+// shared records.
+export const restrictedData: Pick<
+  RestrictedPayload,
+  'checkedAt' | 'benchmarks' | 'results'
+> = { checkedAt: '', benchmarks: [], results: [] };
 export const restrictedAttributions: RestrictedPayload['attributions'] = [];
 let restrictedLoaded = false;
 
@@ -41,6 +47,9 @@ export function addRestricted(payload: unknown) {
   results.push(...added.results);
   sources.push(...added.sources);
   restrictedEvidence.push(...added.evidence);
+  restrictedData.checkedAt = added.checkedAt;
+  restrictedData.benchmarks.push(...added.benchmarks);
+  restrictedData.results.push(...added.results);
   restrictedAttributions.push(...added.attributions);
   restrictedLoaded = true;
   return true;

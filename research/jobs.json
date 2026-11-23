@@ -536,6 +536,39 @@
           "job": null
         }
       ]
+    },
+    "benchmark-category": {
+      "version": 1,
+      "labels": [
+        {
+          "label": "general",
+          "job": null
+        },
+        {
+          "label": "coding",
+          "job": "coding"
+        },
+        {
+          "label": "design",
+          "job": "interface"
+        },
+        {
+          "label": "research",
+          "job": "research"
+        },
+        {
+          "label": "reasoning",
+          "job": "reasoning"
+        },
+        {
+          "label": "writing",
+          "job": "writing"
+        },
+        {
+          "label": "agents",
+          "job": "agents"
+        }
+      ]
     }
   },
   "keywords": {

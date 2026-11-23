@@ -14,7 +14,7 @@ A job is a real piece of work with its limits: the kind of task, the app or codi
 
 1. It names an exact model, tool and setting. A product line such as "Claude" or "GPT" is not an answer.
 2. It can be checked. Every recommendation, rank, count and summary opens the records behind it, and each record links to its source.
-3. It keeps measured and reported evidence apart. Benchmarks and controlled studies order models. Accounts from practitioners and Hacker News show where a model does well or fails in use. They support or contradict an order and never set one by volume.
+3. It keeps measured and reported evidence apart. Benchmarks and controlled studies order models. Accounts from practitioners and Hacker News show where a model does well or fails in use. They support or contradict an order and never set one by volume. Reported evidence may order models only where their measured intervals overlap.
 4. It includes cost: the API price and, where a benchmark reports it, the cost of a task.
 5. It states its conditions. A result belongs to a model, a tool, an effort level and a date, and is not carried over to another.
 6. It says when the evidence is thin, old or about a replaced model. Missing values are not estimated.

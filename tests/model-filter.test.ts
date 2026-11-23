@@ -6,6 +6,7 @@ import type { HnIndexComment } from '../src/lib/hn-index.ts';
 import {
   cleanFilter,
   createScope,
+  defaultFilterBar,
   emptyModelFilter,
   familyProviders,
   filterActive,
@@ -22,7 +23,11 @@ import {
   toggleProvider,
   writeStoredFilter,
 } from '../src/lib/model-filter.ts';
-import type { Catalogue, ModelFilter } from '../src/lib/model-filter.ts';
+import type {
+  Catalogue,
+  FilterBar,
+  ModelFilter,
+} from '../src/lib/model-filter.ts';
 
 const catalogue: Catalogue = [
   { id: 'gpt-6-astra', name: 'GPT-6 Astra', provider: 'OpenAI' },
@@ -467,19 +472,39 @@ const blocked = {
 
 test('the selection survives a reload', () => {
   const storage = memory();
-  writeStoredFilter(storage, mixed);
-  assert.deepEqual(readStoredFilter(storage, catalogue), mixed);
-  writeStoredFilter(storage, emptyModelFilter);
+  const bar: FilterBar = { ...defaultFilterBar, ...mixed };
+  writeStoredFilter(storage, bar);
+  assert.deepEqual(readStoredFilter(storage, catalogue), bar);
+  const narrowed: FilterBar = {
+    ...defaultFilterBar,
+    period: 6,
+    classes: ['crowd'],
+    current: false,
+  };
+  writeStoredFilter(storage, narrowed);
+  assert.deepEqual(readStoredFilter(storage, catalogue), narrowed);
+  writeStoredFilter(storage, defaultFilterBar);
   assert.equal(storage.read(), null);
-  assert.deepEqual(readStoredFilter(storage, catalogue), emptyModelFilter);
+  assert.deepEqual(readStoredFilter(storage, catalogue), defaultFilterBar);
 });
 
-test('unusable storage reads as no selection', () => {
-  assert.deepEqual(readStoredFilter(null, catalogue), emptyModelFilter);
-  assert.deepEqual(readStoredFilter(blocked, catalogue), emptyModelFilter);
-  assert.doesNotThrow(() => writeStoredFilter(blocked, mixed));
-  assert.doesNotThrow(() => writeStoredFilter(blocked, emptyModelFilter));
-  assert.doesNotThrow(() => writeStoredFilter(null, mixed));
+test('a selection stored before the filter bar keeps its models', () => {
+  assert.deepEqual(
+    readStoredFilter(
+      memory('{"providers":["OpenAI"],"models":["claude-fable-5-2"]}'),
+      catalogue,
+    ),
+    { ...defaultFilterBar, ...mixed },
+  );
+});
+
+test('unusable storage reads as the default bar', () => {
+  const bar: FilterBar = { ...defaultFilterBar, ...mixed };
+  assert.deepEqual(readStoredFilter(null, catalogue), defaultFilterBar);
+  assert.deepEqual(readStoredFilter(blocked, catalogue), defaultFilterBar);
+  assert.doesNotThrow(() => writeStoredFilter(blocked, bar));
+  assert.doesNotThrow(() => writeStoredFilter(blocked, defaultFilterBar));
+  assert.doesNotThrow(() => writeStoredFilter(null, bar));
   for (const stored of [
     'not json',
     '[]',
@@ -487,10 +512,13 @@ test('unusable storage reads as no selection', () => {
     '{"providers":"OpenAI","models":[]}',
     '{"providers":[1],"models":[]}',
     '{"providers":["OpenAI"]}',
+    '{"providers":[],"models":[],"period":5}',
+    '{"providers":[],"models":[],"classes":["named"]}',
+    '{"providers":[],"models":[],"current":"yes"}',
   ])
     assert.deepEqual(
       readStoredFilter(memory(stored), catalogue),
-      emptyModelFilter,
+      defaultFilterBar,
       stored,
     );
   assert.deepEqual(
@@ -498,6 +526,14 @@ test('unusable storage reads as no selection', () => {
       memory('{"providers":["Retired Labs","OpenAI"],"models":["retired-1"]}'),
       catalogue,
     ),
-    openai,
+    { ...defaultFilterBar, ...openai },
+  );
+  assert.deepEqual(
+    readStoredFilter(
+      memory('{"providers":[],"models":[],"classes":[]}'),
+      catalogue,
+    ),
+    defaultFilterBar,
+    'at least one source class stays on',
   );
 });

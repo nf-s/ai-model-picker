@@ -8,16 +8,34 @@ The site answers which model to use by putting two kinds of evidence side by sid
 
 ## Views
 
-- **Board** (`#/`) starts from a task. One table ranks models on that task's benchmarks beside HN comment volume, sentiment, four-week change and sentiment on the matching topic. Each task table also counts the evaluation papers whose abstract reports the model as best, or as behind the paper's best model, in the area matching the task; `General` counts every area. `All` shows all eight benchmarks at once and leaves the paper column out. Leader panels summarise each benchmark and the most-discussed models.
+- **Brief** (`#/`) is the home page. `#/` shows the job chooser: each job with the number of its measured records within the filters, which opens those records, and the benchmarks that measure it, or "No measure". It shows no practitioner counts. `#/brief/<job>` shows one job: a note naming what sets the order (the benchmark, its source and dates, what it measures, and, where they apply, the wording for the general index, a parent job's benchmark, a benchmark that covers few models, or no benchmark); First choice, Second and Lower cost cards; the full ordered table with overall ranks; and the OpenRouter usage block, collapsed, with its limitation and attribution line. Each card shows the provider, the API price, the reason, the configuration and cost per task where the benchmark reports them, the App guide's selection for the job's guide task, and three bands: Measured, a one-line Named band saying practitioner records need sign-in, and Crowd. An unknown job id shows a notice, not another job. See [Brief's rules](#briefs-rules).
+- **Board** (`#/board`) left the navigation and stays at that address until it is removed. One table ranks models on a task's benchmarks beside HN comment volume, sentiment, four-week change, sentiment on the matching topic and the count of evaluation papers that report the model as best or behind.
 - **Models** (`#/model/<key>`) starts from a model or family. It shows rank on every benchmark, API price, app selections, published reports that cover the model, the evaluation papers that name it with the standing each abstract reports, weekly sentiment, what people say, stated preferences, sentiment by task, and a filterable comment stream. A family page lists its versions. See [Themes, claims and preferences](#themes-claims-and-preferences).
 - **Discussion** (`#/discussion/<key>`) starts from the comments. Sentiment, theme, task, label confidence and period filters slice the whole collection; a ranking shows how each model or family fares inside the slice, and the matching comments are listed under their stories (see Comment threads).
 - **Papers** (`#/papers/<key>`) lists arXiv papers whose title or abstract names a tracked model or family, with a per-target summary and filters by target and title words. Kind and topic filters appear once abstracts have local labels. An evaluation paper with a recorded result shows the area and task tested, marks the named models its abstract reports as best or as behind the best, and shows the stated finding in place of the general takeaway; an Area filter appears once results exist. `?area=<area>` after the address opens the evaluations in one area, which is how the Board links to them.
 - **Expert articles** (`#/expert-articles`) lists verified blog and newsletter posts, newest first. Title, source and year filters narrow the catalog. Titles link directly to the original posts. The published catalog requires an approved Google account.
-- **Benchmark** (`#/benchmark/<id>`) lists every published result for one benchmark, including alternate configurations, with the source's method, cost and time definitions, uncertainty where published, and reports in the same category. It is reached from the Board's column headers and leader panels and from a model's benchmark tiles.
+- **Benchmark** (`#/benchmark/<id>`) lists every published result for one benchmark, including alternate configurations, with the source's method, cost and time definitions, uncertainty where published, and reports in the same category. It is reached from benchmark names in Brief, the Board's column headers and leader panels, and a model's benchmark tiles.
 - **App guide** (`#/apps`) lists which selection to make in ChatGPT and Claude on their highest-usage plans for eight tasks. Coding agents are a separate mode so API model names, Codex configurations and ordinary chat modes are not conflated. Rows open alternatives, tradeoffs, supporting evidence and sources. Model names link to their model pages.
 - **Data** (`#/data`) holds the HN collection status and its start, pause and resume controls, the classifier quality check and limitations, every source with coverage and access notes, and the snapshot download.
 
-Model names link to the model page everywhere, benchmark names link to the benchmark page, and comment counts link to Discussion. Hashes from the prototype period (`#/redesign/...`) map to the same views.
+Model names link to the model page everywhere, benchmark names link to the benchmark page, and comment counts link to Discussion. Hashes that opened the Board (`#/`, `#/redesign/`, `#/redesign/board` and unknown hashes) now open Brief's job chooser; other `#/redesign/...` hashes map to the same views as before.
+
+## Brief's rules
+
+The rules are in `src/lib/brief.ts` and their tests in `tests/brief.test.ts`.
+
+- Only a measured result orders models while one exists. The job's own benchmark with the most models in the filters sets the order; on a tie, the first listed in the job file.
+- The general index (Epoch Capabilities Index) sets the order only when no job-specific benchmark covers three models in the filters.
+- When the best benchmark covers fewer than three models and no general index covers three, it still sets the order, and the note says how many models it covers.
+- A sub-job without a benchmark uses its parent's, and the note says so.
+- With no benchmark result in the filters, Hacker News stated preferences set the order when three models have five or more; otherwise positive share, which needs 10 clearly positive or critical labels. The note says the order comes from reported evidence and is not a measurement.
+- Models whose published interval overlaps the highest result come first and are marked. Inside that group the order is each model's share of stated preferences on the job over all dates, so the period filter never changes an order a benchmark sets. A switch orders the group by cost instead.
+- Lower cost is the cheapest model at no more than half the first choice's cost and at 85% or more of the highest result. When an arena rating sets the order, its interval must overlap the highest instead.
+- Arena ratings and percentages never share a column: the table has one column per benchmark.
+
+Every count, rank and band opens a drawer listing the records behind it (`src/components/EvidenceDrawer.tsx`). Measured records show their configuration, interval, cost, job and a source link. Hacker News counts open the comments through the existing comment stream, limited to the item ids `core.json` lists for the job.
+
+For a signed-in, granted account, and on the local dev server, the restricted payload's results join Measured. Which job a restricted benchmark measures comes from its category in the payload, through the job file's `benchmark-category` table. Those benchmarks are considered after the listed ones.
 
 ## Comment threads
 
@@ -42,12 +60,20 @@ With an analysis made before the thread pipeline, the same places show the topic
 
 The tallies are built in `src/lib/hn-insights.ts` from the comment index, in the browser. Nothing is requested per theme or per claim.
 
-## Model filter
+## Filter bar
 
-One control in the header limits every view to chosen models. A selection has two levels that combine: providers, labelled with the name people use beside the company ("ChatGPT · OpenAI"), and individual models. A provider covers all of its models, including ones added to the snapshot later; individual models are explicit. The button names the selection ("All models", or the chosen names) and a clear button beside it removes the filter in one click.
+One bar under the header replaces the header model filter.
 
-The selection is kept in `localStorage` and read back through a Zod schema, with names the snapshot no longer has dropped. When storage is unavailable the filter still works and lasts until the page is reloaded. It is not part of the URL. The logic is in `src/lib/model-filter.ts` and works the same in the published build.
+- **Job** opens `#/brief/<job>`. The job lives in the address.
+- **Models** is the providers-and-models popover. A selection has two levels that combine: providers, labelled with the name people use beside the company ("ChatGPT · OpenAI"), and individual models. A provider covers all of its models, including ones added to the snapshot later; individual models are explicit.
+- On Brief only: **Period** (all dates, or the last 24, 12, 6 or 3 months, counted back from the last day of the Hacker News collection; Hacker News counts are monthly, so for them a period starts on the first of its month, and the bar says so), **Sources** (Measured and Crowd; Named appears disabled, marked "sign-in") and **Current models only**.
+- A Reset link appears when anything differs from the defaults.
 
+Everything except the job is kept in `localStorage` under the existing key and read back through a Zod schema, with names the snapshot no longer has dropped. Older stored selections with only providers and models still read. When storage is unavailable the bar still works until the page is reloaded. The logic is in `src/lib/model-filter.ts` and works the same in the published build.
+
+The model selection applies to each view as follows.
+
+- **Brief**: the pool of models, the chooser counts and the table follow the selection. A band about one model shows that model's records.
 - **Board**: rows and leader panels list only selected models.
 - **Models**: the rail lists selected models, and the families of selected providers. Co-mentions and the labels on comments leave out everything else.
 - **Discussion**: every count, the period chart, the ranking, the name search and the comment threads use only labels in the selection.
@@ -56,7 +82,7 @@ The selection is kept in `localStorage` and read back through a Zod schema, with
 - **App guide**: filtered per app. An app is shown when its provider is selected or one of that provider's models is. Recommendations inside an app are not trimmed by model, because they are written per app.
 - **Data**: not filtered.
 
-Ranks are always overall ranks across all published results and are never renumbered inside a selection. Ranked tables say so in one line while a filter is active.
+Ranks are always overall ranks across all published results and are never renumbered inside a selection. Ranked tables say so in one line while a filter is active; the Brief table says so while a filter narrows it, and Current models only counts as narrowing.
 
 For HN labels, a provider covers its models' labels and its family-level labels, such as "Claude" or "Codex". A family belongs to a provider when its name shares its words with one of the provider's models, the company name or the common name, or is on a short list of product lines in `src/lib/model-filter.ts`. An individual model covers only its own label, not its family's. A mixed selection is the union. Labels outside the selection are removed from each comment before anything is aggregated, so co-mention counts follow the same rule, and a comment with no label left is not listed. A stated preference is kept only when both of its sides are in the selection. A claim is one sentence about the whole comment and is shown unchanged, so it can name a model outside the selection.
 
@@ -69,6 +95,8 @@ Not filtered: the model list inside a report card, the "compared with" names in 
 `src/lib/site-data.ts` computes each model's best result per benchmark with its rank in the field; equal scores share a rank. The benchmark page ranks all configurations and dims rows that are not a model's best.
 
 The browser aggregates the full HN comment index: weekly sentiment in Monday-UTC buckets, per-topic sentiment and co-mentions. Positive share is positive ÷ (positive + critical) and is hidden below a stated minimum. The four-week change compares the latest four weeks with the four before and needs a minimum in both. Co-mention "ahead/behind" counts come from the automatic labels in one comment and inherit their errors. Family and version names are related by a name heuristic until models carry explicit lineage.
+
+Brief reads `core.json` from `npm run records:build` through a Zod schema (`src/lib/core-schema.ts`). The dev server serves `build/records/core.json` at `/core.json`, and `npm run build:pages` runs the records build and copies the file into `dist/` with `scripts/export-records-site.py`. `named-private.json` is never loaded by a public view or copied, and `npm run check:pages` fails on any named record, or that file, in `dist/`.
 
 ## Density and appearance
 

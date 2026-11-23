@@ -55,13 +55,13 @@ JOB_FILE_FIELDS = {'version', 'status', 'jobs', 'crosswalk', 'keywords', 'surfac
 JOB_FIELDS = {'id', 'label', 'parent', 'benchmarks', 'guideTask'}
 CROSSWALK_SOURCES = (
     'hn-task', 'hn-theme', 'report-category', 'benchmark',
-    'arena-leaderboard', 'epoch-run', 'openrouter-tag', 'review-job',
+    'arena-leaderboard', 'epoch-run', 'openrouter-tag', 'review-job', 'benchmark-category',
 )
 # The sources this build loads. A label missing from a strict table stops the build;
 # Hacker News themes are optional, so a theme without an entry gives no job.
 LOADED_CROSSWALKS = (
     'hn-task', 'hn-theme', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run', 'openrouter-tag',
-    'review-job',
+    'review-job', 'benchmark-category',
 )
 STRICT_CROSSWALKS = (
     'hn-task', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run', 'openrouter-tag', 'review-job',
@@ -741,12 +741,14 @@ def hn_key(target):
 
 
 def crowd(hn, records, model_ids):
-    """Hacker News records, counts per target, job and month, and stated preferences."""
+    """Hacker News records, counts per target, job and month, stated preferences, and the item ids
+    of the comments in each job, so the app can open the comments behind a count."""
     jobs = records.jobs
     themes_order = list(jobs.crosswalk['hn-theme'])
     stories = {story['id']: story.get('title', '') for story in hn['stories']}
     counts = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0, 0, 0])))
     preferences = []
+    comment_ids = collections.defaultdict(list)
     unknown_models = collections.defaultdict(list)
     rows = []
     for comment in hn['comments']:
@@ -783,6 +785,7 @@ def crowd(hn, records, model_ids):
             x={'themes': themes},
         )
         rows.append(record)
+        comment_ids[record['job']].append(comment['id'])
         for key, stance in keys:
             counts[key][record['job']][date[:7]][STANCES.index(stance)] += 1
         for preference in comment.get('prefers', []):
@@ -795,7 +798,7 @@ def crowd(hn, records, model_ids):
             })
     need(not unknown_models, 'Hacker News names models that are not in the snapshot:\n  ' + '\n  '.join(
         f'{model}: {", ".join(ids[:LIST_LIMIT])}' for model, ids in sorted(unknown_models.items())))
-    return rows, counts, preferences
+    return rows, counts, preferences, {job: sorted(ids) for job, ids in sorted(comment_ids.items())}
 
 
 # ---- Named: the people review ------------------------------------------------------------
@@ -1027,7 +1030,14 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
         + arena_records(imported['lmarena'], records, names)
         + epoch_records(imported['epoch'], records, names)
     )
-    hn_rows, counts, preferences = crowd(hn, records, model_ids)
+    hn_rows, counts, preferences, comment_ids = crowd(hn, records, model_ids)
+    categories = {}
+    for category, label in jobs.crosswalk['benchmark-category'].items():
+        resolved = jobs.resolve(label)
+        need(resolved is not None, f'crosswalk benchmark-category: {category} maps to {label}, which is not a job')
+        categories[category] = resolved[0]
+    missing = sorted({benchmark['category'] for benchmark in snapshot['benchmarks']} - set(categories))
+    need(not missing, 'crosswalk benchmark-category has no entry for ' + ', '.join(missing))
     records.stop_if_uncovered()
     ids = [record['id'] for record in measured + hn_rows]
     duplicates = sorted(record_id for record_id, n in collections.Counter(ids).items() if n > 1)
@@ -1067,7 +1077,7 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
                 'labels': sum(len(record['keys']) for record in hn_rows),
             },
         },
-        'jobs': {'version': job_data['version'], 'status': job_data['status'], 'list': jobs.jobs},
+        'jobs': {'version': job_data['version'], 'status': job_data['status'], 'list': jobs.jobs, 'categories': categories},
         'models': [
             {
                 'id': model['id'],
@@ -1101,7 +1111,7 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
             for benchmark in snapshot['benchmarks']
         ] + [entry for kind in IMPORTED for entry in imported_benchmarks(kind, imported[kind], jobs)],
         'measured': measured,
-        'crowd': {'stances': list(STANCES), 'counts': counts},
+        'crowd': {'stances': list(STANCES), 'counts': counts, 'comments': comment_ids},
         'preferences': preferences,
         'coverage': {'sources': list(sources), 'rows': rows},
         'usage': None if usage is None else usage_block(usage, jobs),

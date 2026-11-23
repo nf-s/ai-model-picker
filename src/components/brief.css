@@ -1,0 +1,145 @@
+.rd-jobs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-jobs li {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  padding: 10px 12px;
+}
+.rd a.rd-job-link {
+  color: var(--rd-ink);
+  font-weight: 650;
+}
+.rd-order-note,
+.rd-brief-notice {
+  padding: 10px 14px;
+}
+.rd-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.rd-card {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 14px;
+}
+.rd-card-first {
+  border-color: var(--rd-accent);
+  box-shadow: inset 0 3px 0 var(--rd-accent);
+}
+.rd-card-model {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+}
+.rd .rd-card-model a {
+  color: var(--rd-ink);
+}
+.rd-bands {
+  display: grid;
+  gap: 0;
+  margin-top: 4px;
+}
+.rd-band {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--rd-line2);
+}
+.rd-band-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.rd-band-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-band-list li {
+  display: grid;
+  gap: 1px;
+  overflow-wrap: anywhere;
+}
+.rd-band-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.rd-band-line strong {
+  white-space: nowrap;
+}
+.rd-crowd-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.rd-crowd-row .rd-bar {
+  width: 80px;
+}
+.rd-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.rd-nowrap {
+  white-space: nowrap;
+}
+.rd-brief-table {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 14px;
+}
+.rd-brief-table-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+}
+.rd-brief-table-head h2 {
+  font-size: 14px;
+  font-weight: 650;
+}
+.rd-brief-switch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.rd-th-sub {
+  font-weight: 400;
+  white-space: normal;
+}
+.rd-rank {
+  color: var(--rd-ink3);
+  font-size: 12px;
+}
+.rd-usage {
+  display: grid;
+  gap: 8px;
+  padding: 10px 14px;
+}
+.rd-usage summary {
+  cursor: pointer;
+}
+@media (max-width: 1000px) {
+  .rd-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

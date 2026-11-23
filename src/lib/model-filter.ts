@@ -27,9 +27,32 @@ type StorageWriter = Pick<Storage, 'setItem' | 'removeItem'>;
 
 export const emptyModelFilter: ModelFilter = { providers: [], models: [] };
 export const filterStorageKey = 'model-picker:model-filter';
+
+// The filter bar adds a period in months (0 for all dates), the source
+// classes shown and whether only current models are listed. Named records are
+// behind sign-in, so they are not a class here.
+export const periods = [0, 24, 12, 6, 3] as const;
+export const sourceClasses = ['measured', 'crowd'] as const;
+export type Period = (typeof periods)[number];
+export type SourceClass = (typeof sourceClasses)[number];
+export type FilterBar = ModelFilter & {
+  period: Period;
+  classes: SourceClass[];
+  current: boolean;
+};
+export const defaultFilterBar: FilterBar = {
+  ...emptyModelFilter,
+  period: 0,
+  classes: [...sourceClasses],
+  current: true,
+};
+// Selections stored before the filter bar hold providers and models only.
 export const storedFilterSchema = z.object({
   providers: z.array(z.string()),
   models: z.array(z.string()),
+  period: z.literal([...periods]).default(defaultFilterBar.period),
+  classes: z.array(z.enum(sourceClasses)).default(defaultFilterBar.classes),
+  current: z.boolean().default(defaultFilterBar.current),
 });
 
 // The name people use for a provider's models where it differs from the
@@ -277,32 +300,55 @@ export function scopePapers(
   };
 }
 
+// The bar with the model selection cleaned, the classes in their own order
+// and at least one class left on.
+export function cleanFilterBar(
+  bar: FilterBar,
+  catalogue: Catalogue,
+): FilterBar {
+  const classes = sourceClasses.filter((cls) => bar.classes.includes(cls));
+  return {
+    ...cleanFilter(bar, catalogue),
+    period: bar.period,
+    classes: classes.length > 0 ? classes : [...sourceClasses],
+    current: bar.current,
+  };
+}
+
+export function filterBarDefault(bar: FilterBar) {
+  return (
+    !filterActive(bar) &&
+    bar.period === defaultFilterBar.period &&
+    bar.current === defaultFilterBar.current &&
+    sourceClasses.every((cls) => bar.classes.includes(cls))
+  );
+}
+
 // Storage can be missing, blocked or hold anything, so every failure reads as
-// no selection and a failed write is ignored.
+// the default bar and a failed write is ignored.
 export function readStoredFilter(
   storage: StorageReader | null,
   catalogue: Catalogue,
-): ModelFilter {
+): FilterBar {
   try {
     const raw = storage?.getItem(filterStorageKey);
-    if (!raw) return emptyModelFilter;
+    if (!raw) return defaultFilterBar;
     const parsed = storedFilterSchema.safeParse(JSON.parse(raw));
     return parsed.success
-      ? cleanFilter(parsed.data, catalogue)
-      : emptyModelFilter;
+      ? cleanFilterBar(parsed.data, catalogue)
+      : defaultFilterBar;
   } catch {
-    return emptyModelFilter;
+    return defaultFilterBar;
   }
 }
 
 export function writeStoredFilter(
   storage: StorageWriter | null,
-  filter: ModelFilter,
+  filter: FilterBar,
 ) {
   try {
-    if (filterActive(filter))
-      storage?.setItem(filterStorageKey, JSON.stringify(filter));
-    else storage?.removeItem(filterStorageKey);
+    if (filterBarDefault(filter)) storage?.removeItem(filterStorageKey);
+    else storage?.setItem(filterStorageKey, JSON.stringify(filter));
   } catch {
     // The selection still applies; it is only not remembered.
   }

@@ -3,6 +3,7 @@ import { arxivAreaSchema } from './arxiv-schema.ts';
 import type { ArxivArea } from './arxiv-schema.ts';
 
 export type Route =
+  | { view: 'brief'; job: string | null }
   | { view: 'board' }
   | { view: 'model'; key: string | null }
   | { view: 'discussion'; key: string | null }
@@ -13,7 +14,9 @@ export type Route =
   | { view: 'data' }
   | { view: 'account'; error: string | null };
 
-// Hashes from the prototype period (`#/redesign/board`) keep working.
+// Hashes from the redesign period (`#/redesign/model/...`) keep working.
+// Those that opened the Board, like the root and unknown hashes, open Brief's
+// job chooser; the Board stays at `#/board` until it is removed.
 const legacyPrefix = 'redesign/';
 
 function decode(value: string) {
@@ -37,14 +40,15 @@ function splitQuery(path: string) {
 
 export function parseRoute(hash: string): Route {
   const trimmed = hash.replace(/^#\/?/, '');
+  const legacy = trimmed.startsWith(legacyPrefix);
   const { path, query } = splitQuery(
-    trimmed.startsWith(legacyPrefix)
-      ? trimmed.slice(legacyPrefix.length)
-      : trimmed,
+    legacy ? trimmed.slice(legacyPrefix.length) : trimmed,
   );
   const [view, ...rest] = path.split('/');
   const detail = rest.join('/');
   const value = detail ? decode(detail) : null;
+  if (view === 'brief') return { view, job: value };
+  if (view === 'board' && !legacy) return { view };
   if (view === 'model') return { view, key: value };
   if (view === 'discussion') return { view, key: value };
   if (view === 'papers') {
@@ -56,11 +60,13 @@ export function parseRoute(hash: string): Route {
   if (view === 'expert-articles') return { view };
   if (view === 'data') return { view };
   if (view === 'account') return { view, error: query.get('error') };
-  return { view: 'board' };
+  return { view: 'brief', job: null };
 }
 
 export function routeHref(route: Route) {
-  if (route.view === 'board') return '#/';
+  if (route.view === 'brief')
+    return route.job ? `#/brief/${encodeURIComponent(route.job)}` : '#/';
+  if (route.view === 'board') return '#/board';
   if (route.view === 'benchmark')
     return `#/benchmark/${encodeURIComponent(route.id)}`;
   if (
