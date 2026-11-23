@@ -89,7 +89,7 @@ export function evidenceByJob(
         ? measuredBand(data, target.model.id, id, filters)
         : { results: [], reports: [] };
     const tally: Tally = filters.classes.includes('crowd')
-      ? crowdTally(data, target.key, id, filters.since)
+      ? crowdTally(data, target.key, id, filters)
       : [0, 0, 0, 0];
     return {
       job,

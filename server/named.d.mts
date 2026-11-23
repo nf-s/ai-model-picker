@@ -3,6 +3,7 @@ type NamedFile = {
   review: unknown;
   people: unknown;
   coverage: unknown;
+  pending: unknown;
   use: unknown;
   advice: unknown;
 };

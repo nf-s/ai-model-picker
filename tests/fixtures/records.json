@@ -55,7 +55,9 @@
       "url": "http://example.org/report?id=1",
       "title": "Example Lab · Bug study",
       "kind": "repeated experiment",
-      "x": { "config": "" },
+      "x": {
+        "config": ""
+      },
       "checked": ""
     },
     {
@@ -83,7 +85,9 @@
       "url": "https://news.ycombinator.com/item?id=41234567",
       "title": "",
       "kind": "other",
-      "x": { "themes": [] },
+      "x": {
+        "themes": []
+      },
       "checked": ""
     },
     {
@@ -111,7 +115,12 @@
       "url": "https://blog.example.net/post",
       "title": "Notes",
       "kind": "worked after rework",
-      "x": { "basis": "first", "nested": { "ok": [true, 1, "a", null] } },
+      "x": {
+        "basis": "first",
+        "nested": {
+          "ok": [true, 1, "a", null]
+        }
+      },
       "checked": "2026-11-23"
     },
     {
@@ -163,37 +172,101 @@
       "kind": "method advice",
       "x": null,
       "checked": ""
+    },
+    {
+      "id": "hn:4242",
+      "cls": "crowd",
+      "src": "hn",
+      "keys": [
+        ["model|example-model", "positive"],
+        ["line|Example", "critical"]
+      ],
+      "job": "",
+      "how": "pending",
+      "via": "task:images",
+      "stance": "neutral",
+      "text": "",
+      "quote": "",
+      "cond": "",
+      "tool": "",
+      "effort": "",
+      "setting": "local",
+      "run": "unattended",
+      "surface": "coding-agent",
+      "date": "2026-11-02",
+      "person": "",
+      "url": "https://news.ycombinator.com/item?id=41234567",
+      "title": "",
+      "kind": "other",
+      "x": {
+        "themes": []
+      },
+      "checked": ""
     }
   ],
   "invalid": [
-    { "why": "unknown id prefix", "base": 0, "patch": { "id": "xx:1" } },
-    { "why": "id with a space", "base": 0, "patch": { "id": "bm:a b" } },
+    {
+      "why": "unknown id prefix",
+      "base": 0,
+      "patch": {
+        "id": "xx:1"
+      }
+    },
+    {
+      "why": "id with a space",
+      "base": 0,
+      "patch": {
+        "id": "bm:a b"
+      }
+    },
     {
       "why": "hn id is not an item number",
       "base": 2,
-      "patch": { "id": "hn:abc" }
+      "patch": {
+        "id": "hn:abc"
+      }
     },
     {
       "why": "hn id starts with zero",
       "base": 2,
-      "patch": { "id": "hn:0123" }
+      "patch": {
+        "id": "hn:0123"
+      }
     },
     {
       "why": "id prefix does not match src",
       "base": 1,
-      "patch": { "id": "bm:example-report" }
+      "patch": {
+        "id": "bm:example-report"
+      }
     },
-    { "why": "unknown src", "base": 0, "patch": { "src": "paper" } },
-    { "why": "cls does not match src", "base": 0, "patch": { "cls": "crowd" } },
+    {
+      "why": "unknown src",
+      "base": 0,
+      "patch": {
+        "src": "paper"
+      }
+    },
+    {
+      "why": "cls does not match src",
+      "base": 0,
+      "patch": {
+        "cls": "crowd"
+      }
+    },
     {
       "why": "key of an unknown kind",
       "base": 2,
-      "patch": { "keys": [["family|Example", "positive"]] }
+      "patch": {
+        "keys": [["family|Example", "positive"]]
+      }
     },
     {
       "why": "key with padded name",
       "base": 2,
-      "patch": { "keys": [["line| Example", "positive"]] }
+      "patch": {
+        "keys": [["line| Example", "positive"]]
+      }
     },
     {
       "why": "repeated key",
@@ -208,66 +281,208 @@
     {
       "why": "key with unknown stance",
       "base": 2,
-      "patch": { "keys": [["line|Example", "good"]] }
+      "patch": {
+        "keys": [["line|Example", "good"]]
+      }
     },
     {
       "why": "key is not a pair",
       "base": 2,
-      "patch": { "keys": [["line|Example", "positive", 1]] }
+      "patch": {
+        "keys": [["line|Example", "positive", 1]]
+      }
     },
-    { "why": "unknown stance", "base": 0, "patch": { "stance": "good" } },
-    { "why": "stance as a number", "base": 0, "patch": { "stance": 0 } },
-    { "why": "job is not a job id", "base": 0, "patch": { "job": "Coding" } },
-    { "why": "job without how", "base": 0, "patch": { "how": "" } },
-    { "why": "how without job", "base": 2, "patch": { "how": "label" } },
-    { "why": "unknown how", "base": 0, "patch": { "how": "guess" } },
+    {
+      "why": "unknown stance",
+      "base": 0,
+      "patch": {
+        "stance": "good"
+      }
+    },
+    {
+      "why": "stance as a number",
+      "base": 0,
+      "patch": {
+        "stance": 0
+      }
+    },
+    {
+      "why": "job is not a job id",
+      "base": 0,
+      "patch": {
+        "job": "Coding"
+      }
+    },
+    {
+      "why": "job without how",
+      "base": 0,
+      "patch": {
+        "how": ""
+      }
+    },
+    {
+      "why": "how without job",
+      "base": 2,
+      "patch": {
+        "how": "label"
+      }
+    },
+    {
+      "why": "unknown how",
+      "base": 0,
+      "patch": {
+        "how": "guess"
+      }
+    },
+    {
+      "why": "needs reading with a job",
+      "base": 6,
+      "patch": {
+        "job": "code"
+      }
+    },
+    {
+      "why": "needs reading without its label",
+      "base": 6,
+      "patch": {
+        "via": ""
+      }
+    },
     {
       "why": "job by review on a crowd record",
       "base": 2,
-      "patch": { "job": "coding", "how": "review", "via": "review:coding" }
+      "patch": {
+        "job": "coding",
+        "how": "review",
+        "via": "review:coding"
+      }
     },
     {
       "why": "quote on a crowd record",
       "base": 2,
-      "patch": { "quote": "Words." }
+      "patch": {
+        "quote": "Words."
+      }
     },
     {
       "why": "person on a measured record",
       "base": 0,
-      "patch": { "person": "Ada Example" }
+      "patch": {
+        "person": "Ada Example"
+      }
     },
     {
       "why": "named record without a person",
       "base": 3,
-      "patch": { "person": "" }
+      "patch": {
+        "person": ""
+      }
     },
-    { "why": "unknown setting", "base": 0, "patch": { "setting": "cloud" } },
-    { "why": "unknown run", "base": 0, "patch": { "run": "batch" } },
-    { "why": "unknown surface", "base": 0, "patch": { "surface": "ide" } },
-    { "why": "impossible date", "base": 1, "patch": { "date": "2026-02-30" } },
+    {
+      "why": "unknown setting",
+      "base": 0,
+      "patch": {
+        "setting": "cloud"
+      }
+    },
+    {
+      "why": "unknown run",
+      "base": 0,
+      "patch": {
+        "run": "batch"
+      }
+    },
+    {
+      "why": "unknown surface",
+      "base": 0,
+      "patch": {
+        "surface": "ide"
+      }
+    },
+    {
+      "why": "impossible date",
+      "base": 1,
+      "patch": {
+        "date": "2026-02-30"
+      }
+    },
     {
       "why": "date with time",
       "base": 1,
-      "patch": { "date": "2026-10-01T00:00:00Z" }
+      "patch": {
+        "date": "2026-10-01T00:00:00Z"
+      }
     },
     {
       "why": "checked is not a date",
       "base": 0,
-      "patch": { "checked": "yesterday" }
+      "patch": {
+        "checked": "yesterday"
+      }
     },
-    { "why": "ftp link", "base": 0, "patch": { "url": "ftp://example.com/x" } },
+    {
+      "why": "ftp link",
+      "base": 0,
+      "patch": {
+        "url": "ftp://example.com/x"
+      }
+    },
     {
       "why": "script link",
       "base": 0,
-      "patch": { "url": "javascript:alert(1)" }
+      "patch": {
+        "url": "javascript:alert(1)"
+      }
     },
-    { "why": "empty link", "base": 0, "patch": { "url": "" } },
-    { "why": "x is a list", "base": 0, "patch": { "x": [1, 2] } },
-    { "why": "x is text", "base": 0, "patch": { "x": "score" } },
-    { "why": "text is a number", "base": 0, "patch": { "text": 5 } },
-    { "why": "extra field", "base": 0, "patch": { "score": 71.2 } },
-    { "why": "missing field", "base": 0, "omit": ["checked"] },
-    { "why": "missing keys", "base": 2, "omit": ["keys"] },
-    { "why": "record is a list", "base": null, "value": [] }
+    {
+      "why": "empty link",
+      "base": 0,
+      "patch": {
+        "url": ""
+      }
+    },
+    {
+      "why": "x is a list",
+      "base": 0,
+      "patch": {
+        "x": [1, 2]
+      }
+    },
+    {
+      "why": "x is text",
+      "base": 0,
+      "patch": {
+        "x": "score"
+      }
+    },
+    {
+      "why": "text is a number",
+      "base": 0,
+      "patch": {
+        "text": 5
+      }
+    },
+    {
+      "why": "extra field",
+      "base": 0,
+      "patch": {
+        "score": 71.2
+      }
+    },
+    {
+      "why": "missing field",
+      "base": 0,
+      "omit": ["checked"]
+    },
+    {
+      "why": "missing keys",
+      "base": 2,
+      "omit": ["keys"]
+    },
+    {
+      "why": "record is a list",
+      "base": null,
+      "value": []
+    }
   ]
 }

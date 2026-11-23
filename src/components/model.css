@@ -34,3 +34,16 @@
   justify-content: space-between;
   gap: 8px;
 }
+.rd-tagged {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-tagged li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}

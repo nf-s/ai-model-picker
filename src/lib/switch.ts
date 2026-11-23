@@ -1,5 +1,5 @@
 import {
-  benchmarksFor,
+  allBenchmarksFor,
   benchmarkValue,
   jobSet,
   minimums,
@@ -33,15 +33,15 @@ export type SharedBenchmark = {
   difference: number;
 };
 
-// The benchmarks that measure the job: its own (or its parent's when it has
-// none), then its parent's for a sub-job, then any whose records carry the
-// job. For all jobs (null), every benchmark.
+// The benchmarks that measure the job on every surface, then its parent's
+// for a sub-job, then any whose records carry the job. For all jobs (null),
+// every benchmark.
 export function switchBenchmarks(data: BriefData, jobId: string | null) {
   if (jobId === null) return data.benchmarks;
   const job = data.jobById.get(jobId);
   const listed = [
-    ...benchmarksFor(data, jobId).ids,
-    ...(job?.parent === undefined ? [] : benchmarksFor(data, job.parent).ids),
+    ...allBenchmarksFor(data, jobId),
+    ...(job?.parent === undefined ? [] : allBenchmarksFor(data, job.parent)),
   ];
   const carried = new Set(
     data.measured

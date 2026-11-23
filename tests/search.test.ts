@@ -163,11 +163,14 @@ test('groups keep rank order, jobs in the order of their best item', () => {
 
 const facts = (changes: Partial<DocFacts>): DocFacts => ({
   band: 'crowd',
-  job: 'coding',
+  job: 'code',
   benchmark: '',
   date: '2026-10-15',
   keys: ['model|gpt-6-astra'],
   basis: '',
+  setting: '',
+  run: '',
+  surface: '',
   ...changes,
 });
 
@@ -179,7 +182,7 @@ test('the filter bar: band, job and benchmark, period, models, current, basis', 
   assert.ok(passes(facts({}), openFilter));
   assert.ok(!passes(facts({}), filter({ classes: ['measured'] })));
   const coding = filter({
-    jobs: new Set(['coding']),
+    jobs: new Set(['code']),
     benchmarks: new Set(['swe']),
   });
   assert.ok(!passes(facts({ job: 'writing' }), coding));
@@ -203,6 +206,29 @@ test('the filter bar: band, job and benchmark, period, models, current, basis', 
   const basis = filter({ basis: new Set(['first']) });
   assert.ok(!passes(facts({ band: 'use', basis: 'second' }), basis));
   assert.ok(passes(facts({ band: 'use', basis: 'first' }), basis));
+  // Setting and run filter Crowd and named records; surface named records
+  // only; none of them touches a measured result.
+  const local = filter({ fields: { ...openFilter.fields, setting: 'local' } });
+  assert.ok(passes(facts({ setting: 'local' }), local));
+  assert.ok(!passes(facts({}), local));
+  assert.ok(!passes(facts({ band: 'use', basis: 'first' }), local));
+  assert.ok(passes(facts({ band: 'measured' }), local));
+  const hosted = filter({
+    fields: { ...openFilter.fields, setting: 'hosted' },
+  });
+  assert.ok(passes(facts({}), hosted));
+  assert.ok(!passes(facts({ setting: 'local' }), hosted));
+  const parallel = filter({
+    fields: { ...openFilter.fields, run: 'parallel' },
+  });
+  assert.ok(passes(facts({ band: 'advice', run: 'parallel' }), parallel));
+  assert.ok(!passes(facts({ run: 'unattended' }), parallel));
+  const agent = filter({
+    fields: { ...openFilter.fields, surface: 'coding-agent' },
+  });
+  assert.ok(passes(facts({ band: 'use', surface: 'coding-agent' }), agent));
+  assert.ok(!passes(facts({ band: 'use', surface: 'chat-app' }), agent));
+  assert.ok(passes(facts({ surface: '' }), agent));
 });
 
 // ---- The index built by the records build -------------------------------------------
@@ -299,7 +325,7 @@ test('the static index and the local command give the same ordered ids', async (
 
 test('the job filter gives the same ids both ways', async () => {
   const data = prepareBrief(core);
-  for (const job of ['coding', 'interface', 'reasoning']) {
+  for (const job of ['code', 'interface', 'maths']) {
     const filter = { ...openFilter, ...jobFilter(data, job) };
     const fromStatic = await staticIds('claude opus gpt', filter);
     const fromLocal = localIds('claude opus gpt', { job });

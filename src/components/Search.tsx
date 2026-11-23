@@ -62,6 +62,7 @@ export function searchFilter(
       ? (id) => data.modelById.get(id)?.status === 'current'
       : null,
     basis: new Set(bar.basis),
+    fields: { setting: bar.setting, run: bar.run, surface: bar.surface },
   };
 }
 

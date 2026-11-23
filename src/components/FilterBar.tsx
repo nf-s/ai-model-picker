@@ -1,6 +1,15 @@
 import { monthStart, periodStart } from '../lib/brief';
 import type { CoreJob } from '../lib/core-schema';
 import {
+  fieldsActive,
+  runFilters,
+  runLabels,
+  settingFilters,
+  settingLabels,
+  surfaceFilters,
+  surfaceLabels,
+} from '../lib/fields';
+import {
   basisClasses,
   defaultFilterBar,
   filterBarDefault,
@@ -30,10 +39,11 @@ export const formatDay = (day: string) =>
   dayFormat.format(new Date(`${day}T00:00:00Z`));
 
 // One bar for every filter. The job is in the address; the rest is kept in
-// this browser. Period, sources, basis and current models apply to Brief,
-// Model, Switch, People, Search and Data; the other views use the model
-// selection. Named and the basis are enabled only when the named records are
-// loaded.
+// this browser. Period, sources, basis, setting, run, surface and current
+// models apply to Brief, Model, Switch, People, Search and Data; the other
+// views use the model selection. Named, the basis and the surface are enabled
+// only when the named records are loaded: surface filters records that name a
+// tool, which are practitioner records.
 export default function FilterBar({
   filter,
   onChange,
@@ -176,6 +186,74 @@ export default function FilterBar({
               </span>
             </div>
           )}
+          <label
+            className="rd-fb-group"
+            title="Filters Hacker News and practitioner records, not measured results. Records that do not state it count as hosted."
+          >
+            <span className="rd-fb-label">Setting</span>
+            <select
+              className="rd-select"
+              value={filter.setting}
+              onChange={(event) => {
+                const setting = settingFilters.find(
+                  (value) => value === event.target.value,
+                );
+                if (setting) onChange({ ...filter, setting });
+              }}
+            >
+              {settingFilters.map((value) => (
+                <option key={value} value={value}>
+                  {settingLabels[value]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label
+            className="rd-fb-group"
+            title="Filters Hacker News and practitioner records, not measured results. Records that do not state it count as interactive."
+          >
+            <span className="rd-fb-label">Run</span>
+            <select
+              className="rd-select"
+              value={filter.run}
+              onChange={(event) => {
+                const run = runFilters.find(
+                  (value) => value === event.target.value,
+                );
+                if (run) onChange({ ...filter, run });
+              }}
+            >
+              {runFilters.map((value) => (
+                <option key={value} value={value}>
+                  {runLabels[value]}
+                </option>
+              ))}
+            </select>
+          </label>
+          {named && filter.classes.includes('named') && (
+            <label
+              className="rd-fb-group"
+              title="The kind of tool a practitioner record names. Filters practitioner records only."
+            >
+              <span className="rd-fb-label">Surface</span>
+              <select
+                className="rd-select"
+                value={filter.surface}
+                onChange={(event) => {
+                  const surface = surfaceFilters.find(
+                    (value) => value === event.target.value,
+                  );
+                  if (surface) onChange({ ...filter, surface });
+                }}
+              >
+                {surfaceFilters.map((value) => (
+                  <option key={value} value={value}>
+                    {surfaceLabels[value]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="rd-fb-check">
             <input
               type="checkbox"
@@ -196,6 +274,13 @@ export default function FilterBar({
         >
           Reset filters
         </button>
+      )}
+      {full && fieldsActive(filter) && (
+        <p className="rd-note rd-fb-period">
+          Setting and run filter Hacker News and practitioner records, not
+          measured results or the order they set. They are set by rule and are
+          blank where nothing states them.
+        </p>
       )}
       {full && since && (
         <p className="rd-note rd-fb-period">

@@ -10,7 +10,11 @@ import {
   inFilters,
   measuredFrom,
   limitsOf,
+  pendingLabel,
+  pendingRow,
+  rowEntries,
 } from '../lib/data-page';
+import { surfaceName } from '../lib/fields';
 import { crosswalkSources, jobRules } from '../lib/job-rules';
 import type { FilterBar, Scope } from '../lib/model-filter';
 import { useNamedAdvice } from '../lib/named-client';
@@ -519,21 +523,44 @@ export function Coverage({
   );
   const crowdIn = useMemo(
     () =>
-      hn.status === 'ready'
-        ? crowdInFilters(hn.index, core.crowd.comments, sf)
-        : null,
+      hn.status === 'ready' ? crowdInFilters(hn.index, core.crowd, sf) : null,
     [hn, core, sf],
   );
   const since = sf.since;
+  const pendingOld = core.coverage.pending.map((row) => row.old);
+  for (const row of ready?.payload.pending ?? [])
+    if (!pendingOld.includes(row.old)) pendingOld.push(row.old);
   const rows = [
     ...data.jobs.map((job) => ({
       id: job.id,
       label: job.label,
       sub: job.parent !== undefined,
     })),
+    { id: 'pending', label: pendingLabel, sub: false },
+    ...pendingOld.map((old) => ({
+      id: pendingRow(old),
+      label: `from ${jobRules.replaces[old]?.label ?? old}`,
+      sub: true,
+    })),
     { id: '', label: 'No job', sub: false },
   ];
-  const label = (id: string) => data.jobById.get(id)?.label ?? 'No job';
+  const labelOf = new Map(rows.map((row) => [row.id, row.label]));
+  const label = (id: string) =>
+    data.jobById.get(id)?.label ?? labelOf.get(id) ?? 'No job';
+  // Hacker News comments by coverage row in the whole build: those that need
+  // reading are kept apart from those with no job.
+  const pendingIds = new Set(Object.values(core.crowd.pending).flat());
+  const crowdBuilt = new Map<string, number[]>([
+    ...Object.entries(core.crowd.comments).map(
+      ([job, ids]): [string, number[]] => [
+        job,
+        job === '' ? ids.filter((id) => !pendingIds.has(id)) : ids,
+      ],
+    ),
+    ...Object.entries(core.crowd.pending).map(
+      ([old, ids]): [string, number[]] => [pendingRow(old), ids],
+    ),
+  ]);
   const off = (cls: 'measured' | 'named' | 'crowd') =>
     !filter.classes.includes(cls);
   const measuredCell = (
@@ -574,10 +601,12 @@ export function Coverage({
       <p className="rd-note">
         Records by their own job: a parent job’s row holds only its own records,
         though Brief also takes in its sub-jobs. The first columns are the whole
-        build; the last apply the filter bar’s period, models, sources, basis
-        and current-models setting
+        build; the last apply the filter bar’s period, models, sources, basis,
+        setting, run, surface and current-models setting
         {since ? ` (from ${formatDay(since)})` : ''}. Hacker News records count
-        from the first of the period’s month.
+        from the first of the period’s month. {pendingLabel}: records whose job
+        under the earlier job list was split or became the setting or run field;
+        they have no job until the next review, and none is guessed.
       </p>
       <div className="rd-panel rd-dp-table">
         <div className="rd-scroll">
@@ -599,18 +628,21 @@ export function Coverage({
             </thead>
             <tbody>
               {rows.map((row) => {
-                const benchmarks = row.id
-                  ? data.jobById
-                      .get(row.id)
-                      ?.benchmarks.flatMap(
-                        (id) => data.benchmarkById.get(id) ?? [],
-                      )
+                const job = data.jobById.get(row.id);
+                const benchmarks = job
+                  ? job.benchmarks.flatMap(
+                      (id) => data.benchmarkById.get(id) ?? [],
+                    )
                   : [];
+                const surfaceOf = (id: string) =>
+                  Object.entries(job?.bySurface ?? {}).find(([, ids]) =>
+                    ids?.includes(id),
+                  )?.[0];
                 return (
                   <tr key={row.id || 'none'}>
                     <td>
                       {row.sub && '↳ '}
-                      {row.id ? (
+                      {job ? (
                         <a href={routeHref({ view: 'brief', job: row.id })}>
                           {row.label}
                         </a>
@@ -619,15 +651,20 @@ export function Coverage({
                       )}
                     </td>
                     <td className="rd-note">
-                      {benchmarks && benchmarks.length > 0
-                        ? benchmarks.map((entry, i) => (
-                            <Fragment key={entry.id}>
-                              {i > 0 && ', '}
-                              <BenchmarkName benchmark={entry} />
-                            </Fragment>
-                          ))
-                        : row.id
-                          ? 'None of its own'
+                      {benchmarks.length > 0
+                        ? benchmarks.map((entry, i) => {
+                            const surface = surfaceOf(entry.id);
+                            return (
+                              <Fragment key={entry.id}>
+                                {i > 0 && ', '}
+                                <BenchmarkName benchmark={entry} />
+                                {surface &&
+                                  ` (${surfaceName(surface).toLowerCase()})`}
+                              </Fragment>
+                            );
+                          })
+                        : job
+                          ? 'No measure'
                           : ''}
                     </td>
                     {core.coverage.sources.map((source) => (
@@ -635,12 +672,15 @@ export function Coverage({
                         {source === 'hn'
                           ? crowdCell(
                               row.id,
-                              core.crowd.comments[row.id] ?? [],
+                              rowEntries(crowdBuilt, row.id),
                               'Hacker News comments',
                             )
                           : measuredCell(
                               row.id,
-                              built.get(source)?.get(row.id) ?? [],
+                              rowEntries(
+                                built.get(source) ?? new Map(),
+                                row.id,
+                              ),
                               sourceLabels[source] ?? source,
                             )}
                       </td>
@@ -649,7 +689,7 @@ export function Coverage({
                       <td className="rd-num">
                         {namedCell(
                           row.id,
-                          namedAll.get(row.id) ?? [],
+                          rowEntries(namedAll, row.id),
                           'Use records',
                         )}
                       </td>
@@ -659,7 +699,7 @@ export function Coverage({
                         ? 'Off'
                         : measuredCell(
                             row.id,
-                            measuredIn.get(row.id) ?? [],
+                            rowEntries(measuredIn, row.id),
                             'Measured in filters',
                           )}
                     </td>
@@ -669,7 +709,7 @@ export function Coverage({
                           ? 'Off'
                           : namedCell(
                               row.id,
-                              namedIn.get(row.id) ?? [],
+                              rowEntries(namedIn, row.id),
                               'Use records in filters',
                             )}
                       </td>
@@ -680,7 +720,15 @@ export function Coverage({
                         : crowdIn
                           ? crowdCell(
                               row.id,
-                              [...(crowdIn.get(row.id) ?? [])],
+                              rowEntries(
+                                new Map(
+                                  [...crowdIn].map(([key, ids]) => [
+                                    key,
+                                    [...ids],
+                                  ]),
+                                ),
+                                row.id,
+                              ),
                               'Hacker News comments in filters',
                             )
                           : '—'}
@@ -714,9 +762,8 @@ export function Coverage({
         </p>
       )}
       <p className="rd-note">
-        Epoch Capabilities Index results have no job of their own; Brief uses
-        them for a job only when no job-specific benchmark covers{' '}
-        {minimums.models} models. Method advice is not counted here.
+        The Epoch Capabilities Index is a general index: its results have no job
+        and order none. Method advice is not counted here.
       </p>
     </section>
   );
@@ -796,18 +843,29 @@ const sourceName: Record<string, string> = {
 };
 
 export function JobRules({ data }: { data: BriefData }) {
-  const label = (job: string | null) =>
-    job === null ? 'none' : (data.jobById.get(job)?.label ?? job);
+  const label = (job: string | null) => {
+    if (job === null) return 'none';
+    const old = jobRules.replaces[job];
+    if (old && old.job === null) return `needs reading (${old.label})`;
+    return data.jobById.get(job)?.label ?? job;
+  };
+  const fieldText = (rule: { setting?: string; run?: string }) =>
+    [rule.setting && `setting: ${rule.setting}`, rule.run && `run: ${rule.run}`]
+      .filter(Boolean)
+      .join(', ');
+  const replaced = Object.entries(jobRules.replaces);
   return (
     <section className="rd-section" aria-labelledby="rd-dp-rules-title">
       <h2 className="rd-h" id="rd-dp-rules-title">
         How records get a job
       </h2>
       <p className="rd-note">
-        A source’s own label maps to a job through the crosswalk; keyword rules
-        then run in order. Hacker News themes are used only when the comment’s
-        task is “other”. The people review’s job is kept as the review gave it;
-        no keyword rule changes it.
+        A source’s own label maps to a job through the crosswalk, with how well
+        it fits: direct (the same task), loose (an overlapping one) or none.
+        Hacker News themes are used only when the comment’s task is “other”. The
+        people review’s job is kept as the review gave it and read through the
+        replacements below. Job list version {data.core.jobs.version},{' '}
+        {data.core.jobs.status}.
       </p>
       <details className="rd-panel rd-dp-details rd-dp-rules">
         <summary>
@@ -819,7 +877,7 @@ export function JobRules({ data }: { data: BriefData }) {
             <thead>
               <tr>
                 <th>Source field</th>
-                <th>Label → job</th>
+                <th>Label → job (fit)</th>
               </tr>
             </thead>
             <tbody>
@@ -833,7 +891,10 @@ export function JobRules({ data }: { data: BriefData }) {
                   </td>
                   <td className="rd-note">
                     {table.labels
-                      .map((entry) => `${entry.label} → ${label(entry.job)}`)
+                      .map(
+                        (entry) =>
+                          `${entry.label} → ${label(entry.job)} (${entry.fit}${entry.note ? `: ${entry.note}` : ''})`,
+                      )
                       .join(' · ')}
                   </td>
                 </tr>
@@ -844,14 +905,102 @@ export function JobRules({ data }: { data: BriefData }) {
       </details>
       <details className="rd-panel rd-dp-details rd-dp-rules">
         <summary>
-          Keyword rules, tried in order:{' '}
-          {plural(jobRules.keywords.rules.length, 'rule')}
+          Jobs of the earlier list: {plural(replaced.length, 'replacement')}
         </summary>
+        <p className="rd-note">
+          Stored records keep the job they were reviewed with. A job that was
+          merged gives its new job; one that was split or became a field gives
+          no job until the next review, and sets the field where it implies one.
+        </p>
         <div className="rd-scroll">
           <table className="rd-table">
             <thead>
               <tr>
-                <th>Job</th>
+                <th>Earlier job</th>
+                <th>Now</th>
+                <th>Sets</th>
+              </tr>
+            </thead>
+            <tbody>
+              {replaced.map(([old, entry]) => (
+                <tr key={old}>
+                  <td>
+                    {entry.label}
+                    <div className="rd-note">
+                      <code>{old}</code>
+                    </div>
+                  </td>
+                  <td className="rd-note">
+                    {entry.job !== null
+                      ? label(entry.job)
+                      : entry.into
+                        ? `Split into ${entry.into.map(label).join(' and ')}; needs reading`
+                        : 'No job; needs reading'}
+                  </td>
+                  <td className="rd-note">{fieldText(entry) || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <details className="rd-panel rd-dp-details rd-dp-rules">
+        <summary>Setting, run and surface rules</summary>
+        <p className="rd-note">
+          Setting is local or hosted (the default), run unattended, parallel or
+          interactive (the default). Both are set by rule, never guessed; a
+          record that states neither leaves them blank. Surface comes from the
+          tool a record names, the first group whose word it contains.
+        </p>
+        <div className="rd-scroll">
+          <table className="rd-table">
+            <thead>
+              <tr>
+                <th>Rule</th>
+                <th>Sets</th>
+              </tr>
+            </thead>
+            <tbody>
+              {jobRules.fields['hn-theme'].map((rule) => (
+                <tr key={`theme-${rule.label}`}>
+                  <td>
+                    Hacker News theme <code>{rule.label}</code>
+                  </td>
+                  <td className="rd-note">{fieldText(rule)}</td>
+                </tr>
+              ))}
+              {jobRules.fields.surface.map((rule) => (
+                <tr key={`surface-${rule.surface}`}>
+                  <td>Surface: {surfaceName(rule.surface).toLowerCase()}</td>
+                  <td className="rd-note">{fieldText(rule)}</td>
+                </tr>
+              ))}
+              {jobRules.surface.surfaces.map((entry) => (
+                <tr key={entry.surface}>
+                  <td>Tool names {entry.words.join(', ')}</td>
+                  <td className="rd-note">
+                    surface: {surfaceName(entry.surface).toLowerCase()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <details className="rd-panel rd-dp-details rd-dp-rules">
+        <summary>
+          Keyword rules: {plural(jobRules.keywords.rules.length, 'rule')}; tag
+          rules: {plural(jobRules.tags.rules.length, 'rule')}
+        </summary>
+        <p className="rd-note">
+          Keyword rules give a job from a record’s text and run in order. A tag
+          rule marks records on the model page and never gives or changes a job.
+        </p>
+        <div className="rd-scroll">
+          <table className="rd-table">
+            <thead>
+              <tr>
+                <th>Gives</th>
                 <th>Applies when the label’s job is</th>
                 <th>Pattern</th>
               </tr>
@@ -862,6 +1011,21 @@ export function JobRules({ data }: { data: BriefData }) {
                   <td>{label(rule.job)}</td>
                   <td className="rd-note">
                     {rule.within.map(label).join(', ')}
+                  </td>
+                  <td className="rd-dp-pattern">
+                    <code>{rule.pattern}</code>
+                    {rule.caseSensitive && (
+                      <span className="rd-note"> (case-sensitive)</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {jobRules.tags.rules.map((rule) => (
+                <tr key={rule.tag}>
+                  <td>Tag: {rule.label}</td>
+                  <td className="rd-note">
+                    Any job; read from a use record’s task or a Hacker News
+                    claim
                   </td>
                   <td className="rd-dp-pattern">
                     <code>{rule.pattern}</code>

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { computeBrief, prepareBrief } from '../src/lib/brief.ts';
 import type { BriefFilters } from '../src/lib/brief.ts';
+import { openFields } from '../src/lib/fields.ts';
 import { coreSchema } from '../src/lib/core-schema.ts';
 import type { Core } from '../src/lib/core-schema.ts';
 import { evidenceByJob, findTarget } from '../src/lib/model-page.ts';
@@ -127,12 +128,15 @@ function makeCore(): Core {
     measured: [result('a', 70), result('b', 60), result('c', 40)],
     crowd: {
       stances: ['positive', 'critical', 'mixed', 'neutral'],
+      cells: {},
+      tags: {},
+      pending: {},
       counts: {},
       themes: {},
       comments: {},
     },
     preferences: [],
-    coverage: { sources: [], rows: [] },
+    coverage: { sources: [], rows: [], pending: [] },
     usage: null,
     namedBehindSignIn: true,
   });
@@ -288,6 +292,7 @@ const rawPayload = {
     person(cleo, { adviceOnly: true, advice: 2, useLeftOut: 4 }),
   ],
   coverage: [{ job: 'coding', use: 6, advice: 0 }],
+  pending: [],
   use: rawUse,
 };
 
@@ -297,6 +302,7 @@ const all: BriefFilters = {
   since: '',
   classes: ['measured', 'named', 'crowd'],
   basis: ['first', 'measured', 'second', 'vendor'],
+  fields: openFields,
 };
 
 function setup() {
@@ -382,13 +388,13 @@ test('line records stay under the line; versions keep their own key', () => {
     index: named,
     trusted: [],
   });
-  // The sub-job and no-job rows are there for their measured results.
+  // The no-job row is there for its measured results; the sub-job has no
+  // benchmark of its own and no records, so it has no row.
   assert.deepEqual(
     rows.map((row) => [row.job?.id ?? 'all', row.named.length]),
     [
       ['all', 4],
       ['coding', 4],
-      ['fix', 0],
       ['', 0],
     ],
   );

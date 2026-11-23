@@ -13,7 +13,8 @@ The public index is a folder of static files that the published app copies into 
   each written as the gap from the one before. A token's shard is the FNV-1a hash of its bytes
   modulo `shards`, so a browser fetches only the shards of the words searched.
 - a/<n>.json: per document, in `factChunk` documents a file: its length in tokens, job, benchmark,
-  date and target keys, which the filters and the ranking need before any record is read.
+  date, setting and run, and target keys, which the filters and the ranking need before any
+  record is read.
 - r/<n>.json: the records themselves, `chunk` to a file, read only for the results shown.
 
 Every file carries the build time as `release`, so a reader can refuse files from two builds.
@@ -41,7 +42,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-VERSION = 1
+VERSION = 2
 SHARDS = 256
 CHUNK = 32
 FACT_CHUNK = 4096
@@ -151,9 +152,11 @@ def public_files(records, names, job_labels, built_at):
     crowd = sum(record['cls'] == 'crowd' for record in docs)
     lists = [doc_tokens(record, names, job_labels) for record in docs]
     jobs = sorted({record['job'] for record in docs} | {''})
+    cells = sorted({f'{record["setting"]}|{record["run"]}' for record in docs} | {'|'})
     benchmarks = sorted({benchmark_of(record) for record in docs} - {''})
     keys = sorted({key for record in docs for key, _ in record['keys']})
-    job_at, benchmark_at, key_at = ({value: n for n, value in enumerate(table)} for table in (jobs, benchmarks, keys))
+    job_at, benchmark_at, cell_at, key_at = (
+        {value: n for n, value in enumerate(table)} for table in (jobs, benchmarks, cells, keys))
     postings = {}
     for number, words in enumerate(lists):
         for word in words:
@@ -167,7 +170,8 @@ def public_files(records, names, job_labels, built_at):
         benchmark = benchmark_of(record)
         facts.append([
             len(words), job_at[record['job']], benchmark_at[benchmark] if benchmark else -1,
-            day_number(record['date']), *(key_at[key] for key, _ in record['keys']),
+            day_number(record['date']), cell_at[f'{record["setting"]}|{record["run"]}'],
+            *(key_at[key] for key, _ in record['keys']),
         ])
     public = [{field: value for field, value in record.items() if field not in PRIVATE_FIELDS} for record in docs]
     record_files = range(0, len(docs), CHUNK)
@@ -184,6 +188,7 @@ def public_files(records, names, job_labels, built_at):
         'files': {'records': len(record_files), 'facts': len(fact_files)},
         'jobs': jobs,
         'benchmarks': benchmarks,
+        'cells': cells,
         'keys': keys,
     }
     files = {'index.json': manifest}

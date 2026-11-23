@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react';
+import { jobFromAddress } from './job-rules.ts';
 
 // A model page names one exact model or one product line; a line's records
 // are never merged into a model.
 export type ModelTarget =
   { kind: 'model'; id: string } | { kind: 'line'; name: string };
+// An address that named an old job that is no longer one carries its id as
+// `retired`, so the page can say what became of it.
+type Retired = { retired?: string };
 export type Route =
-  | { view: 'brief'; job: string | null }
-  | {
+  | ({
+      view: 'brief';
+      job: string | null;
+      // The surface whose measure orders a job measured per surface.
+      surface?: string;
+    } & Retired)
+  | ({
       view: 'model';
       // null lists the models.
       target: ModelTarget | null;
@@ -14,12 +23,17 @@ export type Route =
       job: string | null;
       // The thread reader is open under the Crowd band.
       comments: boolean;
-    }
-  | { view: 'switch'; a: string | null; b: string | null; job: string | null }
+    } & Retired)
+  | ({
+      view: 'switch';
+      a: string | null;
+      b: string | null;
+      job: string | null;
+    } & Retired)
   // The people list, or one person's page; the job filters their records.
-  | { view: 'people'; name: string | null; job: string | null }
+  | ({ view: 'people'; name: string | null; job: string | null } & Retired)
   // Word search; the job filters the results.
-  | { view: 'search'; words: string; job: string | null }
+  | ({ view: 'search'; words: string; job: string | null } & Retired)
   | { view: 'benchmark'; id: string }
   | { view: 'apps' }
   // `papers` marks the line saying why arXiv papers were removed, where old
@@ -92,32 +106,51 @@ export function parseRoute(hash: string): Route {
   const [view, ...rest] = path.split('/');
   const detail = rest.join('/');
   const value = detail ? decode(detail) : null;
-  const job = query.get('job') || null;
-  if (view === 'brief') return { view, job: value };
+  // Old job ids land on the job that replaced them (src/lib/job-rules.ts).
+  const asked = jobFromAddress(query.get('job') || null);
+  const job = asked.job;
+  const retired = asked.retired ? { retired: asked.retired } : {};
+  if (view === 'brief') {
+    const found = jobFromAddress(value);
+    const surface = query.get('surface');
+    return {
+      view,
+      job: found.job,
+      ...(found.retired ? { retired: found.retired } : {}),
+      ...(surface && found.job ? { surface } : {}),
+    };
+  }
   if (view === 'model') {
     const target = modelTarget(detail);
     const comments = target !== null && query.get('comments') === 'open';
-    return { view, target, job, comments };
+    return { view, target, job, comments, ...retired };
   }
   // Discussion left the app: its links open the same model or line page with
   // the thread reader open under the Crowd band.
   if (view === 'discussion') {
     const target = modelTarget(detail);
-    return { view: 'model', target, job, comments: target !== null };
+    return {
+      view: 'model',
+      target,
+      job,
+      comments: target !== null,
+      ...retired,
+    };
   }
   if (view === 'switch') {
     const [a, b] = rest.map(decode);
-    return { view, a: a || null, b: b || null, job };
+    return { view, a: a || null, b: b || null, job, ...retired };
   }
   // arXiv papers left the app; old Papers links open the Data page at the
   // line that says why.
   if (view === 'papers') return { view: 'data', section: 'papers' };
   if (view === 'benchmark' && value) return { view, id: value };
   if (view === 'apps') return { view };
-  if (view === 'people') return { view, name: value, job };
-  if (view === 'search') return { view, words: value ?? '', job };
+  if (view === 'people') return { view, name: value, job, ...retired };
+  if (view === 'search') return { view, words: value ?? '', job, ...retired };
   // Expert articles moved onto person pages.
-  if (view === 'expert-articles') return { view: 'people', name: null, job };
+  if (view === 'expert-articles')
+    return { view: 'people', name: null, job, ...retired };
   if (view === 'data')
     return { view, section: value === 'papers' ? value : null };
   if (view === 'account') return { view, error: query.get('error') };
@@ -125,8 +158,13 @@ export function parseRoute(hash: string): Route {
 }
 
 export function routeHref(route: Route) {
-  if (route.view === 'brief')
-    return route.job ? `#/brief/${encodeURIComponent(route.job)}` : '#/';
+  if (route.view === 'brief') {
+    if (!route.job) return '#/';
+    const surface = route.surface
+      ? `?${new URLSearchParams({ surface: route.surface })}`
+      : '';
+    return `#/brief/${encodeURIComponent(route.job)}${surface}`;
+  }
   if (route.view === 'benchmark')
     return `#/benchmark/${encodeURIComponent(route.id)}`;
   if (route.view === 'apps') return '#/apps';

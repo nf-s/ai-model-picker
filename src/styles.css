@@ -215,6 +215,14 @@ p {
   background: #fbf3ee;
   color: #6d3a1e;
 }
+.rd-notice {
+  margin: 12px 20px 0;
+  padding: 9px 12px;
+  border: 1px solid var(--rd-line);
+  border-radius: 6px;
+  background: var(--rd-accent-soft);
+  color: var(--rd-ink);
+}
 .rd code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.92em;
@@ -409,14 +417,17 @@ p {
   background: var(--rd-bg);
   border: 1px solid var(--rd-line);
 }
-.rd-seg button {
+.rd-seg button,
+.rd .rd-seg a.rd-seg-link {
   padding: 3px 10px;
   border-radius: 5px;
   color: var(--rd-ink2);
   font-size: 12.5px;
   white-space: nowrap;
+  text-decoration: none;
 }
-.rd-seg button[aria-pressed='true'] {
+.rd-seg button[aria-pressed='true'],
+.rd .rd-seg a.rd-seg-link[aria-current='true'] {
   background: var(--rd-panel);
   color: var(--rd-ink);
   font-weight: 600;

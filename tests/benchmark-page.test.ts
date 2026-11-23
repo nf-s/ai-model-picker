@@ -173,12 +173,15 @@ function makeCore(): Core {
     ],
     crowd: {
       stances: ['positive', 'critical', 'mixed', 'neutral'],
+      cells: {},
+      tags: {},
+      pending: {},
       counts: {},
       themes: {},
       comments: {},
     },
     preferences: [],
-    coverage: { sources: [], rows: [] },
+    coverage: { sources: [], rows: [], pending: [] },
     usage: null,
     namedBehindSignIn: false,
   });

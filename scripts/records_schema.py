@@ -24,7 +24,9 @@ ID_SOURCES = {
     'hn': ('hn',), 'bm': ('benchmark',), 'ep': ('benchmark',), 'rp': ('report',),
     'la': ('arena',), 'ur': ('use',), 'ma': ('advice',),
 }
-HOW = ('', 'label', 'keywords', 'review')
+# 'pending': no job until the next review, because the old job the label gave was split or became a
+# field; `via` keeps the label.
+HOW = ('', 'label', 'keywords', 'review', 'pending')
 STANCES = ('positive', 'critical', 'mixed', 'neutral')
 SETTINGS = ('', 'local', 'hosted')
 RUNS = ('', 'interactive', 'unattended', 'parallel')
@@ -102,7 +104,10 @@ def check_record(record):
     job, how, via = record['job'], record['how'], record['via']
     need(is_text(job) and (job == '' or JOB_PATTERN.fullmatch(job)), 'job is not a job id')
     need(how in HOW, 'unknown how')
-    need((job == '') == (how == '') == (via == ''), 'job, how and via must be all set or all empty')
+    if how == 'pending':
+        need(job == '' and via != '', 'a record that needs reading has no job and keeps its label')
+    else:
+        need((job == '') == (how == '') == (via == ''), 'job, how and via must be all set or all empty')
     need(how != 'review' or record['cls'] == 'named', 'only named records have jobs by review')
     need(record['stance'] in STANCES, 'unknown stance')
     need(record['quote'] == '' or record['cls'] == 'named', 'only named records keep quotes')

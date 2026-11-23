@@ -112,16 +112,16 @@ test('each App guide task links to one brief, or to none with a reason, in both 
   // What has no counterpart, as a record of the current job file.
   assert.deepEqual(guideGaps(links, jobs), {
     tasksWithoutJob: ['subagents'],
-    jobsWithoutTask: [
-      'agents',
-      'delegation',
-      'planning',
-      'extraction',
-      'local',
-    ],
+    jobsWithoutTask: ['plan', 'documents', 'extraction', 'read-media'],
   });
   assert.equal(guideBrief(links, jobs, 'subagents'), null);
-  assert.equal(guideBrief(links, jobs, 'bug-fixes')?.id, 'bug-fix');
+  assert.equal(guideBrief(links, jobs, 'bug-fixes')?.id, 'debug');
+  // The guide's hard reasoning is wider than maths: a loose link with a note.
+  const reasoning = links.find((link) => link.task === 'reasoning');
+  assert.equal(reasoning?.job, 'maths');
+  assert.ok(reasoning && 'fit' in reasoning && reasoning.fit === 'loose');
+  assert.ok(reasoning && 'note' in reasoning && reasoning.note);
+  assert.equal(guideBrief(links, jobs, 'images')?.id, 'make-images');
 });
 
 test('guide links follow the table, not a job id that looks alike', () => {

@@ -97,6 +97,7 @@ const NamedFile = z.object({
   review: z.unknown(),
   people: z.unknown(),
   coverage: z.unknown(),
+  pending: z.unknown(),
   use: z.unknown(),
   advice: z.unknown(),
 });

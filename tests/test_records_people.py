@@ -146,19 +146,36 @@ class TestNamed(unittest.TestCase):
         self.assertEqual((first['job'], first['how'], first['via']), ('interface', 'review', 'review:interface'))
         self.assertEqual((records[f'ur:{ADA}/2']['job'], records[f'ur:{ADA}/2']['how']), ('', ''))
         self.assertEqual(records[f'ma:{CORA}/1']['job'], '')
-        self.assertEqual(records[f'ma:{ADA}/1']['how'], 'review')
+        # Advice for the old delegation job has no job until the next review, and sets the run field.
+        delegation = records[f'ma:{ADA}/1']
+        self.assertEqual((delegation['job'], delegation['how'], delegation['via'], delegation['run']),
+                         ('', 'pending', 'review:delegation', 'parallel'))
 
     def test_old_job_ids_map_through_replaces(self):
         jobs = copy.deepcopy(JOBS)
         next(job for job in jobs['jobs'] if job['id'] == 'interface')['id'] = 'web-interface'
-        for rule in jobs['keywords']['rules']:
-            rule['job'] = 'web-interface' if rule['job'] == 'interface' else rule['job']
-            rule['within'] = ['web-interface' if job == 'interface' else job for job in rule['within']]
         for entry in jobs['guide']['tasks']:
             entry['job'] = 'web-interface' if entry['job'] == 'interface' else entry['job']
-        jobs['replaces'] = {'interface': {'job': 'web-interface'}}
+        for table in jobs['crosswalk'].values():
+            for entry in table['labels']:
+                entry['job'] = 'web-interface' if entry['job'] == 'interface' else entry['job']
+        jobs['crosswalk']['review-job']['labels'] = [
+            {**entry, 'job': 'interface'} if entry['label'] == 'interface' else entry
+            for entry in jobs['crosswalk']['review-job']['labels']]
+        jobs['replaces']['interface'] = {'label': 'Build a web interface', 'job': 'web-interface'}
         records = by_id(named(jobs=jobs))
         self.assertEqual((records[f'ur:{ADA}/1']['job'], records[f'ur:{ADA}/1']['via']), ('web-interface', 'review:interface'))
+
+    def test_use_records_of_split_jobs_need_reading_and_are_counted_apart(self):
+        data = review([use(ADA, job='images', tool='Ollama'), use(ADA, job='local', task='Draw a pelican as an SVG')], [], 1)
+        result = named(data=data)
+        records = by_id(result)
+        image, local = records[f'ur:{ADA}/1'], records[f'ur:{ADA}/2']
+        self.assertEqual((image['job'], image['how'], image['surface'], image['setting']), ('', 'pending', 'local-runner', 'local'))
+        self.assertEqual((local['how'], local['setting'], local['x']['tags']), ('pending', 'local', ['drawing-test']))
+        self.assertNotIn('tags', image['x'])
+        self.assertEqual(result['pending'], [{'old': 'images', 'use': 1, 'advice': 0}, {'old': 'local', 'use': 1, 'advice': 0}])
+        self.assertTrue(all(row['use'] == 0 for row in result['coverage']))
 
     def test_an_unmapped_review_label_stops_the_build(self):
         jobs = copy.deepcopy(JOBS)

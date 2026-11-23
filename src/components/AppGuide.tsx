@@ -516,13 +516,21 @@ export default function AppGuide({
 }
 
 // The brief of the job the task maps to in the job file. A task that
-// describes a way of running links to none.
+// describes a way of running links to none; a loose link says how the task
+// and the job differ.
 function BriefLink({ core, taskId }: { core: Core | null; taskId: string }) {
   const job = core ? guideBrief(core.jobs.guide, core.jobs.list, taskId) : null;
   if (!job) return null;
+  const link = core?.jobs.guide.find((entry) => entry.task === taskId);
+  const loose = link && 'fit' in link ? link.note : null;
   return (
-    <a className="rd-ag-brief" href={routeHref({ view: 'brief', job: job.id })}>
+    <a
+      className="rd-ag-brief"
+      href={routeHref({ view: 'brief', job: job.id })}
+      title={loose ?? undefined}
+    >
       Brief: {job.label}
+      {loose && ' (loose match)'}
     </a>
   );
 }

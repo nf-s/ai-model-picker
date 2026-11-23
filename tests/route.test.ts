@@ -6,6 +6,7 @@ import {
   parseRoute,
   routeHref,
 } from '../src/lib/route.ts';
+import { retiredNotice } from '../src/lib/job-rules.ts';
 import type { Route } from '../src/lib/route.ts';
 
 test('old Papers links open the Data page at the line on removed papers', () => {
@@ -53,8 +54,8 @@ test('a model page is addressed by the model id and a line by its name', () => {
   assert.equal(modelHref('gpt-6-2-sol'), '#/model/gpt-6-2-sol');
   assert.equal(lineHref('Claude Opus'), '#/model/line/Claude%20Opus');
   assert.equal(
-    modelHref('gpt-6-2-sol', 'bug-fix'),
-    '#/model/gpt-6-2-sol?job=bug-fix',
+    modelHref('gpt-6-2-sol', 'debug'),
+    '#/model/gpt-6-2-sol?job=debug',
   );
   assert.deepEqual(parseRoute('#/model'), {
     view: 'model',
@@ -64,11 +65,11 @@ test('a model page is addressed by the model id and a line by its name', () => {
   });
   for (const route of [
     model('gpt-6-2-sol'),
-    model('a b/c?d', 'coding'),
+    model('a b/c?d', 'code'),
     model('line'),
     line('Claude'),
     line('GPT ?&/', 'writing', true),
-    { view: 'model', target: null, job: 'coding', comments: false },
+    { view: 'model', target: null, job: 'code', comments: false },
   ] satisfies Route[])
     assert.deepEqual(parseRoute(routeHref(route)), route);
 });
@@ -99,11 +100,11 @@ test('old model, family and Discussion links land on the model or line page', ()
 
 test('an unknown model id stays in the route for the page to report', () => {
   assert.deepEqual(parseRoute('#/model/no-such-model'), model('no-such-model'));
-  assert.deepEqual(parseRoute('#/switch/a/no-such-model?job=coding'), {
+  assert.deepEqual(parseRoute('#/switch/a/no-such-model?job=code'), {
     view: 'switch',
     a: 'a',
     b: 'no-such-model',
-    job: 'coding',
+    job: 'code',
   });
 });
 
@@ -112,13 +113,13 @@ test('Switch carries two model ids and the job', () => {
     { view: 'switch', a: null, b: null, job: null },
     { view: 'switch', a: 'a', b: null, job: null },
     { view: 'switch', a: null, b: 'b', job: null },
-    { view: 'switch', a: 'a', b: 'b', job: 'bug-fix' },
+    { view: 'switch', a: 'a', b: 'b', job: 'debug' },
     { view: 'switch', a: 'x/y', b: 'z w', job: null },
   ] satisfies Route[])
     assert.deepEqual(parseRoute(routeHref(route)), route);
   assert.equal(
-    routeHref({ view: 'switch', a: 'a', b: 'b', job: 'coding' }),
-    '#/switch/a/b?job=coding',
+    routeHref({ view: 'switch', a: 'a', b: 'b', job: 'code' }),
+    '#/switch/a/b?job=code',
   );
 });
 
@@ -138,13 +139,13 @@ test('People and person pages are bookmarkable; Expert articles lands on People'
   for (const route of [
     { view: 'people', name: null, job: null },
     { view: 'people', name: 'Ada Example', job: null },
-    { view: 'people', name: 'Ada Example', job: 'coding' },
-    { view: 'people', name: null, job: 'bug-fix' },
+    { view: 'people', name: 'Ada Example', job: 'code' },
+    { view: 'people', name: null, job: 'debug' },
   ] satisfies Route[])
     assert.deepEqual(parseRoute(routeHref(route)), route);
   assert.equal(
-    routeHref({ view: 'people', name: 'Ada Example', job: 'coding' }),
-    '#/people/Ada%20Example?job=coding',
+    routeHref({ view: 'people', name: 'Ada Example', job: 'code' }),
+    '#/people/Ada%20Example?job=code',
   );
   assert.deepEqual(parseRoute('#/expert-articles'), {
     view: 'people',
@@ -157,13 +158,13 @@ test('Brief is the home page and the job is in the address', () => {
   assert.deepEqual(parseRoute(''), { view: 'brief', job: null });
   assert.deepEqual(parseRoute('#/'), { view: 'brief', job: null });
   assert.deepEqual(parseRoute('#/brief'), { view: 'brief', job: null });
-  assert.deepEqual(parseRoute('#/brief/bug-fix'), {
+  assert.deepEqual(parseRoute('#/brief/debug'), {
     view: 'brief',
-    job: 'bug-fix',
+    job: 'debug',
   });
   for (const route of [
     { view: 'brief', job: null },
-    { view: 'brief', job: 'coding' },
+    { view: 'brief', job: 'code' },
   ] satisfies Route[])
     assert.deepEqual(parseRoute(routeHref(route)), route);
   assert.equal(routeHref({ view: 'brief', job: null }), '#/');
@@ -208,10 +209,10 @@ test('the search route carries the words and the job', () => {
   const route: Route = {
     view: 'search',
     words: 'opus refactor / 5.5?',
-    job: 'coding',
+    job: 'code',
   };
   const href = routeHref(route);
-  assert.equal(href, '#/search/opus%20refactor%20%2F%205.5%3F?job=coding');
+  assert.equal(href, '#/search/opus%20refactor%20%2F%205.5%3F?job=code');
   assert.deepEqual(parseRoute(href), route);
 });
 
@@ -258,4 +259,91 @@ test('every old address lands as the old-links table says', () => {
   ];
   for (const [hash, route] of cases)
     assert.deepEqual(parseRoute(hash), route, hash);
+});
+
+test('a brief can name the surface whose measure orders it', () => {
+  const route: Route = { view: 'brief', job: 'code', surface: 'chat-app' };
+  assert.equal(routeHref(route), '#/brief/code?surface=chat-app');
+  assert.deepEqual(parseRoute('#/brief/code?surface=chat-app'), route);
+  // The chooser has no surface.
+  assert.deepEqual(parseRoute('#/?surface=chat-app'), {
+    view: 'brief',
+    job: null,
+  });
+});
+
+// Every job id of the earlier list in an old address: merged and renamed
+// jobs land on their new job; jobs that were split or became a field land on
+// the chooser (or the page with all jobs) and name the old job for a notice.
+const oldJobs: [string, string | null][] = [
+  ['coding', 'code'],
+  ['bug-fix', 'debug'],
+  ['refactor', 'code'],
+  ['tests', 'code'],
+  ['review', 'review'],
+  ['interface', 'interface'],
+  ['agents', null],
+  ['delegation', null],
+  ['planning', 'plan'],
+  ['extraction', 'extraction'],
+  ['research', 'research'],
+  ['analysis', 'documents'],
+  ['writing', 'writing'],
+  ['reasoning', null],
+  ['chat', 'chat'],
+  ['images', null],
+  ['local', null],
+];
+
+for (const [old, current] of oldJobs)
+  test(`an old address with the job ${old} lands as the job list says`, () => {
+    const retired = current === null ? { retired: old } : {};
+    assert.deepEqual(parseRoute(`#/brief/${old}`), {
+      view: 'brief',
+      job: current,
+      ...retired,
+    });
+    assert.deepEqual(parseRoute(`#/model/gpt-6-astra?job=${old}`), {
+      view: 'model',
+      target: { kind: 'model', id: 'gpt-6-astra' },
+      job: current,
+      comments: false,
+      ...retired,
+    });
+    assert.deepEqual(parseRoute(`#/people?job=${old}`), {
+      view: 'people',
+      name: null,
+      job: current,
+      ...retired,
+    });
+    assert.deepEqual(parseRoute(`#/search/opus?job=${old}`), {
+      view: 'search',
+      words: 'opus',
+      job: current,
+      ...retired,
+    });
+    assert.deepEqual(parseRoute(`#/switch/a/b?job=${old}`), {
+      view: 'switch',
+      a: 'a',
+      b: 'b',
+      job: current,
+      ...retired,
+    });
+    if (current === null) assert.match(retiredNotice(old), /no job until/);
+  });
+
+test('the notice says what became of a job that is no longer one', () => {
+  assert.equal(
+    retiredNotice('local'),
+    '“Local or private use” is now the Setting filter (local), not a job. Its records have no job until the next review.',
+  );
+  assert.equal(
+    retiredNotice('delegation'),
+    '“Parallel agents and delegation” is now the Run filter (parallel), not a job. Its records have no job until the next review.',
+  );
+  assert.equal(
+    retiredNotice('images'),
+    '“Images and vision” was split into Read images, scans, audio or video and Make or edit images and video. Its records have no job until the next review.',
+  );
+  assert.equal(retiredNotice('code'), '');
 });

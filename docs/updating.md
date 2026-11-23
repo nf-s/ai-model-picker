@@ -272,6 +272,31 @@ Until step 3 finishes, the local app shows the older analysis kept in `.local/hn
 
 A new full run, which reviews every comment again, is needed only after a change to the review itself, such as its prompt or classifier. Through the Anthropic API the first one cost about US$7 and took about two hours. Start one only when the owner asks; the steps are in the [pipeline instructions](hn-pipeline.md#review-through-the-anthropic-api).
 
+### When the job list changes
+
+The job list is `research/jobs.json` ([data](data.md#shared-records-and-the-job-list)). A change needs no download and no paid call; it changes what Brief orders and how records are counted.
+
+1. Edit the file. Give each job its id, label, parent, benchmarks in priority order and guide task. Map every source label in `crosswalk` with its job and `fit` (`direct`, `loose` with a `note`, or `none`). For every job id that leaves the list, add it to `replaces` with its earlier `label` and either its new `job`, or `job: null` with the jobs it was split into (`into`) or the field it becomes (`setting` or `run`): stored reviews keep the ids they were reviewed with. Update the `guide` table so each App guide task links to the job whose `guideTask` names it, or to none with a note. Raise `version` and set `status`.
+2. Build:
+
+   ```sh
+   npm run records:build
+   ```
+
+   Expected: the coverage table, with a row per job, then "Needs reading until the next review" with a row per earlier job it comes from, then "No job". In a worktree, add `-- --hn-root <main checkout>`.
+
+   | Output                                            | Meaning                                                            | What to do                                                                  |
+   | ------------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+   | `… is neither a job nor replaced`                 | A stored job id or crosswalk entry names a job that is not listed. | Add it to `replaces`, or map the crosswalk entry to a current job.          |
+   | `… has fit none but gives a job` (or the reverse) | A crosswalk entry's fit does not agree with the job it gives.      | Correct the fit or the job.                                                 |
+   | `… is a general index, which orders no job`       | A job lists the Epoch Capabilities Index.                          | Remove it from the job's benchmarks.                                        |
+   | `guide: …`                                        | The guide table and the jobs' guide tasks disagree.                | Make each guide task link to the job that names it, or to none with a note. |
+
+3. Compare the coverage with the last build's: a job that falls to zero, or records that move to "Needs reading", should be explained by the change. Restricted benchmarks take their job from their category in `.local/restricted/research.json` through `benchmark-category`; tell the owner if a category no longer gives a job, without naming the benchmark.
+4. Run the checks in `AGENTS.md`, look at Brief for every job and at the Data page's job coverage, and commit `research/jobs.json` with any test or fixture that names a job id.
+
+The records that need reading get a job only from the next people review and Hacker News review with the new list (see [People](#people) and [Hacker News comments](#hacker-news-comments)); ask the owner before either, as both are paid.
+
 ## LMArena and Epoch runs
 
 This imports the latest Arena leaderboard dataset from Hugging Face and the results of Epoch AI's own benchmark runs. Both are free, need no key and no sign-in, and change only tracked files: `research/lmarena.json`, `research/epoch-runs.json` and, when you add names, `research/aliases/lmarena.json` and `research/aliases/epoch.json`. Neither importer adds a model or changes `src/lib/snapshot.json`: a name that has no alias is listed and left out. What each file holds is in [data provenance](data.md#lmarena-and-epoch-runs).
@@ -333,11 +358,11 @@ npm run records:build
 
 Expected: the coverage table, which has an Arena column, then `LMArena: N records, fetched <date>, checked <date>.` and `Epoch runs: N records, …` with the counts from step 1 or 2. In a worktree, add `-- --hn-root <main checkout>` (see [data provenance](data.md#shared-records-and-the-job-list)).
 
-| Output                                             | Meaning                                                                 | What to do                                                                                                                                                    |
-| -------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `checkedAt is not set`                             | Step 3 was skipped.                                                     | Do step 3.                                                                                                                                                    |
-| `arena:… is not in the crosswalk` or `epoch-run:…` | The importer now reads a leaderboard or file the job file does not map. | Add it to `arena-leaderboard` or `epoch-run` in `research/jobs.json` with its job (or `null`), and to a job's `benchmarks` if it should set that job's order. |
-| `model … is not in the snapshot`                   | The model list changed after the import.                                | Run step 1 again.                                                                                                                                             |
+| Output                                             | Meaning                                                                 | What to do                                                                                                                                                            |
+| -------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkedAt is not set`                             | Step 3 was skipped.                                                     | Do step 3.                                                                                                                                                            |
+| `arena:… is not in the crosswalk` or `epoch-run:…` | The importer now reads a leaderboard or file the job file does not map. | Add it to `arena-leaderboard` or `epoch-run` in `research/jobs.json` with its job (or `null`) and fit, and to a job's `benchmarks` if it should set that job's order. |
+| `model … is not in the snapshot`                   | The model list changed after the import.                                | Run step 1 again.                                                                                                                                                     |
 
 ```sh
 npm test
@@ -402,11 +427,11 @@ npm run records:build
 
 Expected: the coverage table unchanged by this import, then `OpenRouter usage (orders nothing): N models with 30-day tokens as of <as_of>, N task tags as of <date>, checked <date>.` with the counts from step 1 or 2. In a worktree, add `-- --hn-root <main checkout>`.
 
-| Output                                                         | Meaning                                  | What to do                                                                                                   |
-| -------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `checkedAt is not set`                                         | Step 3 was skipped.                      | Do step 3.                                                                                                   |
-| `OpenRouter task tags are not in the openrouter-tag crosswalk` | OpenRouter added or renamed a task tag.  | Add it to `openrouter-tag` in `research/jobs.json` with the job whose work it describes, or `null` for none. |
-| `model is not in the snapshot` or `… is not in the snapshot`   | The model list changed after the import. | Run step 2 again on the last download.                                                                       |
+| Output                                                         | Meaning                                  | What to do                                                                                                                     |
+| -------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `checkedAt is not set`                                         | Step 3 was skipped.                      | Do step 3.                                                                                                                     |
+| `OpenRouter task tags are not in the openrouter-tag crosswalk` | OpenRouter added or renamed a task tag.  | Add it to `openrouter-tag` in `research/jobs.json` with the job whose work it describes and its fit, or `null` and fit `none`. |
+| `model is not in the snapshot` or `… is not in the snapshot`   | The model list changed after the import. | Run step 2 again on the last download.                                                                                         |
 
 ```sh
 npm test

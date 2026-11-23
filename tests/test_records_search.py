@@ -103,11 +103,12 @@ class TestPublic(unittest.TestCase):
                 seen += len(numbers)
         self.assertEqual(seen, sum(map(len, held)))
 
-    def test_facts_give_length_job_benchmark_date_and_keys(self):
+    def test_facts_give_length_job_benchmark_date_fields_and_keys(self):
         docs = self.documents()
         facts = [row for n in range(self.manifest['files']['facts']) for row in self.files[f'a/{n}.json']['docs']]
         for record, row in zip(docs, facts):
-            length, job, benchmark, day, *keys = row
+            length, job, benchmark, day, cell, *keys = row
+            self.assertEqual(self.manifest['cells'][cell], f'{record["setting"]}|{record["run"]}')
             self.assertEqual(length, len(doc_tokens({**record, 'quote': '', 'person': ''}, NAMES, LABELS)))
             self.assertEqual(self.manifest['jobs'][job], record['job'])
             expected = (record['x'] or {}).get('b', '') if record['cls'] == 'measured' else ''

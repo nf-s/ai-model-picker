@@ -87,6 +87,11 @@ def job(data, job_id):
     return next(entry for entry in data['jobs'] if entry['id'] == job_id)
 
 
+def rule(**values):
+    """A keyword rule for the job file, with `values` replacing its fields."""
+    return {'job': 'debug', 'within': [None, 'code'], 'pattern': r'\bdebug', 'caseSensitive': False, **values}
+
+
 def crosswalk_entry(data, source, label):
     return next(entry for entry in data['crosswalk'][source]['labels'] if entry['label'] == label)
 
@@ -123,21 +128,154 @@ class TestJobFile(unittest.TestCase):
             self.assertIn(text, str(raised.exception))
         return str(raised.exception)
 
-    def test_tracked_job_file_is_a_draft_that_builds(self):
+    def test_tracked_job_file_is_the_approved_list_that_builds(self):
         core, records = self.build()
-        self.assertEqual(core['jobs']['status'], 'draft')
-        self.assertEqual(len(core['jobs']['list']), 17)
-        self.assertEqual(self.jobs['replaces'], {})
-        self.assertEqual(sum(sum(row['counts'].values()) for row in core['coverage']['rows']), len(records))
-        self.assertEqual(records['hn:101']['job'], 'bug-fix')
-        self.assertEqual((records['hn:101']['how'], records['hn:101']['via']), ('keywords', 'kw:bug-fix'))
-        self.assertEqual((records['hn:102']['job'], records['hn:102']['via']), ('local', 'theme:local-use'))
+        self.assertEqual((core['jobs']['status'], core['jobs']['version']), ('approved', 2))
+        self.assertEqual(len(core['jobs']['list']), 13)
+        self.assertEqual(
+            {entry['id'] for entry in core['jobs']['list'] if entry.get('parent') == 'code'},
+            {'debug', 'review', 'plan', 'interface'})
+        self.assertEqual(self.jobs['keywords']['rules'], [])
+        counted = sum(sum(row['counts'].values()) for row in core['coverage']['rows'] + core['coverage']['pending'])
+        self.assertEqual(counted, len(records))
+        self.assertEqual((records['hn:101']['job'], records['hn:101']['how'], records['hn:101']['via']), ('code', 'label', 'task:coding'))
+        # The local-use theme gives no job and sets the setting field.
+        self.assertEqual((records['hn:102']['job'], records['hn:102']['how'], records['hn:102']['setting']), ('', '', 'local'))
         self.assertEqual((records['hn:103']['job'], records['hn:103']['stance']), ('writing', 'neutral'))
         self.assertEqual(core['crowd']['counts']['line|GPT']['writing']['2026-09'], [0, 0, 1, 0])
-        self.assertEqual(core['preferences'], [{'winner': 'model|' + MODEL, 'loser': 'line|GPT', 'job': 'local', 'date': '2026-10-02', 'id': 'hn:102'}])
-        self.assertEqual(core['crowd']['comments'], {'bug-fix': [101], 'local': [102], 'writing': [103]})
+        self.assertEqual(core['preferences'], [{'winner': 'model|' + MODEL, 'loser': 'line|GPT', 'job': '', 'setting': 'local',
+                                                'run': '', 'date': '2026-10-02', 'id': 'hn:102'}])
+        self.assertEqual(core['crowd']['comments'], {'': [102], 'code': [101], 'writing': [103]})
+        self.assertEqual(core['crowd']['cells']['local|']['comments'], {'': [102]})
+        self.assertEqual(core['crowd']['cells']['local|']['counts']['line|GPT'][''], {'2026-10': [0, 1, 0, 0]})
         self.assertEqual(core['jobs']['categories']['design'], 'interface')
         self.assertEqual(core['jobs']['categories']['general'], '')
+        self.assertEqual(core['jobs']['categories']['reasoning'], '')
+
+    def test_every_old_job_id_is_current_or_replaced(self):
+        old = ('coding', 'bug-fix', 'refactor', 'review', 'tests', 'interface', 'agents', 'delegation', 'planning',
+               'extraction', 'research', 'analysis', 'writing', 'reasoning', 'chat', 'images', 'local')
+        current = {entry['id'] for entry in self.jobs['jobs']}
+        for job_id in old:
+            with self.subTest(job=job_id):
+                self.assertTrue(job_id in current or job_id in self.jobs['replaces'])
+        self.assertFalse(current & set(self.jobs['replaces']))
+        self.assertEqual(
+            {old_id: (entry['job'], entry.get('setting'), entry.get('run'), tuple(entry.get('into', [])))
+             for old_id, entry in self.jobs['replaces'].items()},
+            {
+                'coding': ('code', None, None, ()), 'bug-fix': ('debug', None, None, ()),
+                'refactor': ('code', None, None, ()), 'tests': ('code', None, None, ()),
+                'planning': ('plan', None, None, ()), 'analysis': ('documents', None, None, ()),
+                'reasoning': (None, None, None, ('maths', 'chat')),
+                'images': (None, None, None, ('read-media', 'make-images')),
+                'agents': (None, None, 'unattended', ()), 'delegation': (None, None, 'parallel', ()),
+                'local': (None, 'local', None, ()),
+            })
+
+    def test_records_of_split_jobs_and_fields_need_reading(self):
+        hn = hn_export()
+        hn['comments'] += [
+            {'id': 104, 'createdAt': '2026-10-05T10:00:00Z', 'task': 'images', 'claim': 'It read the scan.',
+             'assessments': [assessment('model', MODEL, 'positive')]},
+            {'id': 105, 'createdAt': '2026-10-06T10:00:00Z', 'task': 'agents', 'claim': 'It ran overnight.',
+             'assessments': [assessment('model', MODEL, 'mixed', ['local-use'])]},
+        ]
+        core, records = build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
+        records = {record['id']: record for record in records}
+        self.assertEqual((records['hn:104']['job'], records['hn:104']['how'], records['hn:104']['via']), ('', 'pending', 'task:images'))
+        # The old job sets the run field; the theme sets the setting.
+        self.assertEqual((records['hn:105']['how'], records['hn:105']['run'], records['hn:105']['setting']), ('pending', 'unattended', 'local'))
+        self.assertEqual(core['coverage']['pending'], [
+            {'old': 'images', 'counts': {'benchmark': 0, 'arena': 0, 'report': 0, 'hn': 1}},
+            {'old': 'agents', 'counts': {'benchmark': 0, 'arena': 0, 'report': 0, 'hn': 1}},
+        ])
+        none = next(row for row in core['coverage']['rows'] if row['job'] == '')
+        self.assertEqual(none['counts']['hn'], 1)
+        self.assertEqual(core['crowd']['pending'], {'images': [104], 'agents': [105]})
+        self.assertEqual(core['crowd']['comments'][''], [102, 104, 105])
+        self.assertEqual(core['crowd']['cells']['local|unattended']['comments'], {'': [105]})
+        table = build['coverage_table'](core, None, {'images': 'Images and vision', 'agents': 'Long agent runs'})
+        self.assertIn('Needs reading until the next review', table)
+        self.assertIn('  from Images and vision', table)
+        self.assertLess(table.index('Needs reading'), table.index('No job'))
+
+    def test_surface_comes_from_the_tool_and_a_local_runner_sets_local(self):
+        jobs = build['Jobs'](self.jobs, {b['id'] for b in SNAPSHOT['benchmarks']} | {
+            entry['id'] for kind, field in IMPORTED_LIST.items() for entry in IMPORTED[kind][field]},
+            {task['id'] for task in GUIDE['tasks']})
+        cases = {
+            'Claude Code': 'coding-agent', 'Codex CLI': 'coding-agent', 'GitHub Copilot': 'coding-agent',
+            'Pi': 'coding-agent', 'ChatGPT app': 'chat-app', 'Claude.ai': 'chat-app', 'Ollama': 'local-runner',
+            'llama.cpp server': 'local-runner', 'OpenRouter API': 'api', 'llm CLI': 'api', 'Pipeline tool': '',
+            'Rapid prototyping': '', '': '',
+        }
+        for tool, surface in cases.items():
+            with self.subTest(tool=tool):
+                self.assertEqual(jobs.surface_of(tool), surface)
+        records = build['Records'](jobs)
+        record = records.make('chat', 'task:chat', None, id='hn:9', cls='crowd', src='hn',
+                              tool='Ollama', url='https://news.ycombinator.com/item?id=9')
+        self.assertEqual((record['surface'], record['setting'], record['run']), ('local-runner', 'local', ''))
+
+    def test_the_drawing_test_tag_never_gives_a_job(self):
+        jobs = build['Jobs'](self.jobs, {b['id'] for b in SNAPSHOT['benchmarks']} | {
+            entry['id'] for kind, field in IMPORTED_LIST.items() for entry in IMPORTED[kind][field]},
+            {task['id'] for task in GUIDE['tasks']})
+        tagged = ['Generate an SVG of a pelican riding a bicycle', 'Drew a cat as an SVG', 'SVG drawing of a lighthouse',
+                  'The Pelicans test again']
+        untagged = ['Convert the SVG icons to a sprite sheet', 'Draw conclusions from the logs', 'Fix the SVG export bug']
+        for text in tagged:
+            with self.subTest(text=text):
+                self.assertEqual(jobs.tags_of(text), {'tags': ['drawing-test']})
+        for text in untagged:
+            with self.subTest(text=text):
+                self.assertEqual(jobs.tags_of(text), {})
+        hn = hn_export()
+        hn['comments'][0]['claim'] = 'Its pelican on a bicycle SVG was the best yet.'
+        core, records = build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
+        record = next(record for record in records if record['id'] == 'hn:101')
+        self.assertEqual((record['job'], record['x']['tags']), ('code', ['drawing-test']))
+        self.assertEqual(core['crowd']['tags'], {'drawing-test': {'model|' + MODEL: {'2026-10': [101]}}})
+
+    def test_a_general_index_orders_no_job(self):
+        job(self.jobs, 'chat')['benchmarks'].append('epoch-eci')
+        self.refused('job chat: epoch-eci is a general index, which orders no job')
+
+    def test_surface_measures_are_benchmarks_of_the_job(self):
+        job(self.jobs, 'code')['bySurface']['chat-app'] = ['lmarena-webdev-overall']
+        self.refused('job code: the chat-app benchmarks are not distinct benchmarks of the job')
+        self.jobs = copy.deepcopy(JOBS)
+        job(self.jobs, 'code')['bySurface']['editor'] = ['terminal-bench-4-1']
+        self.refused('job code: unknown surface editor')
+
+    def test_a_crosswalk_fit_agrees_with_the_job_it_gives(self):
+        cases = [
+            (lambda d: crosswalk_entry(d, 'hn-task', 'other').update(fit='direct'), 'crosswalk hn-task: other has fit direct but gives no job'),
+            (lambda d: crosswalk_entry(d, 'hn-task', 'images').update(fit='loose'), 'crosswalk hn-task: images has fit loose but gives no job'),
+            (lambda d: crosswalk_entry(d, 'hn-task', 'coding').update(fit='none'), 'crosswalk hn-task: coding has fit none but gives a job'),
+            (lambda d: crosswalk_entry(d, 'hn-task', 'coding').update(fit='close'), 'crosswalk hn-task: coding has unknown fit close'),
+            (lambda d: crosswalk_entry(d, 'hn-task', 'coding').pop('fit'), 'crosswalk hn-task: an entry is not a label, a job, a fit'),
+        ]
+        for change, message in cases:
+            with self.subTest(message=message):
+                self.jobs = copy.deepcopy(JOBS)
+                change(self.jobs)
+                self.refused(message)
+
+    def test_broken_replacements(self):
+        cases = [
+            (lambda d: d['replaces']['local'].pop('label'), 'replaces local: fields differ'),
+            (lambda d: d['replaces']['images'].update(into=['pictures']), 'replaces images: into names a job that does not exist'),
+            (lambda d: d['replaces']['coding'].update(into=['code']), 'replaces coding: a replacement job and jobs it was split into'),
+            (lambda d: d['replaces']['local'].pop('setting'), 'replaces local: no job, no jobs it was split into and no field it sets'),
+            (lambda d: d['replaces']['agents'].update(run='overnight'), 'replaces agents: unknown run'),
+        ]
+        for change, message in cases:
+            with self.subTest(message=message):
+                self.jobs = copy.deepcopy(JOBS)
+                change(self.jobs)
+                self.refused(message)
 
     def test_every_snapshot_benchmark_category_needs_a_job_entry(self):
         table = self.jobs['crosswalk']['benchmark-category']['labels']
@@ -163,36 +301,39 @@ class TestJobFile(unittest.TestCase):
         self.refused('benchmark:plato-web-clone-bench is not in the crosswalk', 'bm:plato-web-clone-bench:')
 
     def test_old_job_ids_map_through_replaces(self):
-        self.jobs['jobs'].remove(job(self.jobs, 'local'))
-        self.jobs['keywords']['rules'] = [rule for rule in self.jobs['keywords']['rules'] if rule['job'] != 'local']
-        self.refused('local is neither a job nor replaced', 'hn:102')
-        self.jobs['replaces'] = {'local': {'job': None, 'setting': 'local'}}
+        crosswalk_entry(self.jobs, 'hn-task', 'coding')['job'] = 'coding'
+        del self.jobs['replaces']['coding']
+        self.refused('coding is neither a job nor replaced', 'hn:101')
+        self.jobs['replaces']['coding'] = {'label': 'Old coding', 'job': 'code'}
         _core, records = self.build()
-        self.assertEqual((records['hn:102']['job'], records['hn:102']['setting']), ('', 'local'))
+        self.assertEqual((records['hn:101']['job'], records['hn:101']['via']), ('code', 'task:coding'))
 
     def test_parent_that_does_not_exist(self):
-        job(self.jobs, 'bug-fix')['parent'] = 'cooding'
-        self.refused('job bug-fix: parent cooding does not exist')
+        job(self.jobs, 'debug')['parent'] = 'cooding'
+        self.refused('job debug: parent cooding does not exist')
 
     def test_parent_with_a_parent(self):
-        job(self.jobs, 'agents')['parent'] = 'coding'
-        self.refused('job delegation: parent agents has a parent')
+        job(self.jobs, 'code')['parent'] = 'chat'
+        self.refused('job debug: parent code has a parent')
 
     def test_benchmark_that_does_not_exist(self):
-        job(self.jobs, 'coding')['benchmarks'].append('no-such-benchmark')
-        self.refused('job coding: benchmark no-such-benchmark does not exist')
+        job(self.jobs, 'code')['benchmarks'].append('no-such-benchmark')
+        self.refused('job code: benchmark no-such-benchmark does not exist')
 
     def test_other_broken_references(self):
         cases = [
             (lambda d: job(d, 'writing').update(guideTask='novels'), 'App guide task novels does not exist'),
-            (lambda d: d['keywords']['rules'][0].update(job='swarms'), 'keyword rule 1: job swarms does not exist'),
-            (lambda d: d['keywords']['rules'][0]['within'].append('nothing'), 'keyword rule 1: within names a job'),
-            (lambda d: d['keywords']['rules'][0].update(pattern='('), 'keyword rule 1: pattern does not compile'),
+            (lambda d: d['keywords']['rules'].append(rule(job='swarms')), 'keyword rule 1: job swarms does not exist'),
+            (lambda d: d['keywords']['rules'].append(rule(within=[None, 'nothing'])), 'keyword rule 1: within names a job'),
+            (lambda d: d['keywords']['rules'].append(rule(pattern='(')), 'keyword rule 1: pattern does not compile'),
+            (lambda d: d['tags']['rules'][0].update(pattern='('), 'tag rule 1: pattern does not compile'),
+            (lambda d: d['tags']['rules'][0].update(tag='code'), 'tag rule 1: code is a job id'),
+            (lambda d: d['fields']['hn-theme'].append({'label': 'no-such-theme', 'run': 'unattended'}), 'fields hn-theme: unknown theme no-such-theme'),
             (lambda d: d['jobs'].append(dict(job(d, 'chat'))), 'a job id is repeated'),
-            (lambda d: d['replaces'].update(chat={'job': 'writing'}), 'replaces chat: not an old job id'),
-            (lambda d: d['replaces'].update(old={'job': 'gone'}), 'replaces old: gone is not a job'),
+            (lambda d: d['replaces'].update(chat={'label': 'Chat', 'job': 'writing'}), 'replaces chat: not an old job id'),
+            (lambda d: d['replaces'].update(old={'label': 'Old', 'job': 'gone'}), 'replaces old: gone is not a job'),
             (lambda d: d['crosswalk'].update(unknown={'version': 1, 'labels': []}), 'crosswalk has an unknown source'),
-            (lambda d: d['surface']['tools'].update(Example='editor'), 'surface: Example has unknown surface editor'),
+            (lambda d: d['surface']['surfaces'].append({'surface': 'editor', 'words': ['vim']}), 'surface: unknown surface editor'),
             (lambda d: d.update(status='final'), 'status is neither draft nor approved'),
         ]
         for change, message in cases:
@@ -225,8 +366,10 @@ class TestJobFile(unittest.TestCase):
             (lambda d: entry(d, 'writing').update(job='poems'), 'guide: writing links to poems, which is not a job'),
             (lambda d: entry(d, 'writing').update(job=None, note='x'), 'guide: writing has no job, but writing names it as guide task'),
             (lambda d: entry(d, 'subagents').pop('note'), 'guide: subagents has no job and no note'),
-            (lambda d: entry(d, 'writing').update(note='x'), 'guide: writing has a job and a note'),
-            (lambda d: job(d, 'agents').update(guideTask='subagents'), 'guide: subagents has no job, but agents names it as guide task'),
+            (lambda d: entry(d, 'writing').update(note='x'), 'guide: writing needs a note when, and only when, its fit is loose'),
+            (lambda d: entry(d, 'reasoning').pop('note'), 'guide: reasoning needs a note when, and only when, its fit is loose'),
+            (lambda d: entry(d, 'subagents').update(fit='loose'), 'guide: subagents has no job and a fit'),
+            (lambda d: job(d, 'extraction').update(guideTask='subagents'), 'guide: subagents has no job, but extraction names it as guide task'),
         ]
         for change, message in cases:
             with self.subTest(message=message):
@@ -496,7 +639,7 @@ class TestCrowdAggregates(unittest.TestCase):
                         by_theme.setdefault(theme, [0, 0, 0, 0])[stance] += 1
         self.assertEqual(core['crowd']['counts'], counts)
         self.assertEqual(core['crowd']['themes'], themes)
-        self.assertEqual(core['crowd']['themes']['line|GPT'], {'coding': {'2026-11': {'pricing': [0, 1, 0, 0]}}})
+        self.assertEqual(core['crowd']['themes']['line|GPT'], {'code': {'2026-11': {'pricing': [0, 1, 0, 0]}}})
         self.assertNotIn('model|gpt-6-luna', core['crowd']['themes'])
 
     def test_unknown_theme_stops_the_build(self):

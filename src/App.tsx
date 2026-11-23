@@ -20,6 +20,7 @@ import { formatHnRange, useHnPipeline } from './lib/hn-client';
 import { hnPublished } from './lib/hn-published';
 import { createScope } from './lib/model-filter';
 import type { ModelFilter } from './lib/model-filter';
+import { retiredNotice } from './lib/job-rules';
 import { parseRoute, routeHref, useHash } from './lib/route';
 import type { ModelTarget, Route } from './lib/route';
 import {
@@ -232,6 +233,11 @@ export default function App({ access }: { access: Access }) {
               Benchmark data is still shown.
             </p>
           )}
+          {route.view !== 'brief' && 'retired' in route && route.retired && (
+            <p className="rd-notice" role="status">
+              {retiredNotice(route.retired)} The page shows all jobs.
+            </p>
+          )}
           {outside && (
             <OutsideFilter
               target={outside}
@@ -243,6 +249,8 @@ export default function App({ access }: { access: Access }) {
             {route.view === 'brief' && (
               <Brief
                 job={route.job}
+                surface={route.surface ?? null}
+                retired={route.retired ?? null}
                 coreData={coreData}
                 filter={filter}
                 onFilterChange={setFilter}

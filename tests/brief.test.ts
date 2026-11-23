@@ -3,6 +3,8 @@ import test from 'node:test';
 import {
   chooseOrder,
   computeBrief,
+  crowdCommentIds,
+  crowdTally,
   findJob,
   guideSelections,
   lowerCostMissing,
@@ -10,17 +12,20 @@ import {
   orderRules,
   parseInterval,
   periodStart,
+  preferencesFor,
   prepareBrief,
   signalLabel,
   signalScale,
 } from '../src/lib/brief.ts';
+import { openFields } from '../src/lib/fields.ts';
 import type { BriefFilters, Signal } from '../src/lib/brief.ts';
 import { coreSchema } from '../src/lib/core-schema.ts';
 import type { Core } from '../src/lib/core-schema.ts';
 import type { EvidenceRecord } from '../src/lib/records.ts';
 
-// A small invented core.json: models a to f, a coding job with two
-// benchmarks and a sub-job without one, a reasoning job measured only by a
+// A small invented core.json: models a to f, a coding job measured by two
+// benchmarks for coding agents and an arena rating for chat, a sub-job
+// without a benchmark and one with its own, a reasoning job listing only a
 // general index, a writing job ordered by an arena rating beside a percentage
 // benchmark, and a planning job with no benchmark.
 
@@ -109,6 +114,8 @@ function preferences(
     winner: `model|${winner}`,
     loser: `model|${loser}`,
     job,
+    setting: '',
+    run: '',
     date,
     id: `hn:${preferenceId++}`,
   }));
@@ -141,27 +148,28 @@ function makeCore(): Core {
       },
     },
     jobs: {
-      version: 1,
-      status: 'draft',
+      version: 2,
+      status: 'approved',
       list: [
         {
-          id: 'coding',
+          id: 'code',
           label: 'Write code',
-          benchmarks: ['tb', 'swe'],
+          benchmarks: ['tb', 'swe', 'chat'],
+          bySurface: { 'coding-agent': ['tb', 'swe'], 'chat-app': ['chat'] },
           guideTask: 'fixes',
         },
-        { id: 'refactor', label: 'Refactor', parent: 'coding', benchmarks: [] },
+        { id: 'review', label: 'Review', parent: 'code', benchmarks: [] },
         {
-          id: 'bug-fix',
+          id: 'debug',
           label: 'Fix bugs',
-          parent: 'coding',
+          parent: 'code',
           benchmarks: ['swe'],
         },
         { id: 'reasoning', label: 'Reasoning', benchmarks: ['eci'] },
         { id: 'writing', label: 'Writing', benchmarks: ['arena', 'pct'] },
         { id: 'planning', label: 'Planning', benchmarks: [] },
       ],
-      categories: { general: '', coding: 'coding', writing: 'writing' },
+      categories: { general: '', coding: 'code', writing: 'writing' },
       guide: [],
     },
     models: models.map((id) => ({
@@ -181,6 +189,7 @@ function makeCore(): Core {
       benchmark('eci', 'ECI points', 'index', true),
       benchmark('arena', 'Arena rating', 'rating'),
       benchmark('pct', '%', 'percent'),
+      benchmark('chat', 'Arena rating', 'rating'),
     ],
     measured: [
       // tb: a leads; b's interval overlaps a's; c is far below; e is cheap and close.
@@ -201,9 +210,16 @@ function makeCore(): Core {
       result('arena', 'e', 1294, { interval: '1289–1299 · bounds' }),
       result('arena', 'c', 1200, { interval: '1190–1210 · bounds' }),
       result('pct', 'a', 80),
+      // chat: c leads coding in a chat; d overlaps it.
+      result('chat', 'c', 1250, { interval: '1240–1260 · bounds' }),
+      result('chat', 'd', 1245, { interval: '1238–1252 · bounds' }),
+      result('chat', 'a', 1100, { interval: '1090–1110 · bounds' }),
     ],
     crowd: {
       stances: ['positive', 'critical', 'mixed', 'neutral'],
+      cells: {},
+      tags: {},
+      pending: {},
       counts: {
         'model|a': {
           planning: { '2026-10': [8, 2, 0, 0], '2026-06': [4, 0, 0, 0] },
@@ -215,11 +231,11 @@ function makeCore(): Core {
       comments: { planning: [11, 12] },
     },
     preferences: [
-      ...preferences('b', 'a', 'coding', 4, '2026-10-10'),
-      ...preferences('b', 'a', 'coding', 2, '2026-06-10'),
-      ...preferences('a', 'b', 'coding', 1, '2026-10-10'),
+      ...preferences('b', 'a', 'code', 4, '2026-10-10'),
+      ...preferences('b', 'a', 'code', 2, '2026-06-10'),
+      ...preferences('a', 'b', 'code', 1, '2026-10-10'),
     ],
-    coverage: { sources: [], rows: [] },
+    coverage: { sources: [], rows: [], pending: [] },
     usage: null,
     namedBehindSignIn: false,
   });
@@ -231,17 +247,19 @@ const all: BriefFilters = {
   since: '',
   classes: ['measured', 'named', 'crowd'],
   basis: ['first', 'measured', 'second', 'vendor'],
+  fields: openFields,
 };
 
 function brief(
   jobId: string,
   filters: BriefFilters = all,
   within: 'preferences' | 'cost' = 'preferences',
+  surface: string | null = null,
 ) {
   const data = prepareBrief(makeCore());
   const job = findJob(data, jobId);
   assert.ok(job);
-  return { data, brief: computeBrief(data, job, filters, within) };
+  return { data, brief: computeBrief(data, job, filters, within, surface) };
 }
 
 function bench(id: string) {
@@ -254,7 +272,7 @@ const names = (rows: readonly { model: { id: string } }[]) =>
   rows.map((row) => row.model.id);
 
 test('the job’s own benchmark with the most models sets the order', () => {
-  const { brief: coding } = brief('coding');
+  const { brief: coding } = brief('code');
   assert.equal(coding.primary && signalLabel(coding.primary), 'Bench tb');
   assert.deepEqual(coding.basis, {
     kind: 'benchmark',
@@ -288,7 +306,7 @@ test('on a tie the first benchmark listed in the job file sets the order', () =>
 });
 
 test('models whose interval overlaps the highest come first, ordered by stated preferences', () => {
-  const { brief: coding } = brief('coding');
+  const { brief: coding } = brief('code');
   // b overlaps a (63–69 against 67–73) and is preferred in 6 of 7 comparisons.
   assert.deepEqual(names(coding.rows), ['b', 'a', 'e', 'c']);
   assert.deepEqual(
@@ -303,7 +321,7 @@ test('models whose interval overlaps the highest come first, ordered by stated p
 });
 
 test('the switch to cost orders the overlapping models by cost', () => {
-  const { brief: coding } = brief('coding', all, 'cost');
+  const { brief: coding } = brief('code', all, 'cost');
   assert.deepEqual(names(coding.rows), ['b', 'a', 'e', 'c']);
   assert.equal(coding.rows[0]?.cost, 8);
   assert.match(orderRules(coding), /ordered by cost per trial/);
@@ -314,12 +332,12 @@ test('the period filter never changes an order a benchmark sets', () => {
   // the minimum of 5), yet the order inside the overlap uses all dates.
   const since = periodStart('2026-11-20', 3);
   assert.equal(since, '2026-08-20');
-  const { brief: recent } = brief('coding', { ...all, since });
-  assert.deepEqual(names(recent.rows), names(brief('coding').brief.rows));
+  const { brief: recent } = brief('code', { ...all, since });
+  assert.deepEqual(names(recent.rows), names(brief('code').brief.rows));
 });
 
 test('lower cost is the cheapest at most half the first choice’s cost and 85% of the highest', () => {
-  const { brief: coding } = brief('coding');
+  const { brief: coding } = brief('code');
   // First choice b costs 8 per trial; e costs 4 and scores 61 against 70 × 0.85 = 59.5.
   // c costs 1 but scores 40.
   assert.equal(coding.lower?.model.id, 'e');
@@ -337,7 +355,7 @@ test('lower cost under an arena rating needs an overlapping interval', () => {
 });
 
 test('with no lower-cost model the card says which rule was not met', () => {
-  const { brief: coding } = brief('coding', {
+  const { brief: coding } = brief('code', {
     ...all,
     inScope: (id) => id === 'a' || id === 'b',
   });
@@ -364,8 +382,8 @@ test('arena ratings and percentages never share a column', () => {
 });
 
 test('ranks are overall ranks, never renumbered inside a filter', () => {
-  const { brief: open } = brief('coding');
-  const { brief: narrow } = brief('coding', {
+  const { brief: open } = brief('code');
+  const { brief: narrow } = brief('code', {
     ...all,
     inScope: (id) => id === 'c' || id === 'e',
   });
@@ -378,17 +396,12 @@ test('ranks are overall ranks, never renumbered inside a filter', () => {
   assert.equal(narrow.field[0], 5);
 });
 
-test('the general index sets the order only when no job benchmark covers three models', () => {
-  const { data, brief: reasoning } = brief('reasoning');
-  assert.deepEqual(reasoning.basis, {
-    kind: 'benchmark',
-    signal: 0,
-    why: 'general',
-    covered: 3,
-  });
-  assert.match(
-    orderExplanation(data, reasoning),
-    /so the general index sets the order/,
+test('a general index never sets the order', () => {
+  const { brief: reasoning } = brief('reasoning');
+  assert.equal(reasoning.basis.kind, 'none');
+  assert.equal(
+    orderExplanation(reasoning),
+    'No benchmark of this job has a result for a model within the filters.',
   );
   const signals: Signal[] = [
     { kind: 'benchmark', benchmark: bench('swe') },
@@ -402,33 +415,51 @@ test('the general index sets the order only when no job benchmark covers three m
     why: 'job',
     covered: 3,
   });
-  assert.deepEqual(chooseOrder(signals, [2, 3, 0, 0]), {
-    kind: 'benchmark',
-    signal: 1,
-    why: 'general',
-    covered: 3,
-  });
-  // Fewer than three on both: the job's own benchmark still orders, and says so.
-  assert.deepEqual(chooseOrder(signals, [2, 1, 9, 9]), {
+  // Fewer than three: the job's own benchmark still orders, and says so.
+  assert.deepEqual(chooseOrder(signals, [2, 9, 9, 9]), {
     kind: 'benchmark',
     signal: 0,
     why: 'few',
     covered: 2,
   });
+  assert.deepEqual(chooseOrder(signals, [0, 9, 0, 0]), { kind: 'none' });
 });
 
-test('a sub-job without a benchmark uses its parent’s and says so', () => {
-  const { data, brief: refactor } = brief('refactor');
-  assert.equal(refactor.from, 'coding');
-  assert.equal(refactor.primary && signalLabel(refactor.primary), 'Bench tb');
+test('a sub-job without a benchmark has no measure and says so', () => {
+  const { brief: review } = brief('review');
+  assert.equal(review.hasBenchmarks, false);
+  assert.equal(review.borrowed, null);
+  assert.equal(review.basis.kind, 'none');
   assert.equal(
-    orderExplanation(data, refactor),
-    'No benchmark measures refactor itself; this is the benchmark of write code with the most models in the filters.',
+    orderExplanation(review),
+    'No measure: no benchmark in the data measures this job.',
   );
 });
 
+test('surface chooses the measure inside the coding job', () => {
+  const { brief: agent } = brief('code');
+  assert.equal(agent.surface, 'coding-agent');
+  assert.deepEqual(agent.surfaces, ['coding-agent', 'chat-app']);
+  assert.equal(agent.primary && signalLabel(agent.primary), 'Bench tb');
+  assert.equal(agent.rating, false);
+  const { brief: chat } = brief('code', all, 'preferences', 'chat-app');
+  assert.equal(chat.surface, 'chat-app');
+  assert.equal(chat.primary && signalLabel(chat.primary), 'Bench chat');
+  assert.equal(chat.rating, true);
+  assert.deepEqual(names(chat.rows), ['c', 'd', 'a']);
+  // An arena rating keeps the overlap rule for lower cost: d overlaps c at half its price.
+  assert.equal(chat.lower?.model.id, 'd');
+  // A surface the job does not list falls back to its default.
+  const { brief: other } = brief('code', all, 'preferences', 'api');
+  assert.equal(other.surface, 'coding-agent');
+  // A job measured the same way everywhere has no surface to switch.
+  const { brief: writing } = brief('writing', all, 'preferences', 'chat-app');
+  assert.equal(writing.surface, null);
+  assert.deepEqual(writing.surfaces, []);
+});
+
 test('a sub-job whose own benchmark covers fewer than three models takes its parent’s order', () => {
-  const { data, brief: fix } = brief('bug-fix');
+  const { brief: fix } = brief('debug');
   // swe covers a and b only; the parent's tb covers four current models.
   assert.equal(fix.primary && signalLabel(fix.primary), 'Bench tb');
   assert.deepEqual(
@@ -437,24 +468,29 @@ test('a sub-job whose own benchmark covers fewer than three models takes its par
     ),
     ['swe', 'tb', 'preferences', 'crowd'],
   );
-  assert.equal(fix.borrowed?.parent.id, 'coding');
+  assert.equal(fix.borrowed?.parent.id, 'code');
   assert.equal(fix.borrowed?.covered, 2);
-  assert.equal(fix.from, null);
+  // It borrows the parent's measure for the surface asked for.
+  assert.equal(fix.surface, 'coding-agent');
+  assert.deepEqual(fix.surfaces, ['coding-agent', 'chat-app']);
   // No stated preference is on this sub-job, so the overlap keeps the result order.
   assert.deepEqual(names(fix.rows), ['a', 'b', 'e', 'c']);
   assert.equal(
-    orderExplanation(data, fix),
+    orderExplanation(fix),
     'Bench swe, the benchmark of fix bugs itself, has results for only 2 models within the filters, so the order comes from the benchmark of write code. Bench swe stays in the table and in the Measured band.',
   );
   // Its own benchmark still holds its results.
   assert.equal(fix.rows.find((row) => row.model.id === 'a')?.values[0]?.n, 50);
+  const { brief: chat } = brief('debug', all, 'preferences', 'chat-app');
+  assert.equal(chat.primary && signalLabel(chat.primary), 'Bench chat');
+  assert.equal(chat.surface, 'chat-app');
 });
 
 test('a sub-job keeps its own order when its benchmark covers three models', () => {
   const core = makeCore();
   core.measured.push(result('swe', 'c', 30));
   const data = prepareBrief(core);
-  const job = findJob(data, 'bug-fix');
+  const job = findJob(data, 'debug');
   assert.ok(job);
   const fix = computeBrief(data, job, all);
   assert.equal(fix.borrowed, null);
@@ -463,7 +499,7 @@ test('a sub-job keeps its own order when its benchmark covers three models', () 
 });
 
 test('a sub-job keeps its own few results when the parent’s benchmark covers fewer than three', () => {
-  const { brief: fix } = brief('bug-fix', {
+  const { brief: fix } = brief('debug', {
     ...all,
     inScope: (id) => id === 'a' || id === 'b',
   });
@@ -478,15 +514,15 @@ test('a sub-job keeps its own few results when the parent’s benchmark covers f
 });
 
 test('without a benchmark the order is reported evidence and the note says so', () => {
-  const { data, brief: planning } = brief('planning');
+  const { brief: planning } = brief('planning');
   // Under three models with five preferences: positive share, which needs ten clear labels.
   assert.equal(planning.basis.kind, 'reported');
   assert.equal(planning.primary?.kind, 'crowd');
   assert.deepEqual(names(planning.rows), ['a']);
   assert.equal(planning.left, 4);
   assert.equal(
-    orderExplanation(data, planning),
-    'No benchmark in the data measures this job. The order below comes from Hacker News positive share, which is reported evidence and not a measurement.',
+    orderExplanation(planning),
+    'No measure: no benchmark in the data measures this job. The order below comes from Hacker News positive share, which is reported evidence and not a measurement.',
   );
   assert.match(
     orderRules(planning),
@@ -511,21 +547,21 @@ test('stated preferences order a job without a benchmark when three models have 
   assert.equal(planning.primary?.kind, 'preferences');
   assert.deepEqual(names(planning.rows), ['c', 'd', 'e']);
   assert.match(
-    orderExplanation(data, planning),
+    orderExplanation(planning),
     /Hacker News stated preferences, which is reported evidence/,
   );
 });
 
 test('a job with nothing to order it says which evidence is missing', () => {
-  const { data, brief: none } = brief('planning', {
+  const { brief: none } = brief('planning', {
     ...all,
     inScope: (id) => id === 'e',
   });
   assert.equal(none.basis.kind, 'none');
   assert.equal(none.first, null);
   assert.equal(
-    orderExplanation(data, none),
-    'No benchmark in the data measures this job.',
+    orderExplanation(none),
+    'No measure: no benchmark in the data measures this job.',
   );
 });
 
@@ -622,4 +658,57 @@ test('the App guide selection is the one for the job’s guide task', () => {
     'ChatGPT: Model B · Default',
   ]);
   assert.deepEqual(guideSelections(guide, undefined, 'b').lines, []);
+});
+
+test('setting and run filter Crowd counts, comments and preferences', () => {
+  const core = makeCore();
+  // Comment 12 is local; the main tables hold every comment, the cell table
+  // the local one again.
+  core.crowd.cells['local|'] = {
+    counts: { 'model|a': { planning: { '2026-10': [3, 1, 0, 0] } } },
+    themes: {},
+    comments: { planning: [12] },
+  };
+  core.preferences.push({
+    ...preferences('c', 'a', 'planning', 1)[0],
+    setting: 'local',
+  });
+  const data = prepareBrief(core);
+  const scope = (setting: 'all' | 'local' | 'hosted') => ({
+    since: '',
+    fields: { ...openFields, setting },
+  });
+  assert.deepEqual(
+    crowdTally(data, 'model|a', 'planning', scope('all')),
+    [12, 2, 0, 0],
+  );
+  assert.deepEqual(
+    crowdTally(data, 'model|a', 'planning', scope('local')),
+    [3, 1, 0, 0],
+  );
+  assert.deepEqual(
+    crowdTally(data, 'model|a', 'planning', scope('hosted')),
+    [9, 1, 0, 0],
+  );
+  const ids = (setting: 'all' | 'local' | 'hosted') => [
+    ...(crowdCommentIds(data, 'planning', { ...openFields, setting }) ?? []),
+  ];
+  assert.deepEqual(ids('all'), [11, 12]);
+  assert.deepEqual(ids('local'), [12]);
+  assert.deepEqual(ids('hosted'), [11]);
+  // All jobs and no field filter: every comment.
+  assert.equal(crowdCommentIds(data, null, openFields), null);
+  assert.deepEqual(
+    [
+      ...(crowdCommentIds(data, null, { ...openFields, run: 'unattended' }) ??
+        []),
+    ],
+    [],
+  );
+  const local = preferencesFor(data, 'model|c', 'planning', scope('local'));
+  assert.equal(local.length, 1);
+  assert.equal(
+    preferencesFor(data, 'model|c', 'planning', scope('hosted')).length,
+    0,
+  );
 });

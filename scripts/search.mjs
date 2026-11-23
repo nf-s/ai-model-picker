@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { prepareBrief } from '../src/lib/brief.ts';
 import { coreSchema } from '../src/lib/core-schema.ts';
+import { jobFromAddress, retiredNotice } from '../src/lib/job-rules.ts';
 import { recordSchema } from '../src/lib/records.ts';
 import {
   foundIn,
@@ -72,6 +73,11 @@ export function searchLocal({
       throw new Error(`${path} is missing: run npm run records:build.`);
   const core = coreSchema.parse(JSON.parse(readFileSync(corePath, 'utf8')));
   const data = prepareBrief(core);
+  // An old job id lands on the job that replaced it, as in the app's
+  // addresses; one that was split or became a field is refused with a notice.
+  const asked = jobFromAddress(job);
+  if (asked.retired !== null) throw new Error(retiredNotice(asked.retired));
+  job = asked.job;
   if (job !== null && !data.jobById.has(job))
     throw new Error(`No job has the id ${job}.`);
   for (const value of band)

@@ -11,7 +11,7 @@ import type { DocFacts, Ranked, SearchFilter } from './search.ts';
 // is named only by a number: a shard number from the hash of a token, or a
 // chunk number from a document number.
 
-const version = 1;
+const version = 2;
 const count = z.number().int().nonnegative();
 const range = z.tuple([count, count]);
 
@@ -27,6 +27,8 @@ const manifestSchema = z.strictObject({
   files: z.strictObject({ records: count, facts: count }),
   jobs: z.array(z.string()),
   benchmarks: z.array(z.string()),
+  // Setting and run pairs, 'local|unattended'.
+  cells: z.array(z.string().regex(/^(local|hosted)?\|(\w+)?$/)),
   keys: z.array(z.string()),
 });
 export type SearchManifest = z.infer<typeof manifestSchema>;
@@ -40,8 +42,9 @@ const factsSchema = z.strictObject({
   v: z.literal(version),
   release: z.string(),
   from: count,
-  // Length, job, benchmark (-1 for none), day number (-1 for none), keys.
-  docs: z.array(z.array(z.number().int().min(-1)).min(4)),
+  // Length, job, benchmark (-1 for none), day number (-1 for none), setting
+  // and run, keys.
+  docs: z.array(z.array(z.number().int().min(-1)).min(5)),
 });
 const jsonValue: z.ZodType<JsonValue> = z.lazy(() =>
   z.union([
@@ -176,8 +179,16 @@ export function staticSource(read: IndexReader = fetchIndexFile): PublicSource {
       const part = await file(`a/${n}.json`, factsSchema);
       return part.docs.map((row, i) => {
         const doc = part.from + i;
-        const [length = 0, job = 0, benchmark = -1, date = -1, ...keys] = row;
+        const [
+          length = 0,
+          job = 0,
+          benchmark = -1,
+          date = -1,
+          cell = 0,
+          ...keys
+        ] = row;
         const [crowdStart, crowdEnd] = index.bands.crowd;
+        const [setting = '', run = ''] = (index.cells[cell] ?? '|').split('|');
         return {
           length,
           band: doc >= crowdStart && doc < crowdEnd ? 'crowd' : 'measured',
@@ -186,6 +197,9 @@ export function staticSource(read: IndexReader = fetchIndexFile): PublicSource {
           date: day(date),
           keys: keys.flatMap((key) => index.keys[key] ?? []),
           basis: '',
+          setting,
+          run,
+          surface: '',
         };
       });
     });

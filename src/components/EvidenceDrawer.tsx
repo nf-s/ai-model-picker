@@ -19,6 +19,7 @@ import {
   recordTrials,
 } from '../lib/brief';
 import type { BriefData } from '../lib/brief';
+import { fieldsText } from '../lib/fields';
 import type { HnTheme } from '../lib/hn-index';
 import { emptyFilter } from '../lib/hn-insights';
 import { dollars } from '../lib/metrics';
@@ -299,9 +300,15 @@ function MeasuredRecord({
         </p>
       )}
       <p className="rd-note">
-        Job: {job ? job.label : 'none'}
+        Job:{' '}
+        {job
+          ? job.label
+          : record.how === 'pending'
+            ? `none until the next review (source label ${record.via})`
+            : 'none'}
         {job &&
           ` · ${record.how === 'keywords' ? `keyword rule ${record.via}` : `source label ${record.via}`}`}
+        {fieldsText(record)}
         {record.checked && ` · checked ${record.checked}`}
       </p>
       <p className="rd-note">
@@ -352,8 +359,14 @@ function CrowdRecord({
         })}
       </p>
       <p className="rd-note">
-        Job: {job ? job.label : 'none'}
+        Job:{' '}
+        {job
+          ? job.label
+          : record.how === 'pending'
+            ? `none until the next review (source label ${record.via})`
+            : 'none'}
         {job && ` · source label ${record.via}`}
+        {fieldsText(record)}
       </p>
       <p className="rd-note">
         <a href={record.url} target="_blank" rel="noopener noreferrer">

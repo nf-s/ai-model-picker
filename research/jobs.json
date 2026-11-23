@@ -1,86 +1,63 @@
 {
-  "version": 1,
-  "status": "draft",
+  "version": 2,
+  "status": "approved",
   "jobs": [
     {
-      "id": "coding",
-      "label": "Write or change code in a repository",
-      "benchmarks": ["terminal-bench-4-1", "swe-rebench-2026-05-15-2026-07-01"],
+      "id": "code",
+      "label": "Write or change code",
+      "benchmarks": ["terminal-bench-4-1", "lmarena-text_style_control-coding"],
+      "bySurface": {
+        "coding-agent": ["terminal-bench-4-1"],
+        "chat-app": ["lmarena-text_style_control-coding"]
+      },
       "guideTask": "bug-fixes"
     },
     {
-      "id": "bug-fix",
-      "label": "Fix a bug or diagnose a fault",
-      "parent": "coding",
+      "id": "debug",
+      "label": "Find and fix a fault",
+      "parent": "code",
       "benchmarks": ["swe-rebench-2026-05-15-2026-07-01"],
       "guideTask": "bug-fixes"
     },
     {
-      "id": "refactor",
-      "label": "Large refactor or migration",
-      "parent": "coding",
-      "benchmarks": [],
-      "guideTask": "bug-fixes"
-    },
-    {
       "id": "review",
-      "label": "Code review",
-      "parent": "coding",
+      "label": "Review code or a change",
+      "parent": "code",
       "benchmarks": [],
       "guideTask": "bug-fixes"
     },
     {
-      "id": "tests",
-      "label": "Write or run tests",
-      "parent": "coding",
-      "benchmarks": [],
-      "guideTask": "bug-fixes"
+      "id": "plan",
+      "label": "Plan or design software",
+      "parent": "code",
+      "benchmarks": []
     },
     {
       "id": "interface",
-      "label": "Build a web interface",
-      "benchmarks": ["plato-web-clone-bench"],
+      "label": "Build a web page or app interface",
+      "parent": "code",
+      "benchmarks": ["lmarena-webdev-overall", "plato-web-clone-bench"],
       "guideTask": "web-apps"
-    },
-    {
-      "id": "agents",
-      "label": "Long agent runs",
-      "benchmarks": ["terminal-bench-4-1"]
-    },
-    {
-      "id": "delegation",
-      "label": "Parallel agents and delegation",
-      "parent": "agents",
-      "benchmarks": []
-    },
-    {
-      "id": "planning",
-      "label": "Architecture and planning",
-      "benchmarks": []
-    },
-    {
-      "id": "extraction",
-      "label": "Data extraction and classification",
-      "benchmarks": []
     },
     {
       "id": "research",
       "label": "Research with web search",
-      "benchmarks": ["lmarena-search_style_control-overall", "epoch-eci"],
+      "benchmarks": ["lmarena-search_style_control-overall"],
       "guideTask": "research"
     },
     {
-      "id": "analysis",
-      "label": "Analysis of documents or data",
-      "benchmarks": [
-        "lmarena-text_style_control-longer_query",
-        "lmarena-document_style_control-overall"
-      ],
-      "guideTask": "research"
+      "id": "documents",
+      "label": "Analyse documents or data you supply",
+      "benchmarks": ["lmarena-document_style_control-overall"]
+    },
+    {
+      "id": "extraction",
+      "label": "Extract or classify data",
+      "benchmarks": []
     },
     {
       "id": "writing",
-      "label": "Writing and editing",
+      "label": "Write, edit or translate",
       "benchmarks": [
         "lmarena-text_style_control-industry_writing_and_literature_and_language",
         "lmarena-text_style_control-creative_writing"
@@ -88,619 +65,846 @@
       "guideTask": "writing"
     },
     {
-      "id": "reasoning",
-      "label": "Hard reasoning and maths",
-      "benchmarks": ["epoch-eci"],
+      "id": "maths",
+      "label": "Maths, science and logic problems",
+      "benchmarks": [
+        "epoch-otis_mock_aime_2024_2025",
+        "epoch-gpqa_diamond",
+        "epoch-frontiermath_tiers_1_3_v2",
+        "epoch-frontiermath_tier_4_v2"
+      ],
       "guideTask": "reasoning"
     },
     {
       "id": "chat",
-      "label": "Everyday questions",
-      "benchmarks": ["epoch-eci"],
+      "label": "Everyday questions and advice",
+      "benchmarks": [
+        "lmarena-text_style_control-overall",
+        "epoch-simpleqa_verified"
+      ],
       "guideTask": "quick-answers"
     },
     {
-      "id": "images",
-      "label": "Images and vision",
+      "id": "read-media",
+      "label": "Read images, scans, audio or video",
       "benchmarks": [
         "lmarena-vision_style_control-overall",
         "lmarena-vision_style_control-ocr",
         "lmarena-vision_style_control-diagram",
-        "epoch-furniture_assembly",
+        "epoch-furniture_assembly"
+      ]
+    },
+    {
+      "id": "make-images",
+      "label": "Make or edit images and video",
+      "benchmarks": [
         "lmarena-text_to_image-overall",
         "lmarena-image_edit-overall"
       ],
       "guideTask": "images"
-    },
-    {
-      "id": "local",
-      "label": "Local or private use",
-      "benchmarks": []
     }
   ],
   "crosswalk": {
     "hn-task": {
-      "version": 1,
+      "version": 2,
       "labels": [
         {
           "label": "coding",
-          "job": "coding"
-        },
-        {
-          "label": "agents",
-          "job": "agents"
+          "job": "code",
+          "fit": "direct"
         },
         {
           "label": "design",
-          "job": "interface"
+          "job": "interface",
+          "fit": "direct"
         },
         {
           "label": "research",
-          "job": "research"
+          "job": "research",
+          "fit": "direct"
         },
         {
           "label": "writing",
-          "job": "writing"
-        },
-        {
-          "label": "reasoning",
-          "job": "reasoning"
+          "job": "writing",
+          "fit": "direct"
         },
         {
           "label": "chat",
-          "job": "chat"
+          "job": "chat",
+          "fit": "direct"
+        },
+        {
+          "label": "reasoning",
+          "job": "reasoning",
+          "fit": "none",
+          "note": "Split: maths, everyday questions or no job. Needs reading until the next review."
         },
         {
           "label": "images",
-          "job": "images"
+          "job": "images",
+          "fit": "none",
+          "note": "Split: read media or make images. Needs reading until the next review."
+        },
+        {
+          "label": "agents",
+          "job": "agents",
+          "fit": "none",
+          "note": "A way of running (run: unattended). The task needs reading until the next review."
         },
         {
           "label": "other",
-          "job": null
+          "job": null,
+          "fit": "none"
         }
       ]
     },
     "hn-theme": {
-      "version": 1,
+      "version": 2,
       "labels": [
         {
           "label": "local-use",
-          "job": "local"
+          "job": null,
+          "fit": "none",
+          "note": "Sets the setting field only (local)."
         },
         {
           "label": "frontend-design",
-          "job": "interface"
+          "job": "interface",
+          "fit": "direct"
         },
         {
           "label": "writing-style",
-          "job": "writing"
+          "job": "writing",
+          "fit": "direct"
         },
         {
           "label": "agentic-work",
-          "job": "agents"
+          "job": null,
+          "fit": "none",
+          "note": "Sets the run field only (unattended)."
         },
         {
           "label": "code-quality",
-          "job": "coding"
+          "job": "code",
+          "fit": "direct"
         },
         {
           "label": "reasoning-depth",
-          "job": "reasoning"
+          "job": null,
+          "fit": "none",
+          "note": "How much a model thinks, not a task."
+        }
+      ]
+    },
+    "report": {
+      "version": 2,
+      "labels": [
+        {
+          "label": "contra-ad-image-stages",
+          "job": "make-images",
+          "fit": "direct"
+        },
+        {
+          "label": "contra-genpeach",
+          "job": "make-images",
+          "fit": "direct"
+        },
+        {
+          "label": "tokensave-real-bugs",
+          "job": "debug",
+          "fit": "direct"
+        },
+        {
+          "label": "tokensave-fable-bugs",
+          "job": "debug",
+          "fit": "direct"
+        },
+        {
+          "label": "plato-sol-cloning",
+          "job": "interface",
+          "fit": "direct"
+        },
+        {
+          "label": "tokensave-explore-subagents",
+          "job": "code",
+          "fit": "direct"
+        },
+        {
+          "label": "anthropic-research-agents",
+          "job": "research",
+          "fit": "direct"
+        },
+        {
+          "label": "google-agent-scaling",
+          "job": null,
+          "fit": "none",
+          "note": "Compares ways of running agents, not a task."
         }
       ]
     },
     "report-category": {
-      "version": 1,
+      "version": 2,
       "labels": [
         {
           "label": "design",
-          "job": "interface"
+          "job": "interface",
+          "fit": "direct"
         },
         {
           "label": "coding",
-          "job": "coding"
+          "job": "code",
+          "fit": "direct"
         },
         {
           "label": "agents",
-          "job": "agents"
+          "job": "agents",
+          "fit": "none",
+          "note": "A way of running (run: unattended). The task needs reading until the next review."
         }
       ]
     },
     "benchmark": {
-      "version": 1,
+      "version": 2,
       "labels": [
         {
           "label": "terminal-bench-4-1",
-          "job": "coding"
+          "job": "code",
+          "fit": "direct",
+          "note": "Coding agent surface."
         },
         {
           "label": "swe-rebench-2026-05-15-2026-07-01",
-          "job": "bug-fix"
+          "job": "debug",
+          "fit": "direct"
         },
         {
           "label": "plato-web-clone-bench",
-          "job": "interface"
+          "job": "interface",
+          "fit": "direct"
         },
         {
           "label": "epoch-eci",
-          "job": null
+          "job": null,
+          "fit": "none",
+          "note": "A general index: shown on the model page, orders no job."
         }
       ]
     },
     "arena-leaderboard": {
-      "version": 1,
+      "version": 2,
       "labels": [
         {
           "label": "webdev/overall",
-          "job": "interface"
+          "job": "interface",
+          "fit": "direct"
         },
         {
           "label": "agent/overall",
-          "job": "agents"
+          "job": "code",
+          "fit": "loose",
+          "note": "Sessions in agent harnesses; the task mix is not in the files."
         },
         {
           "label": "text_style_control/overall",
-          "job": "chat"
+          "job": "chat",
+          "fit": "direct",
+          "note": "People's own prompts of every kind."
         },
         {
           "label": "text_style_control/instruction_following",
-          "job": "chat"
+          "job": "chat",
+          "fit": "loose"
         },
         {
           "label": "text_style_control/creative_writing",
-          "job": "writing"
+          "job": "writing",
+          "fit": "direct"
         },
         {
           "label": "text_style_control/industry_writing_and_literature_and_language",
-          "job": "writing"
+          "job": "writing",
+          "fit": "direct"
         },
         {
           "label": "text_style_control/longer_query",
-          "job": "analysis"
+          "job": "documents",
+          "fit": "loose",
+          "note": "Long prompts, not a document test."
         },
         {
           "label": "text_style_control/coding",
-          "job": "coding"
+          "job": "code",
+          "fit": "direct",
+          "note": "Coding in a chat, not repository work."
         },
         {
           "label": "text_style_control/math",
-          "job": "reasoning"
+          "job": "maths",
+          "fit": "loose",
+          "note": "Answers are not checked."
         },
         {
           "label": "vision_style_control/overall",
-          "job": "images"
+          "job": "read-media",
+          "fit": "direct"
         },
         {
           "label": "vision_style_control/ocr",
-          "job": "images"
+          "job": "read-media",
+          "fit": "direct"
         },
         {
           "label": "vision_style_control/diagram",
-          "job": "images"
+          "job": "read-media",
+          "fit": "direct"
         },
         {
           "label": "document_style_control/overall",
-          "job": "analysis"
+          "job": "documents",
+          "fit": "direct"
         },
         {
           "label": "search_style_control/overall",
-          "job": "research"
+          "job": "research",
+          "fit": "direct"
         },
         {
           "label": "text_to_image/overall",
-          "job": "images"
+          "job": "make-images",
+          "fit": "direct"
         },
         {
           "label": "image_edit/overall",
-          "job": "images"
+          "job": "make-images",
+          "fit": "direct"
         }
       ]
     },
     "epoch-run": {
-      "version": 1,
+      "version": 2,
       "labels": [
         {
           "label": "otis_mock_aime_2024_2025",
-          "job": "reasoning"
+          "job": "maths",
+          "fit": "direct"
         },
         {
           "label": "gpqa_diamond",
-          "job": "reasoning"
+          "job": "maths",
+          "fit": "direct",
+          "note": "Science questions."
         },
         {
           "label": "frontiermath_tiers_1_3_v2",
-          "job": "reasoning"
+          "job": "maths",
+          "fit": "direct"
         },
         {
           "label": "frontiermath_tier_4_v2",
-          "job": "reasoning"
+          "job": "maths",
+          "fit": "direct"
         },
         {
           "label": "chess_puzzles",
-          "job": "reasoning"
+          "job": "maths",
+          "fit": "loose",
+          "note": "Logic puzzles."
         },
         {
           "label": "simpleqa_verified",
-          "job": "chat"
+          "job": "chat",
+          "fit": "loose",
+          "note": "Factual recall without search."
         },
         {
           "label": "furniture_assembly",
-          "job": "images"
+          "job": "read-media",
+          "fit": "direct",
+          "note": "Checking photos."
         },
         {
           "label": "mirrorcode",
-          "job": "coding"
+          "job": "code",
+          "fit": "direct"
         }
       ]
     },
     "openrouter-tag": {
-      "version": 1,
+      "version": 2,
       "labels": [
         {
           "label": "code:general_impl",
-          "job": "coding"
+          "job": "code",
+          "fit": "direct"
         },
         {
           "label": "code:debugging",
-          "job": "bug-fix"
+          "job": "debug",
+          "fit": "direct"
         },
         {
           "label": "code:review_security",
-          "job": "review"
+          "job": "review",
+          "fit": "direct"
         },
         {
           "label": "code:frontend_ui",
-          "job": "interface"
+          "job": "interface",
+          "fit": "direct"
         },
         {
           "label": "code:repo_scan",
-          "job": "coding"
+          "job": "code",
+          "fit": "loose",
+          "note": "Codebase search and reading."
         },
         {
           "label": "code:file_read_write",
-          "job": "coding"
+          "job": "code",
+          "fit": "loose"
         },
         {
           "label": "code:shell_execution",
-          "job": "coding"
+          "job": "code",
+          "fit": "loose"
         },
         {
           "label": "code:sql_database",
-          "job": "coding"
+          "job": "code",
+          "fit": "loose"
         },
         {
           "label": "code:devops_config",
-          "job": "coding"
+          "job": "code",
+          "fit": "loose"
         },
         {
           "label": "devops",
-          "job": "coding"
+          "job": "code",
+          "fit": "loose"
         },
         {
           "label": "agent:workflow_execution",
-          "job": "agents"
+          "job": null,
+          "fit": "none",
+          "note": "A way of running; the task is not given."
         },
         {
           "label": "agent:tool_dispatch",
-          "job": "agents"
+          "job": null,
+          "fit": "none",
+          "note": "A way of running; the task is not given."
         },
         {
           "label": "agent:multi_step_planning",
-          "job": "planning"
+          "job": null,
+          "fit": "none",
+          "note": "An agent planning its own steps, not software design."
         },
         {
           "label": "agent:memory_extraction",
-          "job": "extraction"
+          "job": "extraction",
+          "fit": "loose"
         },
         {
           "label": "agent:web_search",
-          "job": "research"
+          "job": "research",
+          "fit": "direct"
         },
         {
           "label": "research_report",
-          "job": "research"
+          "job": "research",
+          "fit": "direct"
         },
         {
           "label": "data:extraction",
-          "job": "extraction"
+          "job": "extraction",
+          "fit": "direct"
         },
         {
           "label": "classification_tagging",
-          "job": "extraction"
+          "job": "extraction",
+          "fit": "direct"
         },
         {
           "label": "data:transformation",
-          "job": "extraction"
+          "job": "extraction",
+          "fit": "direct"
         },
         {
           "label": "content_writing",
-          "job": "writing"
+          "job": "writing",
+          "fit": "direct"
         },
         {
           "label": "translation",
-          "job": "writing"
-        },
-        {
-          "label": "summarization",
-          "job": "analysis"
-        },
-        {
-          "label": "finance_trading",
-          "job": "analysis"
-        },
-        {
-          "label": "qa_knowledge",
-          "job": "chat"
-        },
-        {
-          "label": "conversational_reply",
-          "job": "chat"
-        },
-        {
-          "label": "customer_support",
-          "job": "chat"
-        },
-        {
-          "label": "math",
-          "job": "reasoning"
-        },
-        {
-          "label": "security_audit",
-          "job": "review"
+          "job": "writing",
+          "fit": "direct"
         },
         {
           "label": "roleplay_fiction",
-          "job": null
+          "job": "writing",
+          "fit": "loose",
+          "note": "Fiction and roleplay; Text Arena creative writing is the nearest measure."
+        },
+        {
+          "label": "summarization",
+          "job": "documents",
+          "fit": "direct"
+        },
+        {
+          "label": "finance_trading",
+          "job": "documents",
+          "fit": "loose",
+          "note": "A domain, not a task."
+        },
+        {
+          "label": "qa_knowledge",
+          "job": "chat",
+          "fit": "direct"
+        },
+        {
+          "label": "conversational_reply",
+          "job": "chat",
+          "fit": "direct"
+        },
+        {
+          "label": "customer_support",
+          "job": "chat",
+          "fit": "loose",
+          "note": "An operator's support bot."
+        },
+        {
+          "label": "math",
+          "job": "maths",
+          "fit": "direct"
+        },
+        {
+          "label": "security_audit",
+          "job": "review",
+          "fit": "loose"
         }
       ]
     },
     "review-job": {
-      "version": 1,
+      "version": 2,
       "labels": [
         {
           "label": "coding",
-          "job": "coding"
+          "job": "coding",
+          "fit": "direct"
         },
         {
           "label": "bug-fix",
-          "job": "bug-fix"
+          "job": "bug-fix",
+          "fit": "direct"
         },
         {
           "label": "refactor",
-          "job": "refactor"
+          "job": "refactor",
+          "fit": "direct"
         },
         {
           "label": "review",
-          "job": "review"
+          "job": "review",
+          "fit": "direct"
         },
         {
           "label": "tests",
-          "job": "tests"
+          "job": "tests",
+          "fit": "direct"
         },
         {
           "label": "interface",
-          "job": "interface"
+          "job": "interface",
+          "fit": "direct"
         },
         {
           "label": "agents",
-          "job": "agents"
+          "job": "agents",
+          "fit": "none",
+          "note": "A way of running (run: unattended). The task needs reading until the next review."
         },
         {
           "label": "delegation",
-          "job": "delegation"
+          "job": "delegation",
+          "fit": "none",
+          "note": "A way of running (run: parallel). The task needs reading until the next review."
         },
         {
           "label": "planning",
-          "job": "planning"
+          "job": "planning",
+          "fit": "direct"
         },
         {
           "label": "extraction",
-          "job": "extraction"
+          "job": "extraction",
+          "fit": "direct"
         },
         {
           "label": "research",
-          "job": "research"
+          "job": "research",
+          "fit": "direct"
         },
         {
           "label": "analysis",
-          "job": "analysis"
+          "job": "analysis",
+          "fit": "direct"
         },
         {
           "label": "writing",
-          "job": "writing"
+          "job": "writing",
+          "fit": "direct"
         },
         {
           "label": "reasoning",
-          "job": "reasoning"
+          "job": "reasoning",
+          "fit": "none",
+          "note": "Split: maths, everyday questions or no job. Needs reading until the next review."
         },
         {
           "label": "chat",
-          "job": "chat"
+          "job": "chat",
+          "fit": "direct"
         },
         {
           "label": "images",
-          "job": "images"
+          "job": "images",
+          "fit": "none",
+          "note": "Split: read media or make images. Needs reading until the next review."
         },
         {
           "label": "local",
-          "job": "local"
+          "job": "local",
+          "fit": "none",
+          "note": "A setting (setting: local). The task needs reading until the next review."
         },
         {
           "label": "other",
-          "job": null
+          "job": null,
+          "fit": "none"
         },
         {
           "label": "general",
-          "job": null
+          "job": null,
+          "fit": "none"
         }
       ]
     },
     "benchmark-category": {
-      "version": 1,
+      "version": 2,
       "labels": [
         {
           "label": "general",
-          "job": null
+          "job": null,
+          "fit": "none"
         },
         {
           "label": "coding",
-          "job": "coding"
+          "job": "code",
+          "fit": "direct"
         },
         {
           "label": "design",
-          "job": "interface"
+          "job": "interface",
+          "fit": "direct"
         },
         {
           "label": "research",
-          "job": "research"
+          "job": "research",
+          "fit": "direct"
         },
         {
           "label": "reasoning",
-          "job": "reasoning"
+          "job": "reasoning",
+          "fit": "none",
+          "note": "Split: maths, everyday questions or no job. Needs reading until the next review."
         },
         {
           "label": "writing",
-          "job": "writing"
+          "job": "writing",
+          "fit": "direct"
         },
         {
           "label": "agents",
-          "job": "agents"
+          "job": "agents",
+          "fit": "none",
+          "note": "A way of running (run: unattended). The task needs reading until the next review."
         }
       ]
     }
   },
   "keywords": {
+    "version": 2,
+    "rules": []
+  },
+  "replaces": {
+    "coding": {
+      "label": "Write or change code in a repository",
+      "job": "code"
+    },
+    "bug-fix": {
+      "label": "Fix a bug or diagnose a fault",
+      "job": "debug"
+    },
+    "refactor": {
+      "label": "Large refactor or migration",
+      "job": "code"
+    },
+    "tests": {
+      "label": "Write or run tests",
+      "job": "code"
+    },
+    "planning": {
+      "label": "Architecture and planning",
+      "job": "plan"
+    },
+    "analysis": {
+      "label": "Analysis of documents or data",
+      "job": "documents"
+    },
+    "reasoning": {
+      "label": "Hard reasoning and maths",
+      "job": null,
+      "into": ["maths", "chat"]
+    },
+    "images": {
+      "label": "Images and vision",
+      "job": null,
+      "into": ["read-media", "make-images"]
+    },
+    "agents": {
+      "label": "Long agent runs",
+      "job": null,
+      "run": "unattended"
+    },
+    "delegation": {
+      "label": "Parallel agents and delegation",
+      "job": null,
+      "run": "parallel"
+    },
+    "local": {
+      "label": "Local or private use",
+      "job": null,
+      "setting": "local"
+    }
+  },
+  "fields": {
     "version": 1,
-    "rules": [
+    "hn-theme": [
       {
-        "job": "delegation",
-        "within": [null, "agents", "planning", "coding"],
-        "pattern": "\\bsub-?agents?\\b|\\bparallel (?:agents?|sessions?|tasks?)\\b|\\bagents? in parallel\\b|\\bmulti-agent\\b|\\borchestrat\\w+ (?:agents?|sub)|\\bdelegat\\w+ (?:to|work|tasks?)\\b|\\bswarm\\b",
-        "caseSensitive": false
+        "label": "local-use",
+        "setting": "local"
       },
       {
-        "job": "review",
-        "within": [null, "coding"],
-        "pattern": "\\bcode reviews?\\b|\\breview(?:s|ed|ing)? (?:the |my |a |your |their )?(?:code|PRs?|pull requests?)\\b|\\bPR reviews?\\b|\\breview (?:bot|agent)s?\\b",
-        "caseSensitive": true
-      },
+        "label": "agentic-work",
+        "run": "unattended"
+      }
+    ],
+    "surface": [
       {
-        "job": "tests",
-        "within": [null, "coding"],
-        "pattern": "\\bunit tests?\\b|\\btest suites?\\b|\\b(?:write|writing|wrote|add|adding) (?:the |some |more )?tests\\b|\\btest coverage\\b|\\bintegration tests?\\b|\\be2e tests?\\b|\\bTDD\\b|\\bfailing tests?\\b|\\btests? (?:pass|fail)\\w*\\b",
-        "caseSensitive": true
-      },
-      {
-        "job": "bug-fix",
-        "within": [null, "coding"],
-        "pattern": "\\bdebug(?:s|ged|ging)?\\b|\\bdiagnos\\w+ (?:the |a |an |this |that )?(?:bug|issue|problem|error|failure|crash|fault)s?\\b|\\broot cause\\b|\\bstack ?traces?\\b|\\btraceback\\b|\\bfix(?:es|ed|ing)? (?:the |a |this |that )?bugs?\\b|\\bfind(?:s|ing)? (?:the |a )?bugs?\\b|\\btrack(?:ed|ing)? down\\b",
-        "caseSensitive": false
-      },
-      {
-        "job": "refactor",
-        "within": [null, "coding"],
-        "pattern": "\\brefactor\\w*|\\bmigrat\\w+ (?:the |a |our |my )?(?:code|codebase|project|app|repo)\\b|\\bport(?:ed|ing)? (?:the |a |our |my |it )?(?:code|codebase|project|library|app)?\\s*(?:from|to) (?:Rust|Go|Python|TypeScript|JavaScript|C\\+\\+|Swift|Kotlin|Java|Zig)\\b|\\brewrit\\w+ (?:the |a |our |my )?(?:code|codebase|app|project|library)\\b",
-        "caseSensitive": false
-      },
-      {
-        "job": "interface",
-        "within": [null, "coding"],
-        "pattern": "\\bfront-?end\\b|\\bUI\\b|\\buser interfaces?\\b|\\bCSS (?:layout|styling|styles)\\b|\\bTailwind\\b|\\bReact components?\\b|\\blanding pages?\\b|\\bweb design\\b|\\bFigma\\b",
-        "caseSensitive": true
-      },
-      {
-        "job": "planning",
-        "within": [null, "coding"],
-        "pattern": "\\bplan mode\\b|\\bplanning\\b|\\b(?:software|system|app|code|codebase) architecture\\b|\\barchitect(?:ing|ed) (?:the |a |an )?(?:system|app|feature|solution)\\b|\\bdesign docs?\\b|\\bspec-driven\\b|\\b(?:write|writing|wrote) (?:a |the )?spec\\b|\\bspecification\\b",
-        "caseSensitive": false
-      },
-      {
-        "job": "extraction",
-        "within": [null],
-        "pattern": "\\bextract\\w*|\\bclassif\\w+|\\bstructured outputs?\\b|\\bJSON schema\\b|\\bnamed entit\\w+|\\bOCR\\b",
-        "caseSensitive": true
-      },
-      {
-        "job": "analysis",
-        "within": [null, "research", "chat"],
-        "pattern": "\\bspreadsheets?\\b|\\bExcel\\b|\\bCSV\\b|\\bPDFs?\\b|\\bdata analysis\\b|\\banaly[sz](?:e|es|ed|ing) (?:the |my |our |a )?(?:data|documents?|logs|datasets?|reports?)\\b|\\bSQL quer\\w+",
-        "caseSensitive": true
-      },
-      {
-        "job": "research",
-        "within": [null, "chat"],
-        "pattern": "\\bdeep research\\b|\\bweb search\\b|\\bsearch(?:es|ing)? the web\\b|\\bbrowsing\\b|\\bliterature reviews?\\b|\\bcitations?\\b",
-        "caseSensitive": false
-      },
-      {
-        "job": "writing",
-        "within": [null, "chat"],
-        "pattern": "\\b(?:writ\\w+|edit\\w*) (?:prose|essays?|articles?|blog posts?|emails?|copy|fiction|stories|novels?)\\b|\\bproofread\\w*|\\bghostwrit\\w+|\\bcopywrit\\w+|\\btranslat\\w+|\\bfiction\\b|\\bprose\\b",
-        "caseSensitive": false
-      },
-      {
-        "job": "reasoning",
-        "within": [null, "chat"],
-        "pattern": "\\bmath\\w*|\\b(?:math|formal|mathematical) proofs?\\b|\\bprov(?:e|ing) (?:a |the )?theorems?\\b|\\btheorems?\\b|\\bolympiad\\b|\\bpuzzles?\\b|\\blogic problems?\\b",
-        "caseSensitive": false
-      },
-      {
-        "job": "images",
-        "within": [null],
-        "pattern": "\\bimage generat\\w+|\\bgenerat\\w+ (?:an |the )?images?\\b|\\bNano Banana\\b|\\bMidjourney\\b|\\bDALL-?E\\b|\\bStable Diffusion\\b|\\btext-to-image\\b|\\bvision model\\b",
-        "caseSensitive": true
-      },
-      {
-        "job": "local",
-        "within": [null, "chat"],
-        "pattern": "\\b(?:run(?:s|ning)?|use|using) (?:it |them |models? )?locally\\b|\\bOllama\\b|\\bllama\\.cpp\\b|\\bLM Studio\\b|\\bMLX\\b|\\bon-device\\b|\\bself-host\\w*|\\bVRAM\\b|\\bquantized (?:model|version|weights)s?\\b|\\bGGUF\\b",
-        "caseSensitive": true
-      },
-      {
-        "job": "agents",
-        "within": [null],
-        "pattern": "\\bautonomous\\w*|\\bunattended\\b|\\blong-running\\b|\\bagentic loops?\\b|\\bovernight\\b|\\bfor hours\\b",
-        "caseSensitive": false
+        "surface": "local-runner",
+        "setting": "local"
       }
     ]
   },
   "surface": {
-    "version": 1,
-    "tools": {
-      "Aider": "coding-agent",
-      "Amp": "coding-agent",
-      "Antigravity": "coding-agent",
-      "Antigravity CLI": "coding-agent",
-      "Claude Code": "coding-agent",
-      "Cline": "coding-agent",
-      "Codex": "coding-agent",
-      "Cursor": "coding-agent",
-      "Gemini CLI": "coding-agent",
-      "GitHub Copilot": "coding-agent",
-      "Grok Build": "coding-agent",
-      "mini-SWE-agent": "coding-agent",
-      "mini-swe-agent": "coding-agent",
-      "Muse Code": "coding-agent",
-      "OpenCode": "coding-agent",
-      "Windsurf": "coding-agent",
-      "ChatGPT": "chat-app"
-    }
+    "version": 2,
+    "surfaces": [
+      {
+        "surface": "coding-agent",
+        "words": [
+          "claude code",
+          "codex",
+          "cursor",
+          "amp",
+          "opencode",
+          "pi",
+          "aider",
+          "copilot",
+          "cline",
+          "kilo",
+          "windsurf",
+          "gemini cli",
+          "antigravity",
+          "zed",
+          "factory",
+          "augment"
+        ]
+      },
+      {
+        "surface": "chat-app",
+        "words": [
+          "chatgpt",
+          "claude.ai",
+          "claude app",
+          "claude cowork",
+          "gemini app",
+          "ai studio",
+          "notebooklm",
+          "perplexity",
+          "le chat",
+          "grok"
+        ]
+      },
+      {
+        "surface": "local-runner",
+        "words": ["ollama", "lm studio", "llama.cpp", "mlx", "gguf", "vllm"]
+      },
+      {
+        "surface": "api",
+        "words": ["api", "llm", "openrouter", "bedrock", "groq", "vertex"]
+      }
+    ]
   },
-  "replaces": {},
-  "guide": {
+  "tags": {
     "version": 1,
+    "rules": [
+      {
+        "tag": "drawing-test",
+        "label": "Drawing test",
+        "pattern": "\\bpelicans?\\b|\\b(?:draw|drew|drawn|drawing)s?\\b[^.]{0,40}\\bSVGs?\\b|\\bSVGs? (?:drawings?|illustrations?|art)\\b",
+        "caseSensitive": false
+      }
+    ]
+  },
+  "guide": {
+    "version": 2,
     "tasks": [
-      { "task": "quick-answers", "job": "chat" },
-      { "task": "writing", "job": "writing" },
-      { "task": "research", "job": "research" },
-      { "task": "web-apps", "job": "interface" },
-      { "task": "bug-fixes", "job": "bug-fix" },
-      { "task": "reasoning", "job": "reasoning" },
-      { "task": "images", "job": "images" },
+      {
+        "task": "quick-answers",
+        "job": "chat"
+      },
+      {
+        "task": "writing",
+        "job": "writing"
+      },
+      {
+        "task": "research",
+        "job": "research"
+      },
+      {
+        "task": "web-apps",
+        "job": "interface"
+      },
+      {
+        "task": "bug-fixes",
+        "job": "debug"
+      },
+      {
+        "task": "reasoning",
+        "job": "maths",
+        "fit": "loose",
+        "note": "The guide's task is broader: unfamiliar technical problems."
+      },
+      {
+        "task": "images",
+        "job": "make-images"
+      },
       {
         "task": "subagents",
         "job": null,
-        "note": "A way of running: several agents at once. It is not a job, so it links to no brief."
+        "note": "A way of running: several agents at once. It sets the run field (parallel), not a job, so it links to no brief."
       }
     ]
   }

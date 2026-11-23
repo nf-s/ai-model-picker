@@ -389,10 +389,10 @@ export function CrowdBand({
 }) {
   const { data, filters } = ctx;
   const since = filters.since;
-  const band = crowdBand(data, target.key, job.id, since);
+  const band = crowdBand(data, target.key, job.id, filters);
   const total = tallyTotal(band.tally);
   const share = positiveShare(band.tally);
-  const ids = crowdCommentIds(data, job.id);
+  const ids = crowdCommentIds(data, job.id, filters.fields);
   const commentKey = indexKey(target.key);
   const scope = job.id === null ? 'in any job' : 'in this job';
   return (
@@ -576,12 +576,10 @@ function Themes({
   target: BandTarget;
   ids: ReadonlySet<number> | null;
 }) {
-  const themes = themeTallies(
-    ctx.data,
-    target.key,
-    job.id,
-    ctx.filters.since,
-  ).slice(0, shownThemes);
+  const themes = themeTallies(ctx.data, target.key, job.id, ctx.filters).slice(
+    0,
+    shownThemes,
+  );
   if (themes.length === 0) return null;
   return (
     <div className="rd-scroll">

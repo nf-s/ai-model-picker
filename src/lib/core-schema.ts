@@ -13,6 +13,13 @@ const tally = z.tuple([count, count, count, count]);
 const month = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
 const targetKey = z.string().regex(/^(model|line|version|tool)\|\S(?:.*\S)?$/);
 const share = z.number().min(0).max(1);
+const surface = z.enum(['coding-agent', 'chat-app', 'api', 'local-runner']);
+// A Hacker News count's setting and run: 'local|unattended'; '|' is the
+// default and is never kept as a table of its own.
+const cell = z
+  .string()
+  .regex(/^(local)?\|(unattended|parallel)?$/)
+  .refine((value) => value !== '|');
 
 const importedSource = z.strictObject({
   fetchedAt: day,
@@ -26,6 +33,8 @@ export const coreJobSchema = z.strictObject({
   label: text,
   parent: jobId.optional(),
   benchmarks: z.array(text),
+  // The benchmarks that order the job on each surface, the default first.
+  bySurface: z.partialRecord(surface, z.array(text).min(1)).optional(),
   guideTask: text.optional(),
 });
 
@@ -51,8 +60,32 @@ export const coreBenchmarkSchema = z.strictObject({
 // The brief each App guide task links to: a job, or none with the reason.
 export const guideLinkSchema = z.union([
   z.strictObject({ task: text, job: jobId }),
+  // A loose link says how the guide's task and the job differ.
+  z.strictObject({
+    task: text,
+    job: jobId,
+    fit: z.literal('loose'),
+    note: text,
+  }),
   z.strictObject({ task: text, job: z.null(), note: text }),
 ]);
+const countsSchema = z.record(
+  targetKey,
+  z.record(z.union([z.literal(''), jobId]), z.record(month, tally)),
+);
+// The same counts for each theme of a label, toward that label's target.
+const themesSchema = z.record(
+  targetKey,
+  z.record(
+    z.union([z.literal(''), jobId]),
+    z.record(month, z.partialRecord(hnThemeSchema, tally)),
+  ),
+);
+const commentsSchema = z.record(
+  z.union([z.literal(''), jobId]),
+  z.array(z.number().int().positive()),
+);
+const sourceCounts = z.record(z.string(), count);
 
 const usageTop = z.strictObject({
   modelId: z.string(),
@@ -146,21 +179,30 @@ export const coreSchema = z
         z.literal(stances[2]),
         z.literal(stances[3]),
       ]),
-      counts: z.record(
-        targetKey,
-        z.record(z.union([z.literal(''), jobId]), z.record(month, tally)),
+      counts: countsSchema,
+      themes: themesSchema,
+      comments: commentsSchema,
+      // The comments of each setting and run other than the default again,
+      // so counts can be filtered by them.
+      cells: z.record(
+        cell,
+        z.strictObject({
+          counts: countsSchema,
+          themes: themesSchema,
+          comments: commentsSchema,
+        }),
       ),
-      // The same counts for each theme of a label, toward that label's target.
-      themes: z.record(
-        targetKey,
+      // Comments with no job that need reading until the next review, by the
+      // old job their label gave; they are also under '' in `comments`.
+      pending: z.record(jobId, z.array(z.number().int().positive())),
+      // Per tag, the comments its rule matched by the targets they name and
+      // month.
+      tags: z.record(
+        jobId,
         z.record(
-          z.union([z.literal(''), jobId]),
-          z.record(month, z.partialRecord(hnThemeSchema, tally)),
+          targetKey,
+          z.record(month, z.array(z.number().int().positive())),
         ),
-      ),
-      comments: z.record(
-        z.union([z.literal(''), jobId]),
-        z.array(z.number().int().positive()),
       ),
     }),
     preferences: z.array(
@@ -168,6 +210,8 @@ export const coreSchema = z
         winner: targetKey,
         loser: targetKey,
         job: z.union([z.literal(''), jobId]),
+        setting: z.enum(['', 'local', 'hosted']),
+        run: z.enum(['', 'interactive', 'unattended', 'parallel']),
         date: day,
         id: z.string().regex(/^hn:[1-9][0-9]*$/),
       }),
@@ -177,9 +221,12 @@ export const coreSchema = z
       rows: z.array(
         z.strictObject({
           job: z.union([z.literal(''), jobId]),
-          counts: z.record(z.string(), count),
+          counts: sourceCounts,
         }),
       ),
+      // Records whose old job was split or became a field, by that old job:
+      // no job until the next review, counted apart from records with none.
+      pending: z.array(z.strictObject({ old: jobId, counts: sourceCounts })),
     }),
     usage: usageSchema.nullable(),
     namedBehindSignIn: z.boolean(),
@@ -199,6 +246,10 @@ export const coreSchema = z
         issue(`job ${job.id}: unknown parent`);
       for (const id of job.benchmarks)
         if (!benchmarks.has(id)) issue(`job ${job.id}: unknown benchmark`);
+      for (const ids of Object.values(job.bySurface ?? {}))
+        for (const id of ids ?? [])
+          if (!job.benchmarks.includes(id))
+            issue(`job ${job.id}: a surface's benchmark is not the job's`);
     }
     for (const record of core.measured) {
       if (record.cls !== 'measured') issue(`${record.id}: not measured`);

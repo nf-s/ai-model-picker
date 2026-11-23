@@ -60,21 +60,21 @@ DEFAULT_SEARCH_OUT = ROOT / 'build/records/search'
 DEFAULT_SEARCH_LOCAL = ROOT / 'build/records/search-local.sqlite'
 LIST_LIMIT = 20
 
-JOB_FILE_FIELDS = {'version', 'status', 'jobs', 'crosswalk', 'keywords', 'surface', 'replaces', 'guide'}
-JOB_FIELDS = {'id', 'label', 'parent', 'benchmarks', 'guideTask'}
+JOB_FILE_FIELDS = {'version', 'status', 'jobs', 'crosswalk', 'keywords', 'replaces', 'fields', 'surface', 'tags', 'guide'}
+JOB_FIELDS = {'id', 'label', 'parent', 'benchmarks', 'bySurface', 'guideTask'}
 CROSSWALK_SOURCES = (
-    'hn-task', 'hn-theme', 'report-category', 'benchmark',
+    'hn-task', 'hn-theme', 'report', 'report-category', 'benchmark',
     'arena-leaderboard', 'epoch-run', 'openrouter-tag', 'review-job', 'benchmark-category',
 )
 # The sources this build loads. A label missing from a strict table stops the build;
-# Hacker News themes are optional, so a theme without an entry gives no job.
-LOADED_CROSSWALKS = (
-    'hn-task', 'hn-theme', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run', 'openrouter-tag',
-    'review-job', 'benchmark-category',
-)
+# Hacker News themes are optional, so a theme without an entry gives no job, and a report
+# without an entry of its own takes its category's.
+LOADED_CROSSWALKS = CROSSWALK_SOURCES
 STRICT_CROSSWALKS = (
     'hn-task', 'report-category', 'benchmark', 'arena-leaderboard', 'epoch-run', 'openrouter-tag', 'review-job',
 )
+# How well a source label matches the job it gives: the same task, an overlapping one, or no job.
+FITS = ('direct', 'loose', 'none')
 IMPORTED = {'lmarena': ROOT / 'research/lmarena.json', 'epoch': ROOT / 'research/epoch-runs.json'}
 IMPORT_FIELDS = {
     'lmarena': ({'source', 'fetchedAt', 'checkedAt', 'leaderboards', 'results'}, 'leaderboards', 'leaderboard'),
@@ -205,9 +205,10 @@ def slug(name):
 
 
 class Jobs:
-    """A checked job file: jobs, crosswalk tables, keyword rules, tool surfaces and replacements."""
+    """A checked job file: jobs, crosswalk tables, keyword rules, replacements, field rules, tool
+    surfaces and tags."""
 
-    def __init__(self, data, benchmark_ids, guide_tasks):
+    def __init__(self, data, benchmark_ids, guide_tasks, general_ids=frozenset()):
         problems = []
 
         def check(condition, message):
@@ -240,6 +241,8 @@ class Jobs:
             if check(type(benchmarks) is list and len(set(map(str, benchmarks))) == len(benchmarks), f'job {job_id}: benchmarks are not a list of distinct ids'):
                 for benchmark in benchmarks:
                     check(benchmark in benchmark_ids, f'job {job_id}: benchmark {benchmark} does not exist')
+                    check(benchmark not in general_ids, f'job {job_id}: {benchmark} is a general index, which orders no job')
+                self.check_surfaces(job, check)
             if 'guideTask' in job:
                 check(job['guideTask'] in guide_tasks, f'job {job_id}: App guide task {job["guideTask"]} does not exist')
         self.guide = self.check_guide(data['guide'], guide_tasks, check)
@@ -248,13 +251,19 @@ class Jobs:
         need(type(replaces) is dict, 'replaces is not an object')
         self.replaces = {}
         for old, new in replaces.items():
-            if not check(type(new) is dict and 'job' in new and set(new) <= {'job', 'setting', 'run'}, f'replaces {old}: fields differ'):
+            if not check(type(new) is dict and {'label', 'job'} <= set(new) <= {'label', 'job', 'into', 'setting', 'run'}, f'replaces {old}: fields differ'):
                 continue
             check(JOB_PATTERN.fullmatch(old) and old not in current, f'replaces {old}: not an old job id')
+            check(is_text(new['label']) and new['label'].strip(), f'replaces {old}: no label')
             check(new['job'] is None or new['job'] in current, f'replaces {old}: {new["job"]} is not a job')
+            into = new.get('into', [])
+            check(type(into) is list and all(job in current for job in into), f'replaces {old}: into names a job that does not exist')
+            check(new['job'] is None or not into, f'replaces {old}: a replacement job and jobs it was split into')
+            check(new['job'] is not None or into or 'setting' in new or 'run' in new,
+                  f'replaces {old}: no job, no jobs it was split into and no field it sets')
             check(new.get('setting', 'local') in SETTINGS[1:], f'replaces {old}: unknown setting')
             check(new.get('run', 'parallel') in RUNS[1:], f'replaces {old}: unknown run')
-            self.replaces[old] = (new['job'] or '', new.get('setting', ''), new.get('run', ''))
+            self.replaces[old] = (new['job'] or '', new.get('setting', ''), new.get('run', ''), new['job'] is None)
 
         crosswalk = data['crosswalk']
         need(type(crosswalk) is dict, 'crosswalk is not an object')
@@ -268,13 +277,20 @@ class Jobs:
                 continue
             mapping = {}
             for entry in table['labels']:
-                if not check(type(entry) is dict and set(entry) == {'label', 'job'} and is_text(entry['label']) and entry['label'], f'crosswalk {source}: an entry is not a label and a job'):
+                if not check(type(entry) is dict and {'label', 'job', 'fit'} <= set(entry) <= {'label', 'job', 'fit', 'note'}
+                             and is_text(entry['label']) and entry['label'], f'crosswalk {source}: an entry is not a label, a job, a fit and an optional note'):
                     continue
                 label, target = entry['label'], entry['job']
                 check(label not in mapping, f'crosswalk {source}: {label} is listed twice')
                 check(target is None or is_text(target), f'crosswalk {source}: {label} maps to {target}')
+                check(entry['fit'] in FITS, f'crosswalk {source}: {label} has unknown fit {entry["fit"]}')
+                check(is_text(entry.get('note', '-')) and entry.get('note', '-').strip(), f'crosswalk {source}: {label} has an empty note')
                 if is_text(target) and target not in current and target not in self.replaces:
                     self.unknown_targets[target].append(f'{source}:{label}')
+                else:
+                    gives = target in current or (is_text(target) and self.replaces[target][0] != '')
+                    check(gives == (entry['fit'] != 'none'), f'crosswalk {source}: {label} has fit {entry["fit"]} but '
+                          + ('gives a job' if gives else 'gives no job'))
                 mapping[label] = target or ''
             self.crosswalk[source] = mapping
         for benchmark in self.crosswalk.get('benchmark', {}):
@@ -289,29 +305,100 @@ class Jobs:
                 continue
             check(is_text(rule['job']) and rule['job'] in current, f'keyword rule {number}: job {rule["job"]} does not exist')
             check(type(rule['within']) is list and rule['within'] and all(job is None or (is_text(job) and job in current) for job in rule['within']), f'keyword rule {number}: within names a job that does not exist')
-            check(type(rule['caseSensitive']) is bool, f'keyword rule {number}: caseSensitive is not true or false')
-            try:
-                pattern = re.compile(rule['pattern'], 0 if rule['caseSensitive'] is True else re.I)
-            except (re.error, TypeError):
-                problems.append(f'keyword rule {number}: pattern does not compile')
-                continue
-            if type(rule['within']) is list:
+            pattern = self.compile(rule, f'keyword rule {number}', check)
+            if pattern is not None and type(rule['within']) is list:
                 self.rules.append((rule['job'], {job or '' for job in rule['within']}, pattern))
 
+        self.check_fields(data['fields'], check)
+
         surface = data['surface']
-        need(type(surface) is dict and set(surface) == {'version', 'tools'} and type(surface['tools']) is dict, 'surface is not a version and a table of tools')
+        need(type(surface) is dict and set(surface) == {'version', 'surfaces'} and type(surface['surfaces']) is list,
+             'surface is not a version and a list of surfaces')
         check(type(surface['version']) is int, 'surface version is not an integer')
-        for tool, value in surface['tools'].items():
-            check(value in SURFACES[1:], f'surface: {tool} has unknown surface {value}')
-        self.surfaces = surface['tools']
+        self.surfaces = []
+        for entry in surface['surfaces']:
+            if not check(type(entry) is dict and set(entry) == {'surface', 'words'} and type(entry['words']) is list
+                         and entry['words'] and all(is_text(word) and word == word.lower() and word.strip() == word and word for word in entry['words']),
+                         'surface: an entry is not a surface and a list of lower-case words'):
+                continue
+            check(entry['surface'] in SURFACES[1:], f'surface: unknown surface {entry["surface"]}')
+            words = '|'.join(re.escape(word) for word in entry['words'])
+            self.surfaces.append((entry['surface'], re.compile(f'(?<![a-z])(?:{words})(?![a-z])')))
+        check(len({name for name, _ in self.surfaces}) == len(self.surfaces), 'surface: a surface is listed twice')
+
+        tags = data['tags']
+        need(type(tags) is dict and set(tags) == {'version', 'rules'} and type(tags['rules']) is list, 'tags is not a version and a list of rules')
+        check(type(tags['version']) is int, 'tags version is not an integer')
+        self.tags = []
+        for number, rule in enumerate(tags['rules'], 1):
+            if not check(type(rule) is dict and set(rule) == {'tag', 'label', 'pattern', 'caseSensitive'}
+                         and is_text(rule['tag']) and JOB_PATTERN.fullmatch(rule['tag']) and is_text(rule['label']) and rule['label'].strip(),
+                         f'tag rule {number}: not a tag, a label, a pattern and caseSensitive'):
+                continue
+            check(rule['tag'] not in current, f'tag rule {number}: {rule["tag"]} is a job id')
+            pattern = self.compile(rule, f'tag rule {number}', check)
+            if pattern is not None:
+                self.tags.append((rule['tag'], pattern))
+        check(len({tag for tag, _ in self.tags}) == len(self.tags), 'tags: a tag is listed twice')
 
         need(not problems, 'The job file is not valid:\n  ' + '\n  '.join(problems))
         self.current = current
 
+    @staticmethod
+    def compile(rule, where, check):
+        """A rule's pattern compiled, or None (with a problem noted) when it does not compile."""
+        check(type(rule['caseSensitive']) is bool, f'{where}: caseSensitive is not true or false')
+        try:
+            return re.compile(rule['pattern'], 0 if rule['caseSensitive'] is True else re.I)
+        except (re.error, TypeError):
+            check(False, f'{where}: pattern does not compile')
+            return None
+
+    @staticmethod
+    def check_surfaces(job, check):
+        """A job measured differently per surface lists, per surface, the benchmarks that order it there;
+        the first surface listed is the default."""
+        if 'bySurface' not in job:
+            return
+        by_surface = job['bySurface']
+        if not check(type(by_surface) is dict and by_surface, f'job {job["id"]}: bySurface is not a table of surfaces'):
+            return
+        for surface, ids in by_surface.items():
+            check(surface in SURFACES[1:], f'job {job["id"]}: unknown surface {surface}')
+            check(type(ids) is list and ids and len(set(map(str, ids))) == len(ids) and all(i in job['benchmarks'] for i in ids),
+                  f'job {job["id"]}: the {surface} benchmarks are not distinct benchmarks of the job')
+
+    def check_fields(self, fields, check):
+        """Rules that set the setting or run field from a Hacker News theme or a record's surface."""
+        need(type(fields) is dict and set(fields) == {'version', 'hn-theme', 'surface'}
+             and all(type(fields[part]) is list for part in ('hn-theme', 'surface')),
+             'fields is not a version and lists of hn-theme and surface rules')
+        check(type(fields['version']) is int, 'fields version is not an integer')
+
+        def values(rule, key, where):
+            if not check(type(rule) is dict and key in rule and set(rule) - {key} and set(rule) <= {key, 'setting', 'run'},
+                         f'fields {where}: a rule is not a {key} with a setting or run'):
+                return None
+            check(rule.get('setting', 'local') in SETTINGS[1:] and rule.get('run', 'parallel') in RUNS[1:], f'fields {where}: unknown value')
+            return rule.get('setting', ''), rule.get('run', '')
+
+        self.theme_fields = {}
+        for rule in fields['hn-theme']:
+            found = values(rule, 'label', 'hn-theme')
+            if found is not None:
+                check(rule['label'] in HN_THEMES, f'fields hn-theme: unknown theme {rule["label"]}')
+                self.theme_fields[rule['label']] = found
+        self.surface_fields = {}
+        for rule in fields['surface']:
+            found = values(rule, 'surface', 'surface')
+            if found is not None:
+                check(rule['surface'] in SURFACES[1:], f'fields surface: unknown surface {rule["surface"]}')
+                self.surface_fields[rule['surface']] = found
+
     def check_guide(self, guide, guide_tasks, check):
         """The brief each App guide task links to. Every guide task is listed once, with the job whose
         guideTask names it, or with no job and a note saying why; a task with no job is never the guide
-        task of a job."""
+        task of a job. A loose link says how the task and the job differ."""
         need(type(guide) is dict and set(guide) == {'version', 'tasks'} and type(guide['tasks']) is list,
              'guide is not a version and a list of tasks')
         check(type(guide['version']) is int, 'guide version is not an integer')
@@ -322,35 +409,39 @@ class Jobs:
                 pointed[job['guideTask']].append(job.get('id'))
         out, listed = [], set()
         for entry in guide['tasks']:
-            if not check(type(entry) is dict and {'task', 'job'} <= set(entry) <= {'task', 'job', 'note'}
-                         and is_text(entry['task']), 'guide: an entry is not a task, a job and an optional note'):
+            if not check(type(entry) is dict and {'task', 'job'} <= set(entry) <= {'task', 'job', 'fit', 'note'}
+                         and is_text(entry['task']), 'guide: an entry is not a task, a job, an optional fit and an optional note'):
                 continue
             task, job_id = entry['task'], entry['job']
             check(task in guide_tasks, f'guide: App guide task {task} does not exist')
             check(task not in listed, f'guide: {task} is listed twice')
             listed.add(task)
+            noted = is_text(entry.get('note')) and entry['note'].strip() != ''
             if job_id is None:
-                check(is_text(entry.get('note')) and entry['note'].strip(), f'guide: {task} has no job and no note')
+                check(noted, f'guide: {task} has no job and no note')
+                check('fit' not in entry, f'guide: {task} has no job and a fit')
                 check(not pointed[task], f'guide: {task} has no job, but {", ".join(pointed[task])} names it as guide task')
                 out.append({'task': task, 'job': None, 'note': entry.get('note', '')})
                 continue
-            check('note' not in entry, f'guide: {task} has a job and a note')
+            fit = entry.get('fit', 'direct')
+            check(fit in ('direct', 'loose'), f'guide: {task} has unknown fit {fit}')
+            check(noted == (fit == 'loose') and ('note' in entry) == noted, f'guide: {task} needs a note when, and only when, its fit is loose')
             if check(job_id in by_id, f'guide: {task} links to {job_id}, which is not a job'):
                 check(by_id[job_id].get('guideTask') == task, f'guide: {task} links to {job_id}, whose guide task is {by_id[job_id].get("guideTask")}')
-            out.append({'task': task, 'job': job_id})
+            out.append({'task': task, 'job': job_id, **({'fit': 'loose', 'note': entry.get('note', '')} if fit == 'loose' else {})})
         for task in sorted(guide_tasks - listed):
             check(False, f'guide: App guide task {task} is not listed')
         return out
-        self.parents = {job['id']: job.get('parent', '') for job in jobs}
 
     def label(self, source, value):
         """The job a source label maps to, as stored: a job id, an old id, an unknown id or ''."""
         return self.crosswalk[source].get(value)
 
     def resolve(self, job):
-        """(job, setting, run) for a stored job id, through `replaces`; None when it is not covered."""
+        """(job, setting, run, needs reading) for a stored job id, through `replaces`; None when it is
+        not covered. A stored id that was split or became a field gives no job and needs reading."""
         if job == '' or job in self.current:
-            return job, '', ''
+            return job, '', '', False
         return self.replaces.get(job)
 
     def assign(self, base, via, text):
@@ -361,6 +452,16 @@ class Jobs:
         if base:
             return base, 'label', via
         return '', '', ''
+
+    def surface_of(self, tool):
+        """The surface a tool is, from the surface table: the first whose word the tool names."""
+        text = tool.lower()
+        return next((name for name, pattern in self.surfaces if pattern.search(text)), '')
+
+    def tags_of(self, text):
+        """The tags whose rule matches `text`, as a record's x carries them: {'tags': [...]} or {}."""
+        found = [tag for tag, pattern in self.tags if pattern.search(text)]
+        return {'tags': found} if found else {}
 
 
 # ---- Records ---------------------------------------------------------------------------
@@ -374,11 +475,18 @@ class Records:
         self.problems = collections.defaultdict(list)
         self.uncovered = set()
         self.coverage = collections.Counter()
+        # Records that need reading until the next review, by the old job they were given and source.
+        self.pending = collections.Counter()
 
     def make(self, label, via, words, how='label', **values):
         """A record whose job comes from `label`, the job id a source label maps to (None when the
         source label is not in the crosswalk), refined or filled in by keyword rules over `words`
-        (None: no keyword rules apply). `how` says how a job given by the label was assigned."""
+        (None: no keyword rules apply). `how` says how a job given by the label was assigned.
+
+        A label whose old job was split or became a field gives no job: the record is marked as
+        needing reading (`how` 'pending', `via` the label) and is never given a job by guess. The
+        setting and run fields come from `replaces`, from the caller, and from the surface table,
+        which also gives the surface of the record's tool."""
         record = dict.fromkeys(FIELDS, '')
         record.update(keys=[], stance='neutral', x=None)
         record.update(values)
@@ -390,18 +498,26 @@ class Records:
             self.uncovered.add(label)
             self.problems[f'{label} is neither a job nor replaced (from {via})'].append(record['id'])
             return record
-        base, setting, run = resolved
+        base, setting, run, pending = resolved
         if words is not None:
             job, how, assigned = self.jobs.assign(base, via, words)
         else:
             job, how, assigned = (base, how, via) if base else ('', '', '')
-        record.update(job=job, how=how, via=assigned, setting=setting, run=run)
-        record['surface'] = self.jobs.surfaces.get(record['tool'], '')
+        if pending and job == '':
+            how, assigned = 'pending', via
+        record.update(job=job, how=how, via=assigned)
+        record['surface'] = self.jobs.surface_of(record['tool'])
+        by_surface = self.jobs.surface_fields.get(record['surface'], ('', ''))
+        record['setting'] = setting or record['setting'] or by_surface[0]
+        record['run'] = run or record['run'] or by_surface[1]
         try:
             check_record(record)
         except RecordError as error:
             raise BuildError(f'{record["id"]}: {error}') from None
-        self.coverage[record['job'], record['src']] += 1
+        if how == 'pending':
+            self.pending[label, record['src']] += 1
+        else:
+            self.coverage[record['job'], record['src']] += 1
         return record
 
     def stop_if_uncovered(self):
@@ -453,8 +569,11 @@ def measured_records(snapshot, records):
     for report in snapshot['reports']:
         config = report.get('configuration', '')
         published = (report.get('publishedAt') or '')[:10]
+        # A report listed by its id takes that job; any other takes its category's.
+        own = records.jobs.label('report', report['id'])
         out.append(records.make(
-            records.jobs.label('report-category', report['category']), 'category:' + report['category'],
+            *((own, 'report:' + report['id']) if own is not None
+              else (records.jobs.label('report-category', report['category']), 'category:' + report['category'])),
             f'{report["title"]} {report["summary"]} {config}',
             id='rp:' + report['id'],
             cls='measured',
@@ -789,19 +908,33 @@ def hn_key(target):
     return HN_KEY_KINDS[target['kind']] + '|' + target['target']
 
 
+def nested(depth):
+    """Tables `depth` keys deep whose leaves are tallies of the four stances."""
+    return [0, 0, 0, 0] if depth == 0 else collections.defaultdict(lambda: nested(depth - 1))
+
+
+def cell_of(record):
+    """A record's setting and run as one key, 'local|unattended'; '|' is the default (hosted or not
+    stated, interactive or not stated)."""
+    return f'{record["setting"]}|{record["run"]}'
+
+
 def crowd(hn, records, model_ids):
     """Hacker News records, counts per target, job and month, the same counts per theme of the
     label, stated preferences, and the item ids of the comments in each job, so the app can open the
-    comments behind a count. The app renders every count from these aggregates and loads the
+    comments behind a count. The same counts, themes and ids are kept again for each setting and
+    run other than the default (`cells`), so the app can filter by them, and the comments each tag
+    rule matches by target and month. The app renders every count from these aggregates and loads the
     comments themselves only when someone opens them."""
     jobs = records.jobs
     themes_order = list(jobs.crosswalk['hn-theme'])
     stories = {story['id']: story.get('title', '') for story in hn['stories']}
-    counts = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0, 0, 0])))
-    theme_counts = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(
-        lambda: collections.defaultdict(lambda: [0, 0, 0, 0]))))
+    counts, theme_counts = nested(3), nested(4)
+    cells = collections.defaultdict(lambda: {'counts': nested(3), 'themes': nested(4), 'comments': collections.defaultdict(list)})
+    tags = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(list)))
     preferences = []
     comment_ids = collections.defaultdict(list)
+    pending = collections.defaultdict(list)
     unknown_models = collections.defaultdict(list)
     rows = []
     for comment in hn['comments']:
@@ -817,10 +950,13 @@ def crowd(hn, records, model_ids):
             theme = next((theme for theme in themes_order if theme in themes), None)
             if theme is not None:
                 label, via = jobs.label('hn-theme', theme), 'theme:' + theme
+        # A theme with a field rule sets that field whatever the task.
+        fields = [jobs.theme_fields[theme] for theme in themes if theme in jobs.theme_fields]
         keys = [[hn_key(a), HN_STANCE[a['sentiment']]] for a in comment['assessments']]
         for key, _ in keys:
             if key.startswith('model|') and key[6:] not in model_ids:
                 unknown_models[key[6:]].append(record_id)
+        tagged = jobs.tags_of(claim)
         record = records.make(
             label, via if label is not None else 'hn-task:' + task, claim,
             id=record_id,
@@ -831,33 +967,59 @@ def crowd(hn, records, model_ids):
             text=claim,
             tool=tool_in(claim),
             effort=effort_in(claim),
+            setting=next((setting for setting, _ in fields if setting), ''),
+            run=next((run for _, run in fields if run), ''),
             date=date,
             url=f'https://news.ycombinator.com/item?id={comment["id"]}',
             title=stories.get(comment.get('story'), ''),
             kind=task,
-            x={'themes': themes},
+            x={'themes': themes, **tagged},
         )
         rows.append(record)
-        comment_ids[record['job']].append(comment['id'])
-        for key, stance in keys:
-            counts[key][record['job']][date[:7]][STANCES.index(stance)] += 1
-        # A theme belongs to one label, so it counts toward that label's target only.
-        for assessment in comment['assessments']:
-            stance = STANCES.index(HN_STANCE[assessment['sentiment']])
-            for theme in assessment.get('themes', []):
-                theme_counts[hn_key(assessment)][record['job']][date[:7]][theme][stance] += 1
+        if record['how'] == 'pending':
+            pending[label].append(comment['id'])
+        cell = cell_of(record)
+        tallies = [(counts, theme_counts, comment_ids)]
+        if cell != '|':
+            tallies.append((cells[cell]['counts'], cells[cell]['themes'], cells[cell]['comments']))
+        for to_counts, to_themes, to_ids in tallies:
+            to_ids[record['job']].append(comment['id'])
+            for key, stance in keys:
+                to_counts[key][record['job']][date[:7]][STANCES.index(stance)] += 1
+            # A theme belongs to one label, so it counts toward that label's target only.
+            for assessment in comment['assessments']:
+                stance = STANCES.index(HN_STANCE[assessment['sentiment']])
+                for theme in assessment.get('themes', []):
+                    to_themes[hn_key(assessment)][record['job']][date[:7]][theme][stance] += 1
+        for tag in tagged.get('tags', []):
+            for key, _ in keys:
+                tags[tag][key][date[:7]].append(comment['id'])
         for preference in comment.get('prefers', []):
             preferences.append({
                 'winner': hn_key(preference['winner']),
                 'loser': hn_key(preference['loser']),
                 'job': record['job'],
+                'setting': record['setting'],
+                'run': record['run'],
                 'date': date,
                 'id': record_id,
             })
     need(not unknown_models, 'Hacker News names models that are not in the snapshot:\n  ' + '\n  '.join(
         f'{model}: {", ".join(ids[:LIST_LIMIT])}' for model, ids in sorted(unknown_models.items())))
-    return rows, {'counts': counts, 'themes': theme_counts}, preferences, {
-        job: sorted(ids) for job, ids in sorted(comment_ids.items())}
+
+    def by_job(ids):
+        return {job: sorted(values) for job, values in sorted(ids.items())}
+
+    return rows, {
+        'counts': counts,
+        'themes': theme_counts,
+        'cells': {cell: {'counts': value['counts'], 'themes': value['themes'], 'comments': by_job(value['comments'])}
+                  for cell, value in sorted(cells.items())},
+        'tags': {tag: {key: {month: sorted(ids) for month, ids in sorted(by_month.items())}
+                       for key, by_month in sorted(by_key.items())} for tag, by_key in sorted(tags.items())},
+        # Comments with no job that need reading, by the old job their label gave.
+        'pending': {old: sorted(ids) for old, ids in pending.items()},
+    }, preferences, by_job(comment_ids)
 
 
 # ---- Named: the people review ------------------------------------------------------------
@@ -984,6 +1146,7 @@ def named_records(data, records):
                 'cmpId': row['compared_id'],
                 'cmp': row['comparison'],
                 'channel': row['source_channel'],
+                **records.jobs.tags_of(row['task']),
             },
         ))
     for row in data['advice']:
@@ -1008,6 +1171,17 @@ def named_records(data, records):
     return use, advice, excluded
 
 
+def general_ids(snapshot):
+    """The snapshot's general indexes, which order no job."""
+    return {benchmark['id'] for benchmark in snapshot['benchmarks'] if benchmark['category'] == 'general'}
+
+
+def pending_order(jobs, records):
+    """The old job ids that left records needing reading, in the order `replaces` lists them."""
+    seen = {old for old, _source in records.pending}
+    return [old for old in jobs.replaces if old in seen]
+
+
 def newest_first(rows):
     def order(record):
         source, number = record['id'].split(':', 1)[1].split('/')
@@ -1022,7 +1196,7 @@ def build_named(snapshot, guide, job_data, imported, data):
     check_named(data, model_ids)
     benchmark_ids = {benchmark['id'] for benchmark in snapshot['benchmarks']}
     imported_ids = {entry['id'] for kind, (_, field, _) in IMPORT_FIELDS.items() for entry in imported[kind][field]}
-    jobs = Jobs(job_data, benchmark_ids | imported_ids, {task['id'] for task in guide['tasks']})
+    jobs = Jobs(job_data, benchmark_ids | imported_ids, {task['id'] for task in guide['tasks']}, general_ids(snapshot))
     records = Records(jobs)
     use, advice, excluded = named_records(data, records)
     records.stop_if_uncovered()
@@ -1056,8 +1230,13 @@ def build_named(snapshot, guide, job_data, imported, data):
             for person in data['people']['people']
         ],
         'coverage': [
-            {'job': job_id, 'use': sum(r['job'] == job_id for r in use), 'advice': sum(r['job'] == job_id for r in advice)}
+            {'job': job_id, 'use': records.coverage[job_id, 'use'], 'advice': records.coverage[job_id, 'advice']}
             for job_id in [*jobs.ids, '']
+        ],
+        # Records whose old job was split or became a field, by that old job: no job until the next review.
+        'pending': [
+            {'old': old, 'use': records.pending[old, 'use'], 'advice': records.pending[old, 'advice']}
+            for old in pending_order(jobs, records)
         ],
         'use': newest_first(use),
         'advice': newest_first(advice),
@@ -1080,7 +1259,7 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
     benchmark_ids = {benchmark['id'] for benchmark in snapshot['benchmarks']}
     need(not benchmark_ids & set(imported_ids), 'An imported benchmark id is also in the snapshot: '
          + ', '.join(sorted(benchmark_ids & set(imported_ids))))
-    jobs = Jobs(job_data, benchmark_ids | set(imported_ids), {task['id'] for task in guide['tasks']})
+    jobs = Jobs(job_data, benchmark_ids | set(imported_ids), {task['id'] for task in guide['tasks']}, general_ids(snapshot))
     if usage is not None:
         check_usage(usage, model_ids, jobs)
     records = Records(jobs)
@@ -1114,6 +1293,10 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
     rows = [
         {'job': job_id, 'counts': {source: records.coverage[job_id, source] for source in sources}}
         for job_id in [*jobs.ids, '']
+    ]
+    pending = [
+        {'old': old, 'counts': {source: records.pending[old, source] for source in sources}}
+        for old in pending_order(jobs, records)
     ]
     core = {
         'sources': {
@@ -1174,32 +1357,47 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
         ] + [entry for kind in IMPORTED for entry in imported_benchmarks(kind, imported[kind], jobs)],
         'measured': measured,
         'crowd': {'stances': list(STANCES), 'counts': counts, 'themes': aggregates['themes'],
-                  'comments': comment_ids},
+                  'comments': comment_ids, 'cells': aggregates['cells'], 'tags': aggregates['tags'],
+                  'pending': {old: aggregates['pending'][old] for old in jobs.replaces if old in aggregates['pending']}},
         'preferences': preferences,
-        'coverage': {'sources': list(sources), 'rows': rows},
+        'coverage': {'sources': list(sources), 'rows': rows, 'pending': pending},
         'usage': None if usage is None else usage_block(usage, jobs),
         'namedBehindSignIn': named,
     }
     return core, measured + hn_rows
 
 
-def coverage_table(core, named=None):
-    """Records per job and source. With named records, a column of use records (jobs by review)."""
+def coverage_table(core, named=None, old_labels=None):
+    """Records per job and source. With named records, a column of use records (jobs by review).
+    Records that need reading until the next review are counted apart from those with no job, in
+    total and by the old job they were given."""
     labels = {job['id']: ('↳ ' if job.get('parent') else '') + job['label'] for job in core['jobs']['list']}
     labels[''] = 'No job'
+    old_labels = old_labels or {}
     sources = list(core['coverage']['sources'])
     headings = {'benchmark': 'Benchmark', 'arena': 'Arena', 'report': 'Report', 'hn': 'Hacker News', 'use': 'Use (review)'}
-    rows = [dict(row['counts']) for row in core['coverage']['rows']]
+    rows = [(labels[row['job']], dict(row['counts'])) for row in core['coverage']['rows']]
+    pending = {row['old']: dict(row['counts']) for row in core['coverage']['pending']}
     if named is not None:
         sources.append('use')
-        for counts, row in zip(rows, named['coverage']):
+        for (_, counts), row in zip(rows, named['coverage']):
             counts['use'] = row['use']
-    width = max(len(label) for label in labels.values())
+        for row in named['pending']:
+            pending.setdefault(row['old'], collections.Counter())['use'] = row['use']
+    needs = collections.Counter()
+    for counts in pending.values():
+        needs.update(counts)
+    no_job = rows.pop()
+    rows.append(('Needs reading until the next review', needs))
+    rows.extend((f'  from {old_labels.get(old, old)}', counts) for old, counts in pending.items())
+    rows.append(no_job)
+    width = max(len(label) for label, _ in rows)
     lines = [f'{"Job":{width}} ' + ' '.join(f'{headings[source]:>12}' for source in sources)]
     totals = collections.Counter()
-    for row, counts in zip(core['coverage']['rows'], rows):
-        totals.update(counts)
-        lines.append(f'{labels[row["job"]]:{width}} ' + ' '.join(f'{counts[source]:>12,}' for source in sources))
+    for label, counts in rows:
+        if not label.startswith('  from '):
+            totals.update(counts)
+        lines.append(f'{label:{width}} ' + ' '.join(f'{counts.get(source, 0):>12,}' for source in sources))
     lines.append(f'{"Total":{width}} ' + ' '.join(f'{totals[source]:>12,}' for source in sources))
     return '\n'.join(lines)
 
@@ -1240,7 +1438,7 @@ def main(argv=None):
                                    [] if named is None else named['advice'], names, labels, built_at)
     except BuildError as error:
         raise SystemExit(str(error)) from None
-    print(coverage_table(core, named))
+    print(coverage_table(core, named, {old: entry['label'] for old, entry in job_data['replaces'].items()}))
     for kind, label in (('lmarena', 'LMArena'), ('epoch', 'Epoch runs')):
         source = core['sources'][kind]
         print(f'{label}: {source["records"]:,} records, fetched {source["fetchedAt"]}, checked {source["checkedAt"]}.')

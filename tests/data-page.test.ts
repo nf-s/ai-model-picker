@@ -137,14 +137,21 @@ const core = coreSchema.parse({
   ],
   crowd: {
     stances: ['positive', 'critical', 'mixed', 'neutral'],
+    // Comment 5 is local and needs reading: its old job was split.
+    cells: {
+      'local|': { counts: {}, themes: {}, comments: { '': [5] } },
+    },
+    tags: {},
+    pending: { images: [5] },
     counts: {},
     themes: {},
-    comments: { coding: [1, 2], fix: [3], '': [4] },
+    comments: { coding: [1, 2], fix: [3], '': [4, 5] },
   },
   preferences: [],
   coverage: {
     sources: ['benchmark', 'arena', 'report', 'hn'],
     rows: [],
+    pending: [],
   },
   usage: null,
   namedBehindSignIn: true,
@@ -170,6 +177,19 @@ test('coverage is by each record’s own job; the filters apply as Search applie
       ['fix', 1],
       ['', 1],
     ],
+  );
+  // A record that needs reading counts under its old job, read through the
+  // tracked job file, never under no job.
+  const pending = {
+    ...core.measured[0],
+    id: 'ur:000000000000000000000001/1',
+    job: '',
+    how: 'pending',
+    via: 'review:images',
+  };
+  assert.deepEqual(
+    [...byJob([pending])].map(([row, records]) => [row, records.length]),
+    [['pending:images', 1]],
   );
   const current = (id: string) => data.modelById.get(id)?.status === 'current';
   const within = inFilters(core.measured, { ...openFilter, current });
@@ -215,20 +235,38 @@ test('crowd comments within the filters keep their job and read line labels', ()
       createdAt: '2026-10-03T10:00:00Z',
       assessments: [label('model', 'a')],
     },
+    {
+      id: 5,
+      createdAt: '2026-10-04T10:00:00Z',
+      assessments: [label('model', 'a')],
+    },
   ];
   const index = indexComments(comments);
   const ids = (filter: typeof openFilter) =>
     Object.fromEntries(
-      [...crowdInFilters(index, core.crowd.comments, filter)].map(
-        ([job, set]) => [job, [...set].sort()],
-      ),
+      [...crowdInFilters(index, core.crowd, filter)].map(([job, set]) => [
+        job,
+        [...set].sort(),
+      ]),
     );
-  assert.deepEqual(ids(openFilter), { coding: [1, 2], fix: [3], '': [4] });
+  // A comment that needs reading has its own row, apart from no job.
+  assert.deepEqual(ids(openFilter), {
+    coding: [1, 2],
+    fix: [3],
+    '': [4],
+    'pending:images': [5],
+  });
   // From 15 September: Hacker News counts from the first of that month.
   assert.deepEqual(ids({ ...openFilter, since: '2026-09-15' }), {
     coding: [2],
     fix: [3],
     '': [4],
+    'pending:images': [5],
+  });
+  // The setting filter reads the comment's setting from core.json.
+  const local = { ...openFilter.fields, setting: 'local' as const };
+  assert.deepEqual(ids({ ...openFilter, fields: local }), {
+    'pending:images': [5],
   });
   // Only the line: the model selection reads it as `line|Lab`.
   assert.deepEqual(ids({ ...openFilter, key: (key) => key === 'line|Lab' }), {
@@ -315,6 +353,7 @@ test('the limits of the use records count without naming anyone', () => {
         person('Ben Sample', 'secondary', 2),
       ],
       coverage: [{ job: 'coding', use: 6, advice: 0 }],
+      pending: [],
       use: [
         use(1, 'Ada Example', ['model|a', 'tool|Editor']),
         use(2, 'Ada Example', ['version|Lab A-preview', 'line|Lab']),

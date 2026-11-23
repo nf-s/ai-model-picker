@@ -55,6 +55,9 @@ const core = coreSchema.parse({
   measured: [],
   crowd: {
     stances: ['positive', 'critical', 'mixed', 'neutral'],
+    cells: {},
+    tags: {},
+    pending: {},
     counts: {
       'model|a': {
         coding: { '2026-10': [2, 1, 0, 0] },
@@ -66,7 +69,7 @@ const core = coreSchema.parse({
     comments: {},
   },
   preferences: [],
-  coverage: { sources: [], rows: [] },
+  coverage: { sources: [], rows: [], pending: [] },
   usage: null,
   namedBehindSignIn: false,
 });

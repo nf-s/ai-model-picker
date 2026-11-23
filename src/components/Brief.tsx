@@ -14,6 +14,7 @@ import {
   orderRules,
   plural,
   signalLabel,
+  surfaceFor,
   usageForJob,
 } from '../lib/brief';
 import type {
@@ -29,6 +30,8 @@ import { useBriefData } from '../lib/core-client';
 import type { CoreData } from '../lib/core-client';
 import type { CoreJob, CoreModel, CoreUsage } from '../lib/core-schema';
 import { guide } from '../lib/guide';
+import { surfaceName } from '../lib/fields';
+import { retiredNotice } from '../lib/job-rules';
 import { dollars } from '../lib/metrics';
 import type { FilterBar, Scope } from '../lib/model-filter';
 import { namedColumn, outcomeTally } from '../lib/named';
@@ -82,7 +85,7 @@ function valueSpec(
     );
   return commentSpec(
     `${model.name} · Hacker News · ${brief.job.label}`,
-    crowdCommentIds(ctx.data, brief.job.id),
+    crowdCommentIds(ctx.data, brief.job.id, ctx.filters.fields),
     `model:${model.id}`,
     ctx.filters.since,
     'Every comment labelled for this model in this job. Labels are automatic.',
@@ -92,11 +95,17 @@ function valueSpec(
 export default function Brief({
   job,
   coreData,
+  surface,
+  retired,
   filter,
   onFilterChange,
   scope,
 }: {
   job: string | null;
+  // The surface whose measure orders a job measured per surface.
+  surface: string | null;
+  // An old job id from the address that is no longer a job.
+  retired: string | null;
   coreData: CoreData;
   filter: FilterBar;
   onFilterChange: (next: FilterBar) => void;
@@ -106,7 +115,7 @@ export default function Brief({
   if (!data) return <RecordsStatus coreData={coreData} />;
   const filters = briefFilters(data, filter, scope.model);
   const ctx = { data, filters };
-  if (job === null) return <JobChooser ctx={ctx} />;
+  if (job === null) return <JobChooser ctx={ctx} retired={retired} />;
   const found = findJob(data, job);
   if (!found)
     return (
@@ -125,6 +134,7 @@ export default function Brief({
       key={found.id}
       ctx={ctx}
       job={found}
+      surface={surface}
       filter={filter}
       onFilterChange={onFilterChange}
       scope={scope}
@@ -132,8 +142,65 @@ export default function Brief({
   );
 }
 
-function JobChooser({ ctx }: { ctx: Context }) {
+type ChooserRow = ReturnType<typeof chooserRows>[number];
+
+// What measures a job: per surface for a job measured per surface.
+function measuresText(row: ChooserRow) {
+  if (row.surfaces.length > 0)
+    return `Measures: ${row.surfaces
+      .map(
+        (entry) =>
+          `${entry.benchmarks.map((benchmark) => benchmark.name).join(', ')} (${surfaceName(entry.surface).toLowerCase()})`,
+      )
+      .join('; ')}`;
+  return row.benchmarks.length > 0
+    ? `Measures: ${row.benchmarks.map((benchmark) => benchmark.name).join(', ')}`
+    : 'No measure';
+}
+
+function JobItem({ ctx, row }: { ctx: Context; row: ChooserRow }) {
+  return (
+    <>
+      <a
+        className="rd-job-link"
+        href={routeHref({ view: 'brief', job: row.job.id })}
+      >
+        {row.job.label}
+      </a>
+      <p>
+        {row.measured.length === 0 ? (
+          '0 measured records'
+        ) : (
+          <EvidenceButton
+            spec={() =>
+              measuredSpec(
+                ctx.data,
+                `${row.job.label} · measured records`,
+                row.measured,
+                'Benchmark results, arena ratings and reports for this job within the filters.',
+              )
+            }
+          >
+            {plural(row.measured.length, 'measured record')}
+          </EvidenceButton>
+        )}
+        {ctx.filters.since && ' in the period'}
+      </p>
+      <p className="rd-note">{measuresText(row)}</p>
+    </>
+  );
+}
+
+// Jobs with sub-jobs are listed as a group: the parent, then its sub-jobs.
+function JobChooser({
+  ctx,
+  retired,
+}: {
+  ctx: Context;
+  retired: string | null;
+}) {
   const rows = chooserRows(ctx.data, ctx.filters);
+  const notice = retired ? retiredNotice(retired) : '';
   return (
     <div className="rd-page">
       <header className="rd-page-head">
@@ -143,42 +210,43 @@ function JobChooser({ ctx }: { ctx: Context }) {
           evidence behind each.
         </p>
       </header>
+      {notice && (
+        <p className="rd-panel rd-brief-notice" role="status">
+          {notice}
+        </p>
+      )}
       <ul className="rd-jobs">
-        {rows.map((row) => (
-          <li key={row.job.id} className="rd-panel">
-            <a
-              className="rd-job-link"
-              href={routeHref({ view: 'brief', job: row.job.id })}
-            >
-              {row.job.parent !== undefined && '↳ '}
-              {row.job.label}
-            </a>
-            <p>
-              {row.measured.length === 0 ? (
-                '0 measured records'
-              ) : (
-                <EvidenceButton
-                  spec={() =>
-                    measuredSpec(
-                      ctx.data,
-                      `${row.job.label} · measured records`,
-                      row.measured,
-                      'Benchmark results, arena ratings and reports for this job within the filters.',
-                    )
-                  }
-                >
-                  {plural(row.measured.length, 'measured record')}
-                </EvidenceButton>
-              )}
-              {ctx.filters.since && ' in the period'}
-            </p>
-            <p className="rd-note">
-              {row.benchmarks.length > 0
-                ? `Measures: ${row.benchmarks.map((benchmark) => benchmark.name).join(', ')}${row.from ? ` (from ${row.from.label})` : ''}`
-                : 'No measure'}
-            </p>
-          </li>
-        ))}
+        {rows
+          .filter((row) => row.job.parent === undefined)
+          .map((row) => {
+            const children = rows.filter(
+              (child) => child.job.parent === row.job.id,
+            );
+            if (children.length === 0)
+              return (
+                <li key={row.job.id} className="rd-panel">
+                  <JobItem ctx={ctx} row={row} />
+                </li>
+              );
+            return (
+              <li key={row.job.id} className="rd-panel rd-job-family">
+                <div className="rd-job-family-head">
+                  <JobItem ctx={ctx} row={row} />
+                  <p className="rd-note">
+                    Includes the {plural(children.length, 'job')} below; their
+                    records count toward it.
+                  </p>
+                </div>
+                <ul className="rd-jobs">
+                  {children.map((child) => (
+                    <li key={child.job.id} className="rd-panel">
+                      <JobItem ctx={ctx} row={child} />
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            );
+          })}
       </ul>
     </div>
   );
@@ -187,32 +255,46 @@ function JobChooser({ ctx }: { ctx: Context }) {
 function JobBrief({
   ctx,
   job,
+  surface,
   filter,
   onFilterChange,
   scope,
 }: {
   ctx: Context;
   job: CoreJob;
+  surface: string | null;
   filter: FilterBar;
   onFilterChange: (next: FilterBar) => void;
   scope: Scope;
 }) {
   const [within, setWithin] = useState<WithinOverlap>('preferences');
   const { data, filters } = ctx;
-  const brief = computeBrief(data, job, filters, within);
+  const brief = computeBrief(data, job, filters, within, surface);
   const usage = data.core.usage;
+  const parent =
+    job.parent === undefined ? undefined : data.jobById.get(job.parent);
   const head = (
     <header className="rd-page-head">
       <p className="rd-note">
         <a href={routeHref({ view: 'brief', job: null })}>All jobs</a>
+        {parent && (
+          <>
+            {' · '}
+            <a href={routeHref({ view: 'brief', job: parent.id })}>
+              {parent.label}
+            </a>
+          </>
+        )}
       </p>
       <h1>{job.label}</h1>
+      <SurfaceSwitch ctx={ctx} brief={brief} />
     </header>
   );
   if (!brief.first) {
     const older =
       filters.current &&
-      computeBrief(data, job, { ...filters, current: false }).rows.length > 0;
+      computeBrief(data, job, { ...filters, current: false }, within, surface)
+        .rows.length > 0;
     return (
       <div className="rd-page">
         {head}
@@ -287,8 +369,46 @@ function benchmarkSource(data: BriefData, benchmark: Benchmark) {
   return `published results checked ${formatDay(data.core.sources.snapshot)}${dates ? `, run ${dates}` : ', undated'}`;
 }
 
+// A job measured differently per surface: which surface's measure orders
+// this brief, and links to the other surfaces' briefs.
+function SurfaceSwitch({ ctx, brief }: { ctx: Context; brief: BriefResult }) {
+  if (brief.surfaces.length < 2 || brief.surface === null) return null;
+  const from = brief.borrowed?.parent ?? brief.job;
+  const measure = (surface: string) =>
+    (
+      Object.entries(from.bySurface ?? {}).find(
+        ([entry]) => entry === surface,
+      )?.[1] ?? []
+    )
+      .map((id) => ctx.data.benchmarkById.get(id)?.name ?? id)
+      .join(', ');
+  const current = surfaceFor(from, brief.surface);
+  return (
+    <div className="rd-brief-switch">
+      <span className="rd-note">Measure for:</span>
+      <span className="rd-seg" role="group" aria-label="Measure by surface">
+        {brief.surfaces.map((surface) => (
+          <a
+            key={surface}
+            className="rd-seg-link"
+            aria-current={surface === current ? 'true' : undefined}
+            href={routeHref({
+              view: 'brief',
+              job: brief.job.id,
+              surface,
+            })}
+          >
+            {surfaceName(surface)}
+          </a>
+        ))}
+      </span>
+      <span className="rd-note">{measure(brief.surface)}</span>
+    </div>
+  );
+}
+
 function OrderNote({ ctx, brief }: { ctx: Context; brief: BriefResult }) {
-  const explanation = orderExplanation(ctx.data, brief);
+  const explanation = orderExplanation(brief);
   const primary = brief.primary;
   if (primary?.kind !== 'benchmark')
     return <p className="rd-panel rd-order-note">{explanation}</p>;

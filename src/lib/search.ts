@@ -1,4 +1,6 @@
-import { benchmarksFor, jobSet, monthStart } from './brief.ts';
+import { allBenchmarksFor, jobSet, monthStart } from './brief.ts';
+import { fieldsPass, openFields } from './fields.ts';
+import type { FieldFilter } from './fields.ts';
 import type { BriefData } from './brief.ts';
 import type { SourceClass } from './model-filter.ts';
 import type { EvidenceRecord } from './records.ts';
@@ -253,6 +255,10 @@ export type DocFacts = {
   keys: readonly string[];
   // A use record's basis class; '' otherwise.
   basis: string;
+  // The record's setting and run, and for named records its surface.
+  setting: string;
+  run: string;
+  surface: string;
 };
 
 export type SearchFilter = {
@@ -268,6 +274,8 @@ export type SearchFilter = {
   key: ((key: string) => boolean) | null;
   // Whether an exact model is current, when only current models are shown.
   current: ((modelId: string) => boolean) | null;
+  // Setting and run filter Crowd and named records, surface named records.
+  fields: FieldFilter;
   // The basis classes a use record must have, or null for any.
   basis: ReadonlySet<string> | null;
 };
@@ -280,6 +288,7 @@ export const openFilter: SearchFilter = {
   key: null,
   current: null,
   basis: null,
+  fields: openFields,
 };
 
 // The job filter as Brief reads it: the job and its sub-jobs, and for
@@ -291,7 +300,7 @@ export function jobFilter(
   if (jobId === null) return { jobs: null, benchmarks: new Set() };
   return {
     jobs: jobSet(data, jobId),
-    benchmarks: new Set(benchmarksFor(data, jobId).ids),
+    benchmarks: new Set(allBenchmarksFor(data, jobId)),
   };
 }
 
@@ -314,6 +323,11 @@ export function passes(facts: DocFacts, filter: SearchFilter) {
     facts.band === 'crowd' ? monthStart(filter.since) : filter.since;
   if (since && facts.date && facts.date < since) return false;
   if (facts.band === 'use' && filter.basis && !filter.basis.has(facts.basis))
+    return false;
+  if (
+    facts.band !== 'measured' &&
+    !fieldsPass(facts, filter.fields, facts.band !== 'crowd')
+  )
     return false;
   if (facts.band === 'advice') return true;
   const { key } = filter;
@@ -345,6 +359,9 @@ export function recordFacts(record: EvidenceRecord): DocFacts {
     date: record.date,
     keys: record.keys.map(([key]) => key),
     basis: band === 'use' ? b : '',
+    setting: record.setting,
+    run: record.run,
+    surface: record.surface,
   };
 }
 

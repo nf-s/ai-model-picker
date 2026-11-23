@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import {
+  openFields,
+  runFilters,
+  settingFilters,
+  surfaceFilters,
+} from './fields.ts';
+import type { FieldFilter } from './fields.ts';
 import { parseTargetKey, relatedNames } from './hn-insights.ts';
 import type { CommentIndex } from './hn-insights.ts';
 
@@ -28,8 +35,8 @@ export const emptyModelFilter: ModelFilter = { providers: [], models: [] };
 export const filterStorageKey = 'model-picker:model-filter';
 
 // The filter bar adds a period in months (0 for all dates), the source
-// classes shown, the basis of named use records and whether only current
-// models are listed. Named records are behind sign-in: without them the Named
+// classes shown, the basis of named use records, the setting, run and
+// surface (src/lib/fields.ts) and whether only current models are listed. Named records are behind sign-in: without them the Named
 // class and the basis have nothing to filter.
 export const periods = [0, 24, 12, 6, 3] as const;
 export const sourceClasses = ['measured', 'named', 'crowd'] as const;
@@ -38,14 +45,16 @@ export const basisClasses = ['first', 'measured', 'second', 'vendor'] as const;
 export type Period = (typeof periods)[number];
 export type SourceClass = (typeof sourceClasses)[number];
 export type BasisClass = (typeof basisClasses)[number];
-export type FilterBar = ModelFilter & {
-  period: Period;
-  classes: SourceClass[];
-  basis: BasisClass[];
-  current: boolean;
-};
+export type FilterBar = ModelFilter &
+  FieldFilter & {
+    period: Period;
+    classes: SourceClass[];
+    basis: BasisClass[];
+    current: boolean;
+  };
 export const defaultFilterBar: FilterBar = {
   ...emptyModelFilter,
+  ...openFields,
   period: 0,
   classes: [...sourceClasses],
   basis: [...basisClasses],
@@ -59,6 +68,9 @@ export const storedFilterSchema = z.object({
   classes: z.array(z.enum(sourceClasses)).default(defaultFilterBar.classes),
   basis: z.array(z.enum(basisClasses)).default(defaultFilterBar.basis),
   current: z.boolean().default(defaultFilterBar.current),
+  setting: z.enum(settingFilters).default(defaultFilterBar.setting),
+  run: z.enum(runFilters).default(defaultFilterBar.run),
+  surface: z.enum(surfaceFilters).default(defaultFilterBar.surface),
 });
 
 // The name people use for a provider's models where it differs from the
@@ -299,6 +311,9 @@ export function cleanFilterBar(
     classes: classes.length > 0 ? classes : [...sourceClasses],
     basis: basis.length > 0 ? basis : [...basisClasses],
     current: bar.current,
+    setting: bar.setting,
+    run: bar.run,
+    surface: bar.surface,
   };
 }
 
@@ -307,6 +322,9 @@ export function filterBarDefault(bar: FilterBar) {
     !filterActive(bar) &&
     bar.period === defaultFilterBar.period &&
     bar.current === defaultFilterBar.current &&
+    bar.setting === defaultFilterBar.setting &&
+    bar.run === defaultFilterBar.run &&
+    bar.surface === defaultFilterBar.surface &&
     sourceClasses.every((cls) => bar.classes.includes(cls)) &&
     basisClasses.every((entry) => bar.basis.includes(entry))
   );

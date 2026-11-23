@@ -12,6 +12,17 @@
   gap: 3px;
   padding: 10px 12px;
 }
+.rd-jobs li.rd-job-family {
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+.rd-job-family-head {
+  display: grid;
+  gap: 3px;
+}
+.rd-job-family .rd-jobs li {
+  box-shadow: none;
+}
 .rd a.rd-job-link {
   color: var(--rd-ink);
   font-weight: 650;

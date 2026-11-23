@@ -7,6 +7,7 @@ import {
   themeTallies,
 } from '../src/lib/brief.ts';
 import type { BriefFilters } from '../src/lib/brief.ts';
+import { openFields } from '../src/lib/fields.ts';
 import { coreSchema } from '../src/lib/core-schema.ts';
 import type { Core } from '../src/lib/core-schema.ts';
 import {
@@ -88,7 +89,15 @@ function benchmark(
 }
 
 function preference(winner: string, loser: string, job: string, n: number) {
-  return { winner, loser, job, date: '2026-10-10', id: `hn:${n}` };
+  return {
+    winner,
+    loser,
+    job,
+    setting: '',
+    run: '',
+    date: '2026-10-10',
+    id: `hn:${n}`,
+  };
 }
 
 function makeCore(): Core {
@@ -155,6 +164,9 @@ function makeCore(): Core {
     ],
     crowd: {
       stances: ['positive', 'critical', 'mixed', 'neutral'],
+      cells: {},
+      tags: {},
+      pending: {},
       counts: {
         'model|a': {
           coding: { '2026-10': [6, 2, 1, 1] },
@@ -182,7 +194,7 @@ function makeCore(): Core {
       preference('model|a', 'line|Lab', 'coding', 15),
       preference('line|Lab', 'model|c', 'coding', 16),
     ],
-    coverage: { sources: [], rows: [] },
+    coverage: { sources: [], rows: [], pending: [] },
     usage: null,
     namedBehindSignIn: false,
   });
@@ -194,6 +206,7 @@ const all: BriefFilters = {
   since: '',
   classes: ['measured', 'named', 'crowd'],
   basis: ['first', 'measured', 'second', 'vendor'],
+  fields: openFields,
 };
 
 function target(
@@ -216,13 +229,13 @@ test('labels that name only a line never join a model’s counts', () => {
   const data = prepareBrief(makeCore());
   const a = target(data, { kind: 'model', id: 'a' });
   const line = target(data, { kind: 'line', name: 'Lab' });
-  const modelBand = crowdBand(data, a.key, 'coding', '');
+  const modelBand = crowdBand(data, a.key, 'coding', all);
   // a's own coding labels (and its sub-job's), not the line's.
   assert.deepEqual(modelBand.tally, [9, 3, 1, 1]);
   assert.deepEqual(modelBand.lines, [
     { name: 'Lab', key: 'line|Lab', tally: [2, 5, 0, 0] },
   ]);
-  const lineBand = crowdBand(data, line.key, 'coding', '');
+  const lineBand = crowdBand(data, line.key, 'coding', all);
   assert.deepEqual(lineBand.tally, [2, 5, 0, 0]);
   assert.deepEqual(lineBand.lines, []);
   // Line preferences stay with the line.
@@ -230,11 +243,11 @@ test('labels that name only a line never join a model’s counts', () => {
     lineBand.preferences.map((entry) => entry.id),
     ['hn:15', 'hn:16'],
   );
-  assert.deepEqual(themeTallies(data, a.key, 'coding', ''), [
+  assert.deepEqual(themeTallies(data, a.key, 'coding', all), [
     { theme: 'speed', tally: [3, 1, 0, 0] },
     { theme: 'pricing', tally: [0, 1, 0, 0] },
   ]);
-  assert.deepEqual(themeTallies(data, line.key, 'coding', ''), [
+  assert.deepEqual(themeTallies(data, line.key, 'coding', all), [
     { theme: 'pricing', tally: [0, 3, 0, 0] },
   ]);
   // The line's evidence holds no measured record: results name exact models.
@@ -264,7 +277,7 @@ test('evidence by job equals the bands for each job', () => {
       row.measured.length,
       band.results.length + band.reports.length,
     );
-    assert.deepEqual(row.tally, crowdBand(data, a.key, id, '').tally);
+    assert.deepEqual(row.tally, crowdBand(data, a.key, id, all).tally);
   }
   assert.deepEqual(rows[0]?.tally, [10, 3, 1, 1]);
   // The period starts on the first of its month for Hacker News counts;

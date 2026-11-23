@@ -5,6 +5,7 @@ import {
   findJob,
   monthStart,
   plural,
+  taggedCommentIds,
   tallyTotal,
 } from '../lib/brief';
 import type { BriefData, BriefFilters } from '../lib/brief';
@@ -12,6 +13,7 @@ import { useBriefData } from '../lib/core-client';
 import type { CoreData } from '../lib/core-client';
 import type { CoreJob, CoreUsage } from '../lib/core-schema';
 import { emptyFilter } from '../lib/hn-insights';
+import { jobRules } from '../lib/job-rules';
 import { dollars } from '../lib/metrics';
 import type { FilterBar, Scope } from '../lib/model-filter';
 import {
@@ -24,7 +26,7 @@ import {
   usageLine,
 } from '../lib/model-page';
 import type { JobEvidence, PageTarget } from '../lib/model-page';
-import { outcomeTally } from '../lib/named';
+import { namedOrder, namedPasses, outcomeTally } from '../lib/named';
 import { lineHref, modelHref, routeHref } from '../lib/route';
 import type { Route } from '../lib/route';
 import { percent, scopeHnData, useHnData } from '../lib/site-data';
@@ -143,6 +145,7 @@ function TargetPage({
         <LineModels data={data} target={target} jobId={route.job} />
       )}
       <EvidenceByJob ctx={ctx} route={route} target={target} />
+      <TaggedRecords ctx={ctx} target={target} job={band} />
       {unknownJob ? (
         <p className="rd-panel rd-brief-notice" role="status">
           No job has the id “{route.job}”.{' '}
@@ -328,6 +331,82 @@ function LineModels({
   );
 }
 
+// Records a tracked tag rule matched, such as drawing tests, with counts that
+// open them. A tag never gives a job and never counts toward one; practitioner
+// records are counted only for granted accounts.
+function TaggedRecords({
+  ctx,
+  target,
+  job,
+}: {
+  ctx: BandContext;
+  target: PageTarget;
+  job: BandJob;
+}) {
+  const { data, filters } = ctx;
+  const { state, trusted } = useNamed();
+  const index = state.status === 'ready' ? state.value : null;
+  const rows = jobRules.tags.rules.map((rule) => {
+    const crowd = filters.classes.includes('crowd')
+      ? taggedCommentIds(data, rule.tag, target.key, job.id, filters)
+      : new Set<number>();
+    const named = (index?.byKey.get(target.key) ?? []).filter(
+      (record) =>
+        record.use.tags?.includes(rule.tag) &&
+        namedPasses(data, record, job.id, filters),
+    );
+    return { rule, crowd, named };
+  });
+  const shown = rows.filter(
+    (row) => row.crowd.size > 0 || row.named.length > 0,
+  );
+  if (shown.length === 0) return null;
+  return (
+    <section className="rd-panel rd-model-section">
+      <h2 className="rd-h">Tagged records · {job.label}</h2>
+      <ul className="rd-tagged">
+        {shown.map(({ rule, crowd, named }) => (
+          <li key={rule.tag}>
+            <strong>{rule.label}</strong>
+            {crowd.size > 0 && (
+              <EvidenceButton
+                spec={() =>
+                  commentSpec(
+                    `${target.name} · ${rule.label} · Hacker News`,
+                    crowd,
+                    indexKey(target.key),
+                    filters.since,
+                    'Comments whose claim the tag rule matched. Labels are automatic.',
+                  )
+                }
+              >
+                {plural(crowd.size, 'Hacker News label')}
+              </EvidenceButton>
+            )}
+            {named.length > 0 && (
+              <EvidenceButton
+                spec={() =>
+                  namedSpec(
+                    `${target.name} · ${rule.label} · practitioner records`,
+                    namedOrder(named, trusted),
+                    'Use records whose task the tag rule matched.',
+                  )
+                }
+              >
+                {plural(named.length, 'practitioner record')}
+              </EvidenceButton>
+            )}
+          </li>
+        ))}
+      </ul>
+      <p className="rd-note">
+        Found by a keyword rule on the record’s own task or claim. A tag never
+        gives a job or counts toward one.
+      </p>
+    </section>
+  );
+}
+
 function EvidenceByJob({
   ctx,
   route,
@@ -493,7 +572,7 @@ function JobRow({
               spec={() =>
                 commentSpec(
                   `${target.name} · Hacker News · ${label}`,
-                  crowdCommentIds(data, id),
+                  crowdCommentIds(data, id, filters.fields),
                   indexKey(target.key),
                   filters.since,
                   tallyNote(row.tally),
@@ -545,7 +624,7 @@ function ThreadReader({
   const from = monthStart(filters.since);
   const index = useMemo(() => {
     if (scoped.status !== 'ready') return null;
-    const ids = crowdCommentIds(data, job.id);
+    const ids = crowdCommentIds(data, job.id, filters.fields);
     return {
       ...scoped.index,
       rows: scoped.index.rows.filter(

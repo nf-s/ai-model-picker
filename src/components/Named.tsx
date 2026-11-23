@@ -9,6 +9,8 @@ import type { ReactNode } from 'react';
 import type { Access } from '../lib/access';
 import type { Tally } from '../lib/brief';
 import type { CoreJob } from '../lib/core-schema';
+import { fieldsText } from '../lib/fields';
+import { tagLabel } from '../lib/job-rules';
 import { useNamedData } from '../lib/named-client';
 import type { NamedState } from '../lib/named-client';
 import {
@@ -278,8 +280,14 @@ export function NamedCard({ record }: { record: NamedRecord }) {
       )}
       <p className="rd-note">
         Basis: {basisText(record)} · Job:{' '}
-        {record.job ? `${jobLabel(record.job)}, by review` : 'none, by review'}{' '}
-        · <Source record={record} />
+        {record.job
+          ? `${jobLabel(record.job)}, by review`
+          : record.how === 'pending'
+            ? 'none until the next review'
+            : 'none, by review'}
+        {fieldsText(record)}
+        {(record.use.tags ?? []).map((tag) => ` · ${tagLabel(tag)}`)} ·{' '}
+        <Source record={record} />
       </p>
     </article>
   );

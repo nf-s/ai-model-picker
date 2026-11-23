@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { inPool, jobSet, lineKey, modelKey } from './brief.ts';
 import type { BriefData, BriefFilters, Tally } from './brief.ts';
+import { fieldsPass } from './fields.ts';
 import { basisClasses } from './model-filter.ts';
 import type { BasisClass } from './model-filter.ts';
 import { recordSchema } from './records.ts';
@@ -42,6 +43,8 @@ const useExtrasSchema = z.object({
   cmpId: z.string(),
   cmpNamed: z.string(),
   channel: z.string(),
+  // Tags a tracked rule set from the task text; a tag never gives a job.
+  tags: z.array(z.string()).optional(),
 });
 export type UseExtras = z.infer<typeof useExtrasSchema>;
 
@@ -96,6 +99,10 @@ export const namedPayloadSchema = z
         use: count,
         advice: count,
       }),
+    ),
+    // Records whose old job was split or became a field, by that old job.
+    pending: z.array(
+      z.strictObject({ old: z.string().min(1), use: count, advice: count }),
     ),
     use: z.array(useRecordSchema),
   })
@@ -199,8 +206,8 @@ export function namedOrder<T extends NamedRecord>(
 // ---- Filters ---------------------------------------------------------------------
 
 // The filter bar applied to one named record: the Named class, the job by
-// review, the period and, for use records, the basis. Records with no job
-// pass only for all jobs.
+// review, the period, the setting, run and surface and, for use records, the
+// basis. Records with no job pass only for all jobs.
 export function namedPasses(
   data: BriefData,
   record: NamedRecord,
@@ -209,6 +216,7 @@ export function namedPasses(
 ) {
   if (!filters.classes.includes('named')) return false;
   if (isUse(record) && !filters.basis.includes(record.use.b)) return false;
+  if (!fieldsPass(record, filters.fields, true)) return false;
   if (jobId !== null && !jobSet(data, jobId).has(record.job)) return false;
   return !filters.since || record.date >= filters.since;
 }
