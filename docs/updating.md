@@ -614,7 +614,7 @@ Run step 1 of [Hacker News comments](#hacker-news-comments): the run must be fin
 npm test && npm run hn:test && npm run arxiv:test && npm run format:check
 ```
 
-Expected: every command passes, ending with `All matched files use Prettier code style!`.
+Expected: every command passes, ending with `All matched files use Prettier code style!`. The format check skips `.claude/worktrees/` (`.prettierignore`), so generated files in other worktrees do not count; if it lists files only under a folder that Git ignores, report it rather than changing or deleting files that are not yours.
 
 ### 2. Build
 
@@ -760,7 +760,7 @@ curl -s https://ai-model-picker.pages.dev/search/r/0.json | python3 -c "import j
 Expected: `32 0`. A second number above 0 on either command means a practitioner record was published: tell the owner at once.
 
 ```sh
-for path in restricted expert-articles named named/advice; do curl -s -o /dev/null -w "$path %{http_code}\n" "https://ai-model-picker.pages.dev/api/$path"; done
+for endpoint in restricted expert-articles named named/advice; do curl -s -o /dev/null -w "$endpoint %{http_code}\n" "https://ai-model-picker.pages.dev/api/$endpoint"; done
 ```
 
 Expected:
@@ -772,13 +772,25 @@ named 401
 named/advice 401
 ```
 
-Any other status means a protected endpoint is open or broken: tell the owner at once.
+Any other status means a protected endpoint is open or broken: tell the owner at once. Keep the loop variable's name: in zsh, the macOS shell, a variable named `path` replaces the command search path, and `curl` is then not found. If any command here says `command not found`, its check did not run; open a new shell and run it again.
 
 ```sh
 curl -s https://ai-model-picker.pages.dev/arxiv-snapshot.json | python3 -c "import json,sys; json.load(sys.stdin); print('json')" 2>/dev/null || echo 'not json'
 ```
 
-Expected: `not json`. The address now answers with the app's page, as any unknown path does; `json` means the old arXiv export is still served.
+Expected: `not json`. The address now answers with the app's page, as any unknown path does. `json` means the old arXiv export is still served. To tell a copy held in Cloudflare's edge cache from a deployed file:
+
+```sh
+curl -sI https://ai-model-picker.pages.dev/arxiv-snapshot.json | grep -i -E '^(cf-cache-status|age|cache-control)'
+```
+
+```sh
+curl -s -o /dev/null -w '%{http_code} %{content_type}\n' 'https://ai-model-picker.pages.dev/arxiv-snapshot.json?check=1'
+```
+
+`cf-cache-status: HIT` with an `age` and a long `s-maxage` on the first, and `200 text/html` on the second (a query string bypasses the cached copy), mean the new deployment does not hold the file but the edge cache still serves the earlier release's copy. It stays fetchable at that address until the cached copy expires: the `s-maxage` in seconds minus the `age`, from the time of the request. Do not purge, roll back or upload again on your own. Record it in `docs/verification.md` as a dated failed check with that latest expiry time, tell the owner, and finish the remaining checks. Any other result for the second command is a failure of the deployment itself: stop and report.
+
+To avoid this, give a file that is about to be removed a short cache lifetime in the release before the one that removes it: a `Cache-Control: no-store` rule for it in `public/_headers`, then check that its live `cache-control` header shows no long `s-maxage`. An edge copy then cannot outlive the removal.
 
 ```sh
 curl -sI https://ai-model-picker.pages.dev/hn-comments-1.json | grep -i -E '^(cache-control|x-robots-tag)'
