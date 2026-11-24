@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  agrees,
+  belowMinimum,
   crowdBand,
+  lineOnlyText,
   measuredBand,
+  minimums,
+  preferredText,
   prepareBrief,
+  tallyTotal,
   themeTallies,
 } from '../src/lib/brief.ts';
 import type { BriefFilters } from '../src/lib/brief.ts';
@@ -14,6 +20,7 @@ import {
   evidenceByJob,
   findTarget,
   preferencePairs,
+  recordSubject,
   usageLine,
 } from '../src/lib/model-page.ts';
 import type { PageTarget } from '../src/lib/model-page.ts';
@@ -449,4 +456,66 @@ test('preferences between the two need five before a share is given', () => {
   assert.equal(five.shareB, 3 / 5);
   // A preference against the line is not one between the two models.
   assert.equal(preferencesBetween(data, 'a', 'b', null, '').total, 4);
+});
+
+test('a stated-preference count under the minimum says so', () => {
+  const data = prepareBrief(makeCore());
+  const band = crowdBand(data, 'model|a', 'coding', all);
+  assert.ok(band.preferences.length < minimums.preferences);
+  assert.equal(
+    preferredText(band.wins.length, band.preferences.length),
+    `Preferred in ${band.wins.length} of ${band.preferences.length} stated preferences, below the minimum of ${minimums.preferences}`,
+  );
+  assert.equal(
+    preferredText(1, 1),
+    `Preferred in 1 of 1 stated preference, below the minimum of ${minimums.preferences}`,
+  );
+  assert.equal(
+    preferredText(3, minimums.preferences),
+    `Preferred in 3 of ${minimums.preferences} stated preferences`,
+  );
+  assert.equal(
+    belowMinimum('clearLabels'),
+    `below the minimum of ${minimums.clearLabels}`,
+  );
+});
+
+test('the verb of a count sentence agrees with the count', () => {
+  const data = prepareBrief(makeCore());
+  // The Crowd band's line-only row, as the card prints it.
+  assert.deepEqual(
+    crowdBand(data, 'model|a', 'coding', all).lines.map((line) =>
+      lineOnlyText(tallyTotal(line.tally), 'label', line.name),
+    ),
+    ['7 labels name only the line Lab'],
+  );
+  assert.equal(
+    lineOnlyText(1, 'label', 'Lab'),
+    '1 label names only the line Lab',
+  );
+  assert.equal(
+    lineOnlyText(1, 'use record', 'Lab'),
+    '1 use record names only the line Lab',
+  );
+  assert.equal(agrees(1, 'prefers', 'prefer'), 'prefers');
+  assert.equal(agrees(0, 'prefers', 'prefer'), 'prefer');
+  assert.equal(agrees(2, 'is', 'are'), 'are');
+});
+
+test('a Hacker News record is about the targets it labels, not its story', () => {
+  const data = prepareBrief(makeCore());
+  const record: EvidenceRecord = {
+    ...result('p', 'a', 0),
+    id: 'hn:31',
+    cls: 'crowd',
+    src: 'hn',
+    keys: [
+      ['line|Lab', 'positive'],
+      ['model|b', 'critical'],
+    ],
+    title: 'Lab A released',
+    x: {},
+  };
+  assert.equal(recordSubject(data, record), 'Lab, Lab B');
+  assert.equal(recordSubject(data, { keys: [] }), '');
 });

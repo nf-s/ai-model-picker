@@ -374,8 +374,9 @@ function CrowdRecord({
         {fieldsText(record)}
       </p>
       <p className="rd-note">
+        {record.title && `Story: ${record.title} · `}
         <a href={record.url} target="_blank" rel="noopener noreferrer">
-          {record.title || 'Open on Hacker News'}
+          Open on Hacker News
         </a>
       </p>
     </article>

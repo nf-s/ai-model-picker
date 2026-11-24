@@ -1,13 +1,17 @@
 import type { ReactNode } from 'react';
 import {
+  agrees,
+  belowMinimum,
   benchmarkKind,
   costUnit,
   crowdBand,
   crowdCommentIds,
+  lineOnlyText,
   measuredBand,
   monthStart,
   plural,
   positiveShare,
+  preferredText,
   recordBenchmark,
   recordConfig,
   recordCost,
@@ -193,7 +197,7 @@ export function NamedBand({
                 )
               }
             >
-              {`${plural(band.records.length, 'use record')} name ${line ? 'only this line' : 'this model'}`}
+              {`${plural(band.records.length, 'use record')} ${agrees(band.records.length, 'names', 'name')} ${line ? 'only this line' : 'this model'}`}
             </EvidenceButton>
             <OutcomeBar tally={outcomeTally(band.records)} />
           </p>
@@ -220,7 +224,7 @@ export function NamedBand({
               )
             }
           >
-            {`${plural(entry.records.length, 'use record')} name only the line ${entry.name}`}
+            {lineOnlyText(entry.records.length, 'use record', entry.name)}
           </EvidenceButton>
           <OutcomeBar tally={outcomeTally(entry.records)} />
         </p>
@@ -419,7 +423,7 @@ export function CrowdBand({
           <SentimentBar tally={hnTally(band.tally)} />
           <span className="rd-note">
             {share === null
-              ? 'fewer than 10 clear labels'
+              ? `${belowMinimum('clearLabels')} clear labels`
               : `${percent(share)} positive of clear`}
           </span>
           {onOpenAll && (
@@ -444,11 +448,11 @@ export function CrowdBand({
                 preferenceIds(band.preferences),
                 null,
                 since,
-                `Comments that say one named model is better than another, where ${target.name} is one of the two. ${band.wins.length} prefer it.`,
+                `Comments that say one named model is better than another, where ${target.name} is one of the two. ${band.wins.length} ${agrees(band.wins.length, 'prefers', 'prefer')} it.`,
               )
             }
           >
-            {`Preferred in ${band.wins.length} of ${band.preferences.length} stated preferences`}
+            {preferredText(band.wins.length, band.preferences.length)}
           </EvidenceButton>
         </p>
       )}
@@ -474,7 +478,7 @@ export function CrowdBand({
               )
             }
           >
-            {`${plural(tallyTotal(line.tally), 'label')} name only the line ${line.name}`}
+            {lineOnlyText(tallyTotal(line.tally), 'label', line.name)}
           </EvidenceButton>
           <SentimentBar tally={hnTally(line.tally)} />
         </p>

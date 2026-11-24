@@ -1,10 +1,11 @@
 import {
+  agrees,
+  belowMinimum,
   benchmarkKind,
   briefFilters,
   costUnit,
   findJob,
   inPool,
-  minimums,
   plural,
 } from '../lib/brief';
 import type { BriefData } from '../lib/brief';
@@ -346,7 +347,7 @@ function Preferences({
             {open(
               `Prefer ${a.name} to ${b.name}`,
               between.forA,
-              `${between.forA.length} prefer ${a.name}`,
+              `${between.forA.length} ${agrees(between.forA.length, 'prefers', 'prefer')} ${a.name}`,
             )}
             <span className="rd-split" aria-hidden="true">
               <i
@@ -365,12 +366,12 @@ function Preferences({
             {open(
               `Prefer ${b.name} to ${a.name}`,
               between.forB,
-              `${between.forB.length} prefer ${b.name}`,
+              `${between.forB.length} ${agrees(between.forB.length, 'prefers', 'prefer')} ${b.name}`,
             )}
           </p>
           <p className="rd-note">
             {between.shareB === null
-              ? `Fewer than ${minimums.preferences} stated preferences between the two, so no share is given.`
+              ? `${plural(between.total, 'stated preference')} between the two, ${belowMinimum('preferences')}, so no share is given.`
               : `${percent(between.shareB)} of ${between.total} prefer ${b.name}. Reported evidence, not a measurement.`}
           </p>
         </>

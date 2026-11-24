@@ -1133,6 +1133,31 @@ export function plural(n: number, one: string, many = `${one}s`) {
   return `${n.toLocaleString('en')} ${n === 1 ? one : many}`;
 }
 
+// The verb that agrees with a count: "1 label names", "2 labels name".
+export function agrees(n: number, one: string, many: string) {
+  return n === 1 ? one : many;
+}
+
+// The words for a count under its minimum, which then sets no order or share.
+export function belowMinimum(minimum: keyof typeof minimums) {
+  return `below the minimum of ${minimums[minimum]}`;
+}
+
+// "Preferred in 2 of 3 stated preferences", saying when the count is under
+// the minimum.
+export function preferredText(wins: number, total: number) {
+  const text = `Preferred in ${wins.toLocaleString('en')} of ${plural(total, 'stated preference')}`;
+  return total < minimums.preferences
+    ? `${text}, ${belowMinimum('preferences')}`
+    : text;
+}
+
+// Records that name a product line without a version: "1 label names only
+// the line Gemini".
+export function lineOnlyText(n: number, noun: string, line: string) {
+  return `${plural(n, noun)} ${agrees(n, 'names', 'name')} only the line ${line}`;
+}
+
 // ---- Job chooser, bands and usage -----------------------------------------------
 
 // Each job with its measured records in the filters and the benchmarks that

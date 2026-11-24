@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowUpRight } from 'lucide-react';
-import { briefFilters, findJob, plural } from '../lib/brief';
+import { agrees, briefFilters, findJob, plural } from '../lib/brief';
 import type { BriefData, BriefFilters } from '../lib/brief';
 import { useBriefData } from '../lib/core-client';
 import type { CoreData } from '../lib/core-client';
@@ -506,8 +506,8 @@ function Person({ ctx, name }: { ctx: PageContext; name: string }) {
         {person.adviceOnly && (
           <p className="rd-note">
             Method advice only. {plural(person.useLeftOut, 'use record')} from
-            the review are not loaded: too few name a model to stand in the
-            Named band.
+            the review {agrees(person.useLeftOut, 'is', 'are')} not loaded: too
+            few name a model to stand in the Named band.
           </p>
         )}
         {person.dropped && (
@@ -527,7 +527,7 @@ function Person({ ctx, name }: { ctx: PageContext; name: string }) {
                   {open(
                     `names ${nameKindLabels[group.kind]}`,
                     group.records,
-                    `${group.records.length.toLocaleString()} name ${nameKindLabels[group.kind]}`,
+                    `${group.records.length.toLocaleString()} ${agrees(group.records.length, 'names', 'name')} ${nameKindLabels[group.kind]}`,
                   )}
                 </span>
               ))}

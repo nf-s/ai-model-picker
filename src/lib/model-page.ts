@@ -147,6 +147,15 @@ export function keyLabel(data: BriefData, key: string) {
   return key.slice(key.indexOf('|') + 1);
 }
 
+// What a record is about: the models and product lines its keys name, not
+// the story a comment sits under.
+export function recordSubject(
+  data: BriefData,
+  record: Pick<EvidenceRecord, 'keys'>,
+) {
+  return record.keys.map(([key]) => keyLabel(data, key)).join(', ');
+}
+
 export type UsageLine = {
   tokens: CoreUsage['tokens']['models'][number] | null;
   tags: { tag: string; label: string; job: string; share: number }[];

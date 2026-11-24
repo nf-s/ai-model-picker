@@ -4,6 +4,7 @@ import type { BriefData } from '../lib/brief';
 import { useBriefData } from '../lib/core-client';
 import type { CoreData } from '../lib/core-client';
 import type { FilterBar, Scope } from '../lib/model-filter';
+import { recordSubject } from '../lib/model-page';
 import { canLoadNamed, useNamedAdvice } from '../lib/named-client';
 import type { NamedRecord } from '../lib/named';
 import type { EvidenceRecord } from '../lib/records';
@@ -499,7 +500,7 @@ function PublicItem({
         onClick={() =>
           open({
             kind: measured ? 'measured' : 'crowd',
-            title: `“${words}” · ${record.title || 'record'}`,
+            title: `“${words}” · ${(measured ? record.title : recordSubject(data, record)) || 'record'}`,
             data,
             records: [record],
           })

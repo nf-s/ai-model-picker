@@ -1,6 +1,6 @@
 import { Fragment, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { minimums, plural, recordBenchmark } from '../lib/brief';
+import { agrees, minimums, plural, recordBenchmark } from '../lib/brief';
 import type { BriefData } from '../lib/brief';
 import type { CoreUsage } from '../lib/core-schema';
 import { restrictedData } from '../lib/data';
@@ -91,6 +91,9 @@ export function Sources({
   const { core } = data;
   const named = useNamed();
   const ready = named.state.status === 'ready' ? named.state.value : null;
+  // Use records of people shown for method advice only, which are not loaded.
+  const leftOut =
+    ready?.people.reduce((sum, person) => sum + person.useLeftOut, 0) ?? 0;
   const snapshot = measuredFrom(data, 'snapshot');
   const epoch = measuredFrom(data, 'epoch');
   const arena = measuredFrom(data, 'arena');
@@ -229,13 +232,7 @@ export function Sources({
                       />
                     }
                     dates={dateRange(ready.use.map((record) => record.date))}
-                    note={`From ${plural(ready.people.filter((person) => !person.adviceOnly).length, 'person', 'people')}; ${plural(
-                      ready.people.reduce(
-                        (sum, person) => sum + person.useLeftOut,
-                        0,
-                      ),
-                      'record',
-                    )} from people shown for method advice only are left out.`}
+                    note={`From ${plural(ready.people.filter((person) => !person.adviceOnly).length, 'person', 'people')}; ${plural(leftOut, 'record')} from people shown for method advice only ${agrees(leftOut, 'is', 'are')} left out.`}
                   />
                   <Row
                     source="Method advice, people review"
@@ -447,14 +444,20 @@ function UseLimits({ named }: { named: NamedIndex }) {
       </li>
       <li>
         Not resolved to an exact model:{' '}
-        {records('Use records naming only a product line', kind('line'))} name
-        only a product line and stay under it;{' '}
+        {records('Use records naming only a product line', kind('line'))}{' '}
+        {agrees(
+          kind('line').length,
+          'names only a product line and stays',
+          'name only a product line and stay',
+        )}{' '}
+        under it;{' '}
         {records(
           'Use records naming a version outside the model list',
           kind('version'),
         )}{' '}
-        name a version outside the model list;{' '}
-        {records('Use records naming no model', kind('none'))} name no model.
+        {agrees(kind('version').length, 'names', 'name')} a version outside the
+        model list; {records('Use records naming no model', kind('none'))}{' '}
+        {agrees(kind('none').length, 'names', 'name')} no model.
       </li>
       <li>
         {unresolved.toLocaleString()} of {passages.toLocaleString()} passages
