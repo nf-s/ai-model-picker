@@ -56,8 +56,10 @@ export const recordSchema = z
     keys: z.array(z.tuple([z.string().regex(keyPattern), stance])),
     job: z.union([z.literal(''), z.string().regex(jobPattern)]),
     // pending: no job until the next review, because the old job the label
-    // gave was split or became a field; `via` keeps the label.
-    how: z.enum(['', 'label', 'keywords', 'review', 'pending']),
+    // gave was split or became a field; `via` keeps the label. tag: no job,
+    // because a tag rule that gives none (the drawing test) matched; `via`
+    // keeps the label the record came with.
+    how: z.enum(['', 'label', 'keywords', 'review', 'pending', 'tag']),
     via: z.string(),
     stance,
     text: z.string(),
@@ -91,6 +93,9 @@ export const recordSchema = z
     if (record.how === 'pending') {
       if (record.job !== '' || record.via === '')
         issue('a record that needs reading has no job and keeps its label');
+    } else if (record.how === 'tag') {
+      if (record.job !== '' || record.via === '')
+        issue('a record a tag rule gave no job has no job and keeps its label');
     } else {
       const empty = [record.job, record.how, record.via].map((v) => v === '');
       if (empty.some((value) => value !== empty[0]))

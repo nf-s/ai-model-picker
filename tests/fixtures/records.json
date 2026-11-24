@@ -202,6 +202,37 @@
         "themes": []
       },
       "checked": ""
+    },
+    {
+      "id": "hn:4343",
+      "cls": "crowd",
+      "src": "hn",
+      "keys": [
+        ["model|example-model", "positive"],
+        ["line|Example", "critical"]
+      ],
+      "job": "",
+      "how": "tag",
+      "via": "task:make-images",
+      "stance": "neutral",
+      "text": "Its pelican on a bicycle SVG had the wheels in the right place.",
+      "quote": "",
+      "cond": "",
+      "tool": "",
+      "effort": "",
+      "setting": "local",
+      "run": "unattended",
+      "surface": "coding-agent",
+      "date": "2026-11-02",
+      "person": "",
+      "url": "https://news.ycombinator.com/item?id=4343",
+      "title": "",
+      "kind": "make-images",
+      "x": {
+        "themes": [],
+        "tags": ["drawing-test"]
+      },
+      "checked": ""
     }
   ],
   "invalid": [
@@ -344,6 +375,20 @@
     {
       "why": "needs reading without its label",
       "base": 6,
+      "patch": {
+        "via": ""
+      }
+    },
+    {
+      "why": "no job by a tag rule, with a job",
+      "base": 7,
+      "patch": {
+        "job": "make-images"
+      }
+    },
+    {
+      "why": "no job by a tag rule, without its label",
+      "base": 7,
       "patch": {
         "via": ""
       }

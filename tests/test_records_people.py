@@ -181,6 +181,21 @@ class TestNamed(unittest.TestCase):
         self.assertEqual((hosted['surface'], hosted['setting']), ('local-runner', 'hosted'))
         self.assertEqual(result['pending'], [])
 
+    def test_a_drawing_test_has_no_job_whatever_the_review_gave(self):
+        data = review([use(ADA, job='make-images', task='Draw a heron on a scooter as an SVG'),
+                       use(ADA, job='chat', task='Pelican riding a bicycle test at three effort levels'),
+                       use(ADA, job='make-images', task='Edit a photo of a dog to add a party hat')], [], 1)
+        result = named(data=data)
+        records = by_id(result)
+        drawn, other, edited = records[f'ur:{ADA}/1'], records[f'ur:{ADA}/2'], records[f'ur:{ADA}/3']
+        self.assertEqual((drawn['job'], drawn['how'], drawn['via'], drawn['x']['tags']),
+                         ('', 'tag', 'review:make-images', ['drawing-test']))
+        self.assertEqual((other['job'], other['how'], other['via']), ('', 'tag', 'review:chat'))
+        self.assertEqual((edited['job'], edited['how'], edited['via']), ('make-images', 'review', 'review:make-images'))
+        coverage = {row['job']: row['use'] for row in result['coverage']}
+        self.assertEqual((coverage['make-images'], coverage['chat'], coverage['']), (1, 0, 0))
+        self.assertEqual(result['tagged'], [{'tag': 'drawing-test', 'use': 2, 'advice': 0}])
+
     def test_an_unmapped_review_label_stops_the_build(self):
         jobs = copy.deepcopy(JOBS)
         jobs['crosswalk']['review-job']['labels'] = [

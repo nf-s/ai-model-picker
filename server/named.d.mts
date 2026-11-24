@@ -4,6 +4,7 @@ type NamedFile = {
   people: unknown;
   coverage: unknown;
   pending: unknown;
+  tagged: unknown;
   use: unknown;
   advice: unknown;
 };

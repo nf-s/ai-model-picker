@@ -344,7 +344,7 @@ The job list is `research/jobs.json` ([data](data.md#shared-records-and-the-job-
    npm run records:build
    ```
 
-   Expected: the coverage table, with a row per job, then "Needs reading until the next review" with a row per earlier job it comes from, then "No job". In a worktree, add `-- --hn-root <main checkout>`.
+   Expected: the coverage table, with a row per job, then "Needs reading until the next review" with a row per earlier job it comes from, then a "No job: <tag>" row per tag rule with `noJob` (the drawing test), then "No job". In a worktree, add `-- --hn-root <main checkout>`.
 
    | Output                                            | Meaning                                                            | What to do                                                                  |
    | ------------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------- |
@@ -353,7 +353,7 @@ The job list is `research/jobs.json` ([data](data.md#shared-records-and-the-job-
    | `… is a general index, which orders no job`       | A job lists the Epoch Capabilities Index.                          | Remove it from the job's benchmarks.                                        |
    | `guide: …`                                        | The guide table and the jobs' guide tasks disagree.                | Make each guide task link to the job that names it, or to none with a note. |
 
-3. Compare the coverage with the last build's: a job that falls to zero, or records that move to "Needs reading", should be explained by the change. Restricted benchmarks take their job from their category in `.local/restricted/research.json` through `benchmark-category`; tell the owner if a category no longer gives a job, without naming the benchmark.
+3. Compare the coverage with the last build's: a job that falls to zero, or records that move to "Needs reading" or "No job: Drawing test", should be explained by the change. A change to a tag rule's pattern moves records in and out of its row: read a sample of those it adds under a job other than Make or edit images before committing. Restricted benchmarks take their job from their category in `.local/restricted/research.json` through `benchmark-category`; tell the owner if a category no longer gives a job, without naming the benchmark.
 4. Run the checks in `AGENTS.md`, look at Brief for every job and at the Data page's job coverage, and commit `research/jobs.json` with any test or fixture that names a job id.
 
 The people review labels with the approved list since 24 November 2026, so no people record needs reading. A job's id or label is part of the people review's instructions: changing one makes `status` report `instructionsUnchanged: false`, and the people review needs [a new review of every passage](#when-the-review-instructions-change) (about US$2; ask the owner). The Hacker News review labels with the approved list since 24 November 2026 as well, so no Hacker News record needs reading. Its jobs are part of its instructions: changing a job's id needs [a new review of every comment](#when-the-comment-review-changes) (about US$8; ask the owner).

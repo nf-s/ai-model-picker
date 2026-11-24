@@ -167,6 +167,7 @@ function makeCore(): Core {
       cells: {},
       tags: {},
       pending: {},
+      noJob: {},
       counts: {
         'model|a': {
           coding: { '2026-10': [6, 2, 1, 1] },
@@ -194,7 +195,7 @@ function makeCore(): Core {
       preference('model|a', 'line|Lab', 'coding', 15),
       preference('line|Lab', 'model|c', 'coding', 16),
     ],
-    coverage: { sources: [], rows: [], pending: [] },
+    coverage: { sources: [], rows: [], pending: [], tagged: [] },
     usage: null,
     namedBehindSignIn: false,
   });

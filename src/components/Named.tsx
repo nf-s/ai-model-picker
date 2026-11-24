@@ -10,7 +10,7 @@ import type { Access } from '../lib/access';
 import type { Tally } from '../lib/brief';
 import type { CoreJob } from '../lib/core-schema';
 import { fieldsText } from '../lib/fields';
-import { tagLabel } from '../lib/job-rules';
+import { noJobTag, tagLabel, tagsOf } from '../lib/job-rules';
 import { useNamedData } from '../lib/named-client';
 import type { NamedState } from '../lib/named-client';
 import {
@@ -284,7 +284,9 @@ export function NamedCard({ record }: { record: NamedRecord }) {
           ? `${jobLabel(record.job)}, by review`
           : record.how === 'pending'
             ? 'none until the next review'
-            : 'none, by review'}
+            : record.how === 'tag'
+              ? `none: ${tagLabel(noJobTag(tagsOf(record)))} (review gave ${jobLabel(record.via.slice(record.via.indexOf(':') + 1))})`
+              : 'none, by review'}
         {fieldsText(record)}
         {(record.use.tags ?? []).map((tag) => ` · ${tagLabel(tag)}`)} ·{' '}
         <Source record={record} />

@@ -1,0 +1,27 @@
+{
+  "note": "Invented texts. The drawing-test tag rule in research/jobs.json must tag every text under tagged and none under untagged; tests/test_records.py and tests/records.test.ts both read this file.",
+  "tagged": [
+    "Generate an SVG of a pelican riding a bicycle",
+    "Drew a cat as an SVG",
+    "SVG drawing of a lighthouse",
+    "The Pelicans test again",
+    "Its pelican on a bicycle came out with three wheels",
+    "The max-effort pelican has a better beak",
+    "It draws a nicer pelican than last month",
+    "An animated pelican that flaps its wings",
+    "The pelican image from the low setting looked rushed",
+    "Asked for an SVG with a pelican and a heron"
+  ],
+  "untagged": [
+    "Convert the SVG icons to a sprite sheet",
+    "Draw conclusions from the logs",
+    "Fix the SVG export bug",
+    "Describe a photo of three pelicans on a pier",
+    "Draw bounding boxes around the pelicans in a photo",
+    "Tell a joke about a pelican",
+    "Find places where pelicans nest in winter",
+    "Edit a photo of a pelican to add a scarf",
+    "Describe the SVG pelican it drew",
+    "Write alt text for the pelican drawing"
+  ]
+}

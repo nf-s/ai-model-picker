@@ -331,15 +331,20 @@ class Jobs:
         need(type(tags) is dict and set(tags) == {'version', 'rules'} and type(tags['rules']) is list, 'tags is not a version and a list of rules')
         check(type(tags['version']) is int, 'tags version is not an integer')
         self.tags = []
+        # Tags whose records have no job, whatever job their label gave, in the order the rules list them.
+        self.no_job_tags = []
         for number, rule in enumerate(tags['rules'], 1):
-            if not check(type(rule) is dict and set(rule) == {'tag', 'label', 'pattern', 'caseSensitive'}
+            if not check(type(rule) is dict and set(rule) == {'tag', 'label', 'pattern', 'caseSensitive', 'noJob'}
                          and is_text(rule['tag']) and JOB_PATTERN.fullmatch(rule['tag']) and is_text(rule['label']) and rule['label'].strip(),
-                         f'tag rule {number}: not a tag, a label, a pattern and caseSensitive'):
+                         f'tag rule {number}: not a tag, a label, a pattern, caseSensitive and noJob'):
                 continue
             check(rule['tag'] not in current, f'tag rule {number}: {rule["tag"]} is a job id')
+            check(type(rule['noJob']) is bool, f'tag rule {number}: noJob is not true or false')
             pattern = self.compile(rule, f'tag rule {number}', check)
             if pattern is not None:
                 self.tags.append((rule['tag'], pattern))
+                if rule['noJob'] is True:
+                    self.no_job_tags.append(rule['tag'])
         check(len({tag for tag, _ in self.tags}) == len(self.tags), 'tags: a tag is listed twice')
 
         need(not problems, 'The job file is not valid:\n  ' + '\n  '.join(problems))
@@ -464,6 +469,11 @@ class Jobs:
         found = [tag for tag, pattern in self.tags if pattern.search(text)]
         return {'tags': found} if found else {}
 
+    def no_job_tag(self, x):
+        """The first tag in a record's extras `x` whose rule gives no job, or ''."""
+        tags = (x or {}).get('tags', [])
+        return next((tag for tag in self.no_job_tags if tag in tags), '')
+
 
 # ---- Records ---------------------------------------------------------------------------
 
@@ -478,6 +488,8 @@ class Records:
         self.coverage = collections.Counter()
         # Records that need reading until the next review, by the old job they were given and source.
         self.pending = collections.Counter()
+        # Records a tag rule gave no job, by tag and source.
+        self.tagged = collections.Counter()
 
     def make(self, label, via, words, how='label', **values):
         """A record whose job comes from `label`, the job id a source label maps to (None when the
@@ -487,7 +499,11 @@ class Records:
         A label whose old job was split or became a field gives no job: the record is marked as
         needing reading (`how` 'pending', `via` the label) and is never given a job by guess. The
         setting and run fields come from `replaces`, from the caller, and from the surface table,
-        which also gives the surface of the record's tool."""
+        which also gives the surface of the record's tool.
+
+        A record whose extras carry a tag whose rule gives no job (the drawing test) has no job,
+        whatever job its label gave: `how` is 'tag' and `via` keeps the label, so the label it came
+        with stays on the record."""
         record = dict.fromkeys(FIELDS, '')
         record.update(keys=[], stance='neutral', x=None)
         record.update(values)
@@ -506,6 +522,9 @@ class Records:
             job, how, assigned = (base, how, via) if base else ('', '', '')
         if pending and job == '':
             how, assigned = 'pending', via
+        tag = self.jobs.no_job_tag(record['x']) if job else ''
+        if tag:
+            job, how = '', 'tag'
         record.update(job=job, how=how, via=assigned)
         record['surface'] = self.jobs.surface_of(record['tool'])
         by_surface = self.jobs.surface_fields.get(record['surface'], ('', ''))
@@ -517,6 +536,8 @@ class Records:
             raise BuildError(f'{record["id"]}: {error}') from None
         if how == 'pending':
             self.pending[label, record['src']] += 1
+        elif how == 'tag':
+            self.tagged[tag, record['src']] += 1
         else:
             self.coverage[record['job'], record['src']] += 1
         return record
@@ -925,9 +946,10 @@ def crowd(hn, records, model_ids):
     """Hacker News records, counts per target, job and month, the same counts per theme of the
     label, stated preferences, and the item ids of the comments in each job, so the app can open the
     comments behind a count. The same counts, themes and ids are kept again for each setting and
-    run other than the default (`cells`), so the app can filter by them, and the comments each tag
-    rule matches by target and month. The app renders every count from these aggregates and loads the
-    comments themselves only when someone opens them."""
+    run other than the default (`cells`), so the app can filter by them, the comments each tag
+    rule matches by target and month, and the comments a tag rule gave no job (`noJob`). The app
+    renders every count from these aggregates and loads the comments themselves only when someone
+    opens them."""
     jobs = records.jobs
     themes_order = list(jobs.crosswalk['hn-theme'])
     stories = {story['id']: story.get('title', '') for story in hn['stories']}
@@ -937,6 +959,7 @@ def crowd(hn, records, model_ids):
     preferences = []
     comment_ids = collections.defaultdict(list)
     pending = collections.defaultdict(list)
+    no_job = collections.defaultdict(list)
     unknown_models = collections.defaultdict(list)
     rows = []
     for comment in hn['comments']:
@@ -981,6 +1004,8 @@ def crowd(hn, records, model_ids):
         rows.append(record)
         if record['how'] == 'pending':
             pending[label].append(comment['id'])
+        elif record['how'] == 'tag':
+            no_job[jobs.no_job_tag(record['x'])].append(comment['id'])
         cell = cell_of(record)
         tallies = [(counts, theme_counts, comment_ids)]
         if cell != '|':
@@ -1022,6 +1047,8 @@ def crowd(hn, records, model_ids):
                        for key, by_month in sorted(by_key.items())} for tag, by_key in sorted(tags.items())},
         # Comments with no job that need reading, by the old job their label gave.
         'pending': {old: sorted(ids) for old, ids in pending.items()},
+        # Comments a tag rule gave no job, by tag, in the order the rules list them.
+        'noJob': {tag: sorted(no_job[tag]) for tag in jobs.no_job_tags if tag in no_job},
     }, preferences, by_job(comment_ids)
 
 
@@ -1247,6 +1274,11 @@ def build_named(snapshot, guide, job_data, imported, data):
             {'old': old, 'use': records.pending[old, 'use'], 'advice': records.pending[old, 'advice']}
             for old in pending_order(jobs, records)
         ],
+        # Records a tag rule gave no job, by tag: counted apart from records whose label gave none.
+        'tagged': [
+            {'tag': tag, 'use': records.tagged[tag, 'use'], 'advice': records.tagged[tag, 'advice']}
+            for tag in jobs.no_job_tags
+        ],
         'use': newest_first(use),
         'advice': newest_first(advice),
     }
@@ -1306,6 +1338,10 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
     pending = [
         {'old': old, 'counts': {source: records.pending[old, source] for source in sources}}
         for old in pending_order(jobs, records)
+    ]
+    tagged = [
+        {'tag': tag, 'counts': {source: records.tagged[tag, source] for source in sources}}
+        for tag in jobs.no_job_tags
     ]
     core = {
         'sources': {
@@ -1367,19 +1403,20 @@ def build_core(snapshot, guide, job_data, hn, imported, usage=None, named=False)
         'measured': measured,
         'crowd': {'stances': list(STANCES), 'counts': counts, 'themes': aggregates['themes'],
                   'comments': comment_ids, 'cells': aggregates['cells'], 'tags': aggregates['tags'],
-                  'pending': {old: aggregates['pending'][old] for old in jobs.replaces if old in aggregates['pending']}},
+                  'pending': {old: aggregates['pending'][old] for old in jobs.replaces if old in aggregates['pending']},
+                  'noJob': aggregates['noJob']},
         'preferences': preferences,
-        'coverage': {'sources': list(sources), 'rows': rows, 'pending': pending},
+        'coverage': {'sources': list(sources), 'rows': rows, 'pending': pending, 'tagged': tagged},
         'usage': None if usage is None else usage_block(usage, jobs),
         'namedBehindSignIn': named,
     }
     return core, measured + hn_rows
 
 
-def coverage_table(core, named=None, old_labels=None):
+def coverage_table(core, named=None, old_labels=None, tag_labels=None):
     """Records per job and source. With named records, a column of use records (jobs by review).
     Records that need reading until the next review are counted apart from those with no job, in
-    total and by the old job they were given."""
+    total and by the old job they were given, and so are records a tag rule gave no job."""
     labels = {job['id']: ('↳ ' if job.get('parent') else '') + job['label'] for job in core['jobs']['list']}
     labels[''] = 'No job'
     old_labels = old_labels or {}
@@ -1387,18 +1424,22 @@ def coverage_table(core, named=None, old_labels=None):
     headings = {'benchmark': 'Benchmark', 'arena': 'Arena', 'report': 'Report', 'hn': 'Hacker News', 'use': 'Use (review)'}
     rows = [(labels[row['job']], dict(row['counts'])) for row in core['coverage']['rows']]
     pending = {row['old']: dict(row['counts']) for row in core['coverage']['pending']}
+    tagged = {row['tag']: dict(row['counts']) for row in core['coverage']['tagged']}
     if named is not None:
         sources.append('use')
         for (_, counts), row in zip(rows, named['coverage']):
             counts['use'] = row['use']
         for row in named['pending']:
             pending.setdefault(row['old'], collections.Counter())['use'] = row['use']
+        for row in named['tagged']:
+            tagged.setdefault(row['tag'], collections.Counter())['use'] = row['use']
     needs = collections.Counter()
     for counts in pending.values():
         needs.update(counts)
     no_job = rows.pop()
     rows.append(('Needs reading until the next review', needs))
     rows.extend((f'  from {old_labels.get(old, old)}', counts) for old, counts in pending.items())
+    rows.extend((f'No job: {(tag_labels or {}).get(tag, tag)}', counts) for tag, counts in tagged.items())
     rows.append(no_job)
     width = max(len(label) for label, _ in rows)
     lines = [f'{"Job":{width}} ' + ' '.join(f'{headings[source]:>12}' for source in sources)]
@@ -1447,7 +1488,8 @@ def main(argv=None):
                                    [] if named is None else named['advice'], names, labels, built_at)
     except BuildError as error:
         raise SystemExit(str(error)) from None
-    print(coverage_table(core, named, {old: entry['label'] for old, entry in job_data['replaces'].items()}))
+    print(coverage_table(core, named, {old: entry['label'] for old, entry in job_data['replaces'].items()},
+                         {rule['tag']: rule['label'] for rule in job_data['tags']['rules']}))
     for kind, label in (('lmarena', 'LMArena'), ('epoch', 'Epoch runs')):
         source = core['sources'][kind]
         print(f'{label}: {source["records"]:,} records, fetched {source["fetchedAt"]}, checked {source["checkedAt"]}.')

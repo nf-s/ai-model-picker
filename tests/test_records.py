@@ -231,25 +231,71 @@ class TestJobFile(unittest.TestCase):
                               tool='Ollama', url='https://news.ycombinator.com/item?id=9')
         self.assertEqual((record['surface'], record['setting'], record['run']), ('local-runner', 'local', ''))
 
-    def test_the_drawing_test_tag_never_gives_a_job(self):
-        jobs = build['Jobs'](self.jobs, {b['id'] for b in SNAPSHOT['benchmarks']} | {
+    def jobs_of(self, data):
+        return build['Jobs'](data, {b['id'] for b in SNAPSHOT['benchmarks']} | {
             entry['id'] for kind, field in IMPORTED_LIST.items() for entry in IMPORTED[kind][field]},
             {task['id'] for task in GUIDE['tasks']})
-        tagged = ['Generate an SVG of a pelican riding a bicycle', 'Drew a cat as an SVG', 'SVG drawing of a lighthouse',
-                  'The Pelicans test again']
-        untagged = ['Convert the SVG icons to a sprite sheet', 'Draw conclusions from the logs', 'Fix the SVG export bug']
-        for text in tagged:
+
+    def test_the_drawing_test_tag_matches_the_shared_cases(self):
+        # The same invented texts are checked against the pattern in JavaScript (tests/records.test.ts).
+        jobs = self.jobs_of(self.jobs)
+        cases = json.loads((ROOT / 'tests/fixtures/drawing-test.json').read_text(encoding='utf-8'))
+        for text in cases['tagged']:
             with self.subTest(text=text):
                 self.assertEqual(jobs.tags_of(text), {'tags': ['drawing-test']})
-        for text in untagged:
+        for text in cases['untagged']:
             with self.subTest(text=text):
                 self.assertEqual(jobs.tags_of(text), {})
+
+    def drawn(self, task, claim='Its pelican on a bicycle SVG was the best yet.', jobs=None):
+        """core.json and comment 101 with `task` and a claim the drawing-test rule tags."""
         hn = hn_export()
-        hn['comments'][0]['claim'] = 'Its pelican on a bicycle SVG was the best yet.'
-        core, records = build_core(SNAPSHOT, GUIDE, self.jobs, hn, IMPORTED)
-        record = next(record for record in records if record['id'] == 'hn:101')
-        self.assertEqual((record['job'], record['x']['tags']), ('code', ['drawing-test']))
+        hn['comments'][0].update(task=task, claim=claim)
+        hn['comments'][0]['prefers'] = [{'winner': {'kind': 'model', 'target': MODEL}, 'loser': {'kind': 'family', 'target': 'GPT'}}]
+        core, records = build_core(SNAPSHOT, GUIDE, jobs or self.jobs, hn, IMPORTED)
+        return core, next(record for record in records if record['id'] == 'hn:101')
+
+    def test_a_drawing_test_labelled_make_images_has_no_job_and_keeps_its_label(self):
+        core, record = self.drawn('make-images')
+        self.assertEqual((record['job'], record['how'], record['via'], record['kind'], record['x']['tags']),
+                         ('', 'tag', 'task:make-images', 'make-images', ['drawing-test']))
+        self.assertEqual(core['crowd']['noJob'], {'drawing-test': [101]})
         self.assertEqual(core['crowd']['tags'], {'drawing-test': {'model|' + MODEL: {'2026-10': [101]}}})
+
+    def test_a_drawing_test_with_another_job_has_no_job(self):
+        core, record = self.drawn('interface')
+        self.assertEqual((record['job'], record['how'], record['via']), ('', 'tag', 'task:interface'))
+        self.assertEqual(core['crowd']['noJob'], {'drawing-test': [101]})
+
+    def test_a_drawing_test_the_review_gave_no_job_keeps_none(self):
+        core, record = self.drawn('none')
+        self.assertEqual((record['job'], record['how'], record['via'], record['x']['tags']), ('', '', '', ['drawing-test']))
+        self.assertEqual(core['crowd']['noJob'], {})
+        self.assertEqual(core['coverage']['tagged'], [{'tag': 'drawing-test', 'counts': {'benchmark': 0, 'arena': 0, 'report': 0, 'hn': 0}}])
+
+    def test_an_untagged_make_images_comment_keeps_its_job(self):
+        core, record = self.drawn('make-images', claim='The image model kept the character the same across edits.')
+        self.assertEqual((record['job'], record['how'], record['via']), ('make-images', 'label', 'task:make-images'))
+        self.assertEqual(core['crowd']['noJob'], {})
+        self.assertEqual(core['crowd']['comments']['make-images'], [101])
+
+    def test_counts_per_job_leave_out_drawing_tests(self):
+        core, _ = self.drawn('make-images')
+        self.assertNotIn('make-images', core['crowd']['comments'])
+        self.assertIn(101, core['crowd']['comments'][''])
+        self.assertEqual(set(core['crowd']['counts']['model|' + MODEL]), {'', 'writing'})
+        self.assertEqual([p['job'] for p in core['preferences'] if p['id'] == 'hn:101'], [''])
+        rows = {row['job']: row['counts']['hn'] for row in core['coverage']['rows']}
+        self.assertEqual((rows['make-images'], rows['']), (0, 1))
+        self.assertEqual(core['coverage']['tagged'], [{'tag': 'drawing-test', 'counts': {'benchmark': 0, 'arena': 0, 'report': 0, 'hn': 1}}])
+        self.assertIn('No job: Drawing test', build['coverage_table'](core, tag_labels={'drawing-test': 'Drawing test'}))
+
+    def test_a_tag_rule_that_gives_a_job_leaves_it(self):
+        data = copy.deepcopy(self.jobs)
+        data['tags']['rules'][0]['noJob'] = False
+        core, record = self.drawn('make-images', jobs=data)
+        self.assertEqual((record['job'], record['how'], record['x']['tags']), ('make-images', 'label', ['drawing-test']))
+        self.assertEqual((core['crowd']['noJob'], core['coverage']['tagged']), ({}, []))
 
     def test_a_general_index_orders_no_job(self):
         job(self.jobs, 'chat')['benchmarks'].append('epoch-eci')
@@ -341,6 +387,8 @@ class TestJobFile(unittest.TestCase):
             (lambda d: d['keywords']['rules'].append(rule(pattern='(')), 'keyword rule 1: pattern does not compile'),
             (lambda d: d['tags']['rules'][0].update(pattern='('), 'tag rule 1: pattern does not compile'),
             (lambda d: d['tags']['rules'][0].update(tag='code'), 'tag rule 1: code is a job id'),
+            (lambda d: d['tags']['rules'][0].update(noJob='yes'), 'tag rule 1: noJob is not true or false'),
+            (lambda d: d['tags']['rules'][0].pop('noJob'), 'tag rule 1: not a tag, a label, a pattern, caseSensitive and noJob'),
             (lambda d: d['fields']['hn-theme'].append({'label': 'no-such-theme', 'run': 'unattended'}), 'fields hn-theme: unknown theme no-such-theme'),
             (lambda d: d['jobs'].append(dict(job(d, 'chat'))), 'a job id is repeated'),
             (lambda d: d['replaces'].update(chat={'label': 'Chat', 'job': 'writing'}), 'replaces chat: not an old job id'),

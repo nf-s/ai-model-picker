@@ -58,6 +58,7 @@ const core = coreSchema.parse({
     cells: {},
     tags: {},
     pending: {},
+    noJob: {},
     counts: {
       'model|a': {
         coding: { '2026-10': [2, 1, 0, 0] },
@@ -69,7 +70,7 @@ const core = coreSchema.parse({
     comments: {},
   },
   preferences: [],
-  coverage: { sources: [], rows: [], pending: [] },
+  coverage: { sources: [], rows: [], pending: [], tagged: [] },
   usage: null,
   namedBehindSignIn: false,
 });

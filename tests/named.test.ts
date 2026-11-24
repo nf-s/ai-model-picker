@@ -131,12 +131,13 @@ function makeCore(): Core {
       cells: {},
       tags: {},
       pending: {},
+      noJob: {},
       counts: {},
       themes: {},
       comments: {},
     },
     preferences: [],
-    coverage: { sources: [], rows: [], pending: [] },
+    coverage: { sources: [], rows: [], pending: [], tagged: [] },
     usage: null,
     namedBehindSignIn: true,
   });
@@ -293,6 +294,7 @@ const rawPayload = {
   ],
   coverage: [{ job: 'coding', use: 6, advice: 0 }],
   pending: [],
+  tagged: [],
   use: rawUse,
 };
 

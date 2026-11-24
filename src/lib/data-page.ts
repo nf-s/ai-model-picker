@@ -2,7 +2,7 @@ import { recordBenchmark } from './brief.ts';
 import type { BriefData } from './brief.ts';
 import type { Core } from './core-schema.ts';
 import type { CommentIndex } from './hn-insights.ts';
-import { oldJobOf } from './job-rules.ts';
+import { noJobTag, oldJobOf, tagsOf } from './job-rules.ts';
 import type { NamedIndex, UseRecord } from './named.ts';
 import type { EvidenceRecord } from './records.ts';
 import { passes, recordFacts } from './search.ts';
@@ -13,19 +13,24 @@ import type { SearchFilter } from './search.ts';
 
 export const pendingLabel = 'Needs reading until the next review';
 
-// The coverage row of a record: its job, '' for none, or `pending:<old job>`
+// The coverage row of a record: its job, '' for none, `pending:<old job>`
 // for a record that needs reading because its old job was split or became a
-// field.
+// field, or `tag:<tag>` for a record a tag rule gave no job.
 export const pendingRow = (old: string) => `pending:${old}`;
-export function coverageRow(record: { job: string; how: string; via: string }) {
-  return record.how === 'pending'
-    ? pendingRow(oldJobOf(record.via))
-    : record.job;
+export const tagRow = (tag: string) => `tag:${tag}`;
+type Rowed = {
+  job: string;
+  how: string;
+  via: string;
+  x: { [key: string]: unknown } | null;
+};
+export function coverageRow(record: Rowed) {
+  if (record.how === 'pending') return pendingRow(oldJobOf(record.via));
+  if (record.how === 'tag') return tagRow(noJobTag(tagsOf(record)));
+  return record.job;
 }
 
-export function byJob<T extends { job: string; how: string; via: string }>(
-  records: readonly T[],
-) {
+export function byJob<T extends Rowed>(records: readonly T[]) {
   const jobs = new Map<string, T[]>();
   for (const record of records) {
     const row = coverageRow(record);
@@ -76,7 +81,7 @@ const coreKey = (key: string) =>
 // core.json.
 export function crowdInFilters(
   index: CommentIndex,
-  crowd: Pick<Core['crowd'], 'comments' | 'cells' | 'pending'>,
+  crowd: Pick<Core['crowd'], 'comments' | 'cells' | 'pending' | 'noJob'>,
   filter: SearchFilter,
 ) {
   const jobOf = new Map<number, string>();
@@ -84,6 +89,8 @@ export function crowdInFilters(
     for (const id of ids) jobOf.set(id, job);
   for (const [old, ids] of Object.entries(crowd.pending))
     for (const id of ids) jobOf.set(id, pendingRow(old));
+  for (const [tag, ids] of Object.entries(crowd.noJob))
+    for (const id of ids) jobOf.set(id, tagRow(tag));
   const cellOf = new Map<number, string>();
   for (const [cell, table] of Object.entries(crowd.cells))
     for (const ids of Object.values(table.comments))
@@ -91,7 +98,10 @@ export function crowdInFilters(
   const jobs = new Map<string, Set<number>>();
   for (const row of index.rows) {
     const coverage = jobOf.get(row.id) ?? '';
-    const job = coverage.startsWith('pending:') ? '' : coverage;
+    const job =
+      coverage.startsWith('pending:') || coverage.startsWith('tag:')
+        ? ''
+        : coverage;
     const [setting = '', run = ''] = (cellOf.get(row.id) ?? '|').split('|');
     const facts = {
       band: 'crowd' as const,

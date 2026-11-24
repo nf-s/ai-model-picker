@@ -26,6 +26,7 @@ const namedFixture = namedParts({
   people: [{ name: 'Ada Example', sourceClass: 'first-hand', trusted: true }],
   coverage: [{ job: 'code', use: 1, advice: 1 }],
   pending: [{ old: 'images', use: 1, advice: 0 }],
+  tagged: [{ tag: 'drawing-test', use: 1, advice: 0 }],
   use: [{ id: 'ur:000000000000000000000001/1', person: 'Ada Example' }],
   advice: [{ id: 'ma:000000000000000000000001/1', person: 'Ada Example' }],
 });
@@ -51,6 +52,7 @@ test('the named file is split into people with use records, and advice', () => {
     'people',
     'coverage',
     'pending',
+    'tagged',
     'use',
   ]);
   assert.deepEqual(Object.keys(namedFixture.advice), ['version', 'advice']);

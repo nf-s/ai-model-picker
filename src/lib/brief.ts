@@ -600,7 +600,8 @@ export function crowdCommentIds(
 }
 
 // The comments a tag rule matched that name `key`, within the job, period,
-// setting and run filters; the tag never counts toward a job.
+// setting and run filters. A "no job" tag's comments have no job, so a job
+// filter leaves none of them.
 export function taggedCommentIds(
   data: BriefData,
   tag: string,

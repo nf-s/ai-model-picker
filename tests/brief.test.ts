@@ -220,6 +220,7 @@ function makeCore(): Core {
       cells: {},
       tags: {},
       pending: {},
+      noJob: {},
       counts: {
         'model|a': {
           planning: { '2026-10': [8, 2, 0, 0], '2026-06': [4, 0, 0, 0] },
@@ -235,7 +236,7 @@ function makeCore(): Core {
       ...preferences('b', 'a', 'code', 2, '2026-06-10'),
       ...preferences('a', 'b', 'code', 1, '2026-10-10'),
     ],
-    coverage: { sources: [], rows: [], pending: [] },
+    coverage: { sources: [], rows: [], pending: [], tagged: [] },
     usage: null,
     namedBehindSignIn: false,
   });

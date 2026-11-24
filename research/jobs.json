@@ -813,13 +813,14 @@
     ]
   },
   "tags": {
-    "version": 1,
+    "version": 2,
     "rules": [
       {
         "tag": "drawing-test",
         "label": "Drawing test",
-        "pattern": "\\bpelicans?\\b|\\b(?:draw|drew|drawn|drawing)s?\\b[^.]{0,40}\\bSVGs?\\b|\\bSVGs? (?:drawings?|illustrations?|art)\\b",
-        "caseSensitive": false
+        "pattern": "^(?![\\s\\S]*\\b(?:describ\\w*|descriptions?|alt[- ]text)\\b)[\\s\\S]*?(?:\\b(?:draw|drew|drawn|drawing)s?\\b[^.]{0,40}\\bSVGs?\\b|\\bSVGs? (?:drawings?|illustrations?|art)\\b|\\bSVGs?\\b[^.]{0,40}\\bpelicans?\\b|\\bpelicans?\\b[^.]{0,40}\\b(?:SVGs?|bicycles?|bikes?|benchmarks?|tests?|drawings?|drawn|animat\\w*)\\b|\\bpelicans?[- ](?:images?|pictures?|output|prompts?|renders?|generations?)\\b|\\b(?:max|xhigh|high|low|effort|default|average|best)[- ]pelicans?\\b|\\b(?:draws?|drew|drawn|drawings?|animated)\\b(?: \\S+){0,2} pelicans?\\b)",
+        "caseSensitive": false,
+        "noJob": true
       }
     ]
   },

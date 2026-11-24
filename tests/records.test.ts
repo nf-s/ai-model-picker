@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { z } from 'zod';
+import { jobRules, noJobTag } from '../src/lib/job-rules.ts';
 import { peopleSchema, recordSchema } from '../src/lib/records.ts';
+import drawingCases from './fixtures/drawing-test.json' with { type: 'json' };
 import recordFixtures from './fixtures/records.json' with { type: 'json' };
 import peopleFixtures from './fixtures/people.json' with { type: 'json' };
 
@@ -96,4 +98,44 @@ test('the Python validator gives the same verdict as the Zod schema on every fix
     verdicts.people.map((valid, index) => [people[index]?.why, valid]),
     people.map((item) => [item.why, item.valid]),
   );
+});
+
+// tests/test_records.py checks the same texts against the same pattern with
+// Python's re, which the records build uses to set the tag.
+test('JavaScript reads the drawing-test pattern as the build does on the shared cases', () => {
+  const rule = jobRules.tags.rules.find(
+    (entry) => entry.tag === 'drawing-test',
+  );
+  assert.ok(rule);
+  assert.equal(rule.noJob, true);
+  const pattern = new RegExp(rule.pattern, rule.caseSensitive ? '' : 'i');
+  for (const text of drawingCases.tagged) assert.ok(pattern.test(text), text);
+  for (const text of drawingCases.untagged)
+    assert.ok(!pattern.test(text), text);
+  const run = spawnSync(
+    'python3',
+    [
+      '-B',
+      '-c',
+      [
+        'import json, re, sys',
+        'rule = json.load(open("research/jobs.json"))["tags"]["rules"][0]',
+        'pattern = re.compile(rule["pattern"], 0 if rule["caseSensitive"] else re.I)',
+        'print(json.dumps([bool(pattern.search(text)) for text in json.load(sys.stdin)]))',
+      ].join('\n'),
+    ],
+    {
+      input: JSON.stringify([...drawingCases.tagged, ...drawingCases.untagged]),
+      encoding: 'utf8',
+    },
+  );
+  assert.equal(run.status, 0, run.stderr);
+  assert.deepEqual(
+    z.array(z.boolean()).parse(JSON.parse(run.stdout)),
+    [...drawingCases.tagged, ...drawingCases.untagged].map((text) =>
+      pattern.test(text),
+    ),
+  );
+  assert.equal(noJobTag(['drawing-test']), 'drawing-test');
+  assert.equal(noJobTag(['other']), '');
 });

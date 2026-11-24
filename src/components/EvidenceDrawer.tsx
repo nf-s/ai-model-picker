@@ -22,6 +22,7 @@ import type { BriefData } from '../lib/brief';
 import { fieldsText } from '../lib/fields';
 import type { HnTheme } from '../lib/hn-index';
 import { emptyFilter } from '../lib/hn-insights';
+import { tagNoJobText } from '../lib/job-rules';
 import { dollars } from '../lib/metrics';
 import type { NamedRecord } from '../lib/named';
 import type { EvidenceRecord } from '../lib/records';
@@ -305,7 +306,9 @@ function MeasuredRecord({
           ? job.label
           : record.how === 'pending'
             ? `none until the next review (source label ${record.via})`
-            : 'none'}
+            : record.how === 'tag'
+              ? tagNoJobText(record)
+              : 'none'}
         {job &&
           ` · ${record.how === 'keywords' ? `keyword rule ${record.via}` : `source label ${record.via}`}`}
         {fieldsText(record)}
@@ -364,7 +367,9 @@ function CrowdRecord({
           ? job.label
           : record.how === 'pending'
             ? `none until the next review (source label ${record.via})`
-            : 'none'}
+            : record.how === 'tag'
+              ? tagNoJobText(record)
+              : 'none'}
         {job && ` · source label ${record.via}`}
         {fieldsText(record)}
       </p>

@@ -13,9 +13,12 @@ import {
   pendingLabel,
   pendingRow,
   rowEntries,
+  tagRow,
 } from '../lib/data-page';
 import { surfaceName } from '../lib/fields';
 import { crosswalkSources, jobRules } from '../lib/job-rules';
+
+const noJobRules = jobRules.tags.rules.filter((rule) => rule.noJob);
 import type { FilterBar, Scope } from '../lib/model-filter';
 import { useNamedAdvice } from '../lib/named-client';
 import { namedOrder } from '../lib/named';
@@ -542,14 +545,23 @@ export function Coverage({
       label: `from ${jobRules.replaces[old]?.label ?? old}`,
       sub: true,
     })),
+    ...noJobRules.map((rule) => ({
+      id: tagRow(rule.tag),
+      label: `No job: ${rule.label}`,
+      sub: false,
+    })),
     { id: '', label: 'No job', sub: false },
   ];
   const labelOf = new Map(rows.map((row) => [row.id, row.label]));
   const label = (id: string) =>
     data.jobById.get(id)?.label ?? labelOf.get(id) ?? 'No job';
   // Hacker News comments by coverage row in the whole build: those that need
-  // reading are kept apart from those with no job.
-  const pendingIds = new Set(Object.values(core.crowd.pending).flat());
+  // reading and those a tag rule gave no job are kept apart from those with no
+  // job.
+  const pendingIds = new Set([
+    ...Object.values(core.crowd.pending).flat(),
+    ...Object.values(core.crowd.noJob).flat(),
+  ]);
   const crowdBuilt = new Map<string, number[]>([
     ...Object.entries(core.crowd.comments).map(
       ([job, ids]): [string, number[]] => [
@@ -559,6 +571,9 @@ export function Coverage({
     ),
     ...Object.entries(core.crowd.pending).map(
       ([old, ids]): [string, number[]] => [pendingRow(old), ids],
+    ),
+    ...Object.entries(core.crowd.noJob).map(
+      ([tag, ids]): [string, number[]] => [tagRow(tag), ids],
     ),
   ]);
   const off = (cls: 'measured' | 'named' | 'crowd') =>
@@ -607,6 +622,13 @@ export function Coverage({
         from the first of the period’s month. {pendingLabel}: records whose job
         under the earlier job list was split or became the setting or run field;
         they have no job until the next review, and none is guessed.
+        {noJobRules.map((rule) => (
+          <Fragment key={rule.tag}>
+            {' '}
+            No job: {rule.label}: records the tag rule took off the job their
+            label gave.
+          </Fragment>
+        ))}
       </p>
       <div className="rd-panel rd-dp-table">
         <div className="rd-scroll">
@@ -843,6 +865,8 @@ const sourceName: Record<string, string> = {
 };
 
 export function JobRules({ data }: { data: BriefData }) {
+  const named = useNamed();
+  const ready = named.state.status === 'ready' ? named.state.value : null;
   const label = (job: string | null) => {
     if (job === null) return 'none';
     const old = jobRules.replaces[job];
@@ -994,7 +1018,8 @@ export function JobRules({ data }: { data: BriefData }) {
         </summary>
         <p className="rd-note">
           Keyword rules give a job from a record’s text and run in order. A tag
-          rule marks records on the model page and never gives or changes a job.
+          rule marks records on the model page; a record a “no job” tag rule
+          marks has no job, whatever its label gave.
         </p>
         <div className="rd-scroll">
           <table className="rd-table">
@@ -1022,7 +1047,9 @@ export function JobRules({ data }: { data: BriefData }) {
               ))}
               {jobRules.tags.rules.map((rule) => (
                 <tr key={rule.tag}>
-                  <td>Tag: {rule.label}</td>
+                  <td>
+                    {rule.noJob ? 'No job' : 'Tag'}: {rule.label}
+                  </td>
                   <td className="rd-note">
                     Any job; read from a use record’s task or a Hacker News
                     claim
@@ -1039,6 +1066,49 @@ export function JobRules({ data }: { data: BriefData }) {
           </table>
         </div>
       </details>
+      {noJobRules.map((rule) => {
+        const comments = data.core.crowd.noJob[rule.tag] ?? [];
+        const use = (ready?.use ?? []).filter(
+          (record) =>
+            record.how === 'tag' && (record.use.tags ?? []).includes(rule.tag),
+        );
+        const title = `No job: ${rule.label}`;
+        return (
+          <p key={rule.tag} className="rd-note">
+            {rule.label}: no job for{' '}
+            <Count
+              n={comments.length}
+              open={() =>
+                commentSpec(
+                  `${title} · Hacker News comments`,
+                  new Set(comments),
+                  null,
+                  '',
+                )
+              }
+            />{' '}
+            Hacker News comments
+            {ready && (
+              <>
+                {' '}
+                and{' '}
+                <Count
+                  n={use.length}
+                  open={() =>
+                    namedSpec(
+                      `${title} · use records`,
+                      namedOrder(use, named.trusted),
+                      namedNote(named.state),
+                    )
+                  }
+                />{' '}
+                use records
+              </>
+            )}{' '}
+            whose label gave a job. The label stays on each record.
+          </p>
+        );
+      })}
     </section>
   );
 }

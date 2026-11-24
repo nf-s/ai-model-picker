@@ -43,7 +43,8 @@ const useExtrasSchema = z.object({
   cmpId: z.string(),
   cmpNamed: z.string(),
   channel: z.string(),
-  // Tags a tracked rule set from the task text; a tag never gives a job.
+  // Tags a tracked rule set from the task text; a record whose tag's rule
+  // gives no job has none (`how` 'tag').
   tags: z.array(z.string()).optional(),
 });
 export type UseExtras = z.infer<typeof useExtrasSchema>;
@@ -103,6 +104,10 @@ export const namedPayloadSchema = z
     // Records whose old job was split or became a field, by that old job.
     pending: z.array(
       z.strictObject({ old: z.string().min(1), use: count, advice: count }),
+    ),
+    // Records a tag rule gave no job, by tag.
+    tagged: z.array(
+      z.strictObject({ tag: z.string().min(1), use: count, advice: count }),
     ),
     use: z.array(useRecordSchema),
   })

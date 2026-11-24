@@ -332,8 +332,9 @@ function LineModels({
 }
 
 // Records a tracked tag rule matched, such as drawing tests, with counts that
-// open them. A tag never gives a job and never counts toward one; practitioner
-// records are counted only for granted accounts.
+// open them. A record a "no job" tag rule matched has no job, so it is listed
+// only with all jobs; practitioner records are counted only for granted
+// accounts.
 function TaggedRecords({
   ctx,
   target,
@@ -400,8 +401,12 @@ function TaggedRecords({
         ))}
       </ul>
       <p className="rd-note">
-        Found by a keyword rule on the record’s own task or claim. A tag never
-        gives a job or counts toward one.
+        Found by a keyword rule on the record’s own task or claim.
+        {jobRules.tags.rules.some((rule) => rule.noJob) &&
+          ` ${jobRules.tags.rules
+            .filter((rule) => rule.noJob)
+            .map((rule) => rule.label)
+            .join(', ')}: no job, whatever the record’s label gave.`}
       </p>
     </section>
   );

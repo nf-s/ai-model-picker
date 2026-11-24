@@ -193,3 +193,28 @@ The drawing-test tag matches 413 listed comments: 248 with no job, 151 labelled 
 With Brief's default filters (current models, signed out), every job ordered by a benchmark keeps the measure it had. Review and plan, which have no measure and had no Hacker News evidence, are now ordered by stated preferences (5 and 3 models with at least five); make images, whose benchmarks have no current model, by Hacker News positive share (4 models with at least ten clear labels), and its order counts drawing tests labelled as making images; extraction still has no model above the minimums and says so. No brief orders or rates a model below the minimums.
 
 `npm run records:build` printed the coverage table with no Hacker News record needing reading and "Hacker News from the checkpoint: 84,215 comments.", equal to `commentsAboutTargets`. The site was not published; it serves the labels of 22 November 2026 until the next publish.
+
+## Drawing-test rule of 24 November 2026
+
+Both reviews of 24 November 2026 labelled many drawing tests by text models as making images, against the job list's decision that a drawing test has no job. The records build now gives every use record and Hacker News comment that carries the drawing-test tag no job, whatever its label (`noJob` on the tag rule in `research/jobs.json`). The record keeps its label in `via` and its tag, so it is still reachable from the Model page's "Drawing test" line and from Search. No review was run and no model was called.
+
+The tag rule itself was narrowed the same day. Its pattern had matched any mention of a pelican, which in the use records also covers pelican photos for vision tests, pelican jokes and facts, and image edits of pelican photos; 106 tagged use records were labelled with a job other than make images, most of them real tasks. A pelican now needs a drawing, SVG, bicycle, test, benchmark, animation or image word beside it, or a draw word just before it, and a text that describes an image or writes alt text is not tagged, since turning an image into text is reading media. The tag now matches 452 use records (536 before) and 401 listed comments (413 before). Of the 299 make-images use records and 151 make-images comments the earlier pattern tagged, 284 and 146 are still tagged. Of the other 20, 12 use records are real image edits, photo segmentations or a 3D model, 4 drawing tests also describe the image and are left out by that exclusion, and 4 comments are drawing tests the narrower pattern misses ("the Terra pelican", "gave the pelican a helmet"); those 8 still count toward make images.
+
+Records per job, before and after the rule (whole build, the same people review and Hacker News checkpoint):
+
+| Job                                |   Use records | Hacker News comments |
+| ---------------------------------- | ------------: | -------------------: |
+| Write or change code               | 1,568 → 1,564 |      11,614 → 11,611 |
+| Build a web page or app interface  |     148 → 134 |        1,691 → 1,683 |
+| Maths, science and logic problems  |     162 → 161 |        1,120 → 1,120 |
+| Everyday questions and advice      |     336 → 319 |        3,603 → 3,601 |
+| Read images, scans, audio or video |     229 → 226 |            769 → 769 |
+| Make or edit images and video      |     450 → 166 |        1,714 → 1,568 |
+| No job: Drawing test               |       0 → 323 |              0 → 159 |
+| No job                             | 1,677 → 1,677 |      55,350 → 55,350 |
+
+Every other job is unchanged. The rule moved 323 use records (284 from make images, 17 from everyday questions, 14 from interface, 4 from code, 3 from read media, 1 from maths) and 159 comments (146 from make images, 8 from interface, 3 from code, 2 from everyday questions). Method advice carries no tag and is unchanged. Stated preferences on make images fell from 126 to 121. No job count, cell table or stated preference in `core.json` includes a tagged record.
+
+Of the 39 use records moved from jobs other than make images, read one by one, 35 ask for or report an SVG drawing test and 4 build a pelican in code (two WebGL pages of a pelican on a bicycle, an SVG drawing tool and a p5.js animation). Of the 13 comments, 6 are about a drawing test only, 6 judge a drawing test together with another task (a game, an HTML page, coding) and lose that job too, and 1 is a question about the benchmark.
+
+With Brief's default filters (current models, signed out), every job keeps its order except make images. It is still ordered by Hacker News positive share, now without drawing tests: GPT-6.2 Astra (58% of 12 clear labels), Claude Opus 5.5 (58% of 66), Gemini 4 Argon (50% of 12, the lower-cost choice) and Claude Fable 5.2 (30% of 23); before, Claude Opus 5.5 led (58% of 69). The remaining comments are about video, 3D models and pictures made through code or image tools. No order or share falls below its minimum. The site was not published.

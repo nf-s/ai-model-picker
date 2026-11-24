@@ -25,8 +25,9 @@ ID_SOURCES = {
     'la': ('arena',), 'ur': ('use',), 'ma': ('advice',),
 }
 # 'pending': no job until the next review, because the old job the label gave was split or became a
-# field; `via` keeps the label.
-HOW = ('', 'label', 'keywords', 'review', 'pending')
+# field; `via` keeps the label. 'tag': no job, because a tag rule that gives none (the drawing test)
+# matched; `via` keeps the label the record came with.
+HOW = ('', 'label', 'keywords', 'review', 'pending', 'tag')
 STANCES = ('positive', 'critical', 'mixed', 'neutral')
 SETTINGS = ('', 'local', 'hosted')
 RUNS = ('', 'interactive', 'unattended', 'parallel')
@@ -106,6 +107,8 @@ def check_record(record):
     need(how in HOW, 'unknown how')
     if how == 'pending':
         need(job == '' and via != '', 'a record that needs reading has no job and keeps its label')
+    elif how == 'tag':
+        need(job == '' and via != '', 'a record a tag rule gave no job has no job and keeps its label')
     else:
         need((job == '') == (how == '') == (via == ''), 'job, how and via must be all set or all empty')
     need(how != 'review' or record['cls'] == 'named', 'only named records have jobs by review')

@@ -4,8 +4,10 @@ import rawJobs from '../../research/jobs.json' with { type: 'json' };
 // How the records build gives each record a job, as research/jobs.json holds
 // it: a crosswalk from each source's own labels with how well each fits, then
 // keyword rules tried in order; the old job ids it replaces; the rules that
-// set the setting and run fields; and the tag rules. The records build checks
-// the file; this reads the parts the Data page lists and old addresses need.
+// set the setting and run fields; and the tag rules, whose records have no job
+// when the rule says so. The records build checks the file and gives each
+// record its job; this reads the parts the Data page lists and old addresses
+// need, and never gives a job itself.
 
 const jobId = z.string().regex(/^[a-z][a-z0-9-]*$/);
 
@@ -74,6 +76,8 @@ const jobRulesSchema = z.object({
         label: z.string().min(1),
         pattern: z.string().min(1),
         caseSensitive: z.boolean(),
+        // A record this rule tags has no job, whatever job its label gave.
+        noJob: z.boolean(),
       }),
     ),
   }),
@@ -135,6 +139,32 @@ export function retiredNotice(id: string) {
 // The tag rules by tag, for the label a page shows.
 export const tagLabel = (tag: string) =>
   jobRules.tags.rules.find((rule) => rule.tag === tag)?.label ?? tag;
+
+// The tags of a record, from its extras.
+export function tagsOf(record: { x: { [key: string]: unknown } | null }) {
+  const tags = record.x?.tags;
+  return Array.isArray(tags)
+    ? tags.filter((tag): tag is string => typeof tag === 'string')
+    : [];
+}
+
+// The first of `tags` whose rule gives no job, in rule order, or ''. The
+// records build took the job off a record with such a tag (`how` 'tag').
+export function noJobTag(tags: readonly string[]) {
+  return (
+    jobRules.tags.rules.find((rule) => rule.noJob && tags.includes(rule.tag))
+      ?.tag ?? ''
+  );
+}
+
+// What a record's job line says when a tag rule took the job off it: the tag
+// and the label it came with.
+export function tagNoJobText(record: {
+  via: string;
+  x: { [key: string]: unknown } | null;
+}) {
+  return `none: ${tagLabel(noJobTag(tagsOf(record)))} (source label ${record.via})`;
+}
 
 // The crosswalk table a record's `via` prefix names.
 const viaTables: Record<string, string> = {

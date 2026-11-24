@@ -12,6 +12,7 @@ import {
   measuredFrom,
   nameKindOf,
 } from '../src/lib/data-page.ts';
+import { tagNoJobText } from '../src/lib/job-rules.ts';
 import { publicDownload } from '../src/lib/download.ts';
 import { indexComments } from '../src/lib/hn-insights.ts';
 import type { HnIndexComment } from '../src/lib/hn-index.ts';
@@ -143,6 +144,7 @@ const core = coreSchema.parse({
     },
     tags: {},
     pending: { images: [5] },
+    noJob: {},
     counts: {},
     themes: {},
     comments: { coding: [1, 2], fix: [3], '': [4, 5] },
@@ -152,6 +154,7 @@ const core = coreSchema.parse({
     sources: ['benchmark', 'arena', 'report', 'hn'],
     rows: [],
     pending: [],
+    tagged: [],
   },
   usage: null,
   namedBehindSignIn: true,
@@ -354,6 +357,7 @@ test('the limits of the use records count without naming anyone', () => {
       ],
       coverage: [{ job: 'coding', use: 6, advice: 0 }],
       pending: [],
+      tagged: [],
       use: [
         use(1, 'Ada Example', ['model|a', 'tool|Editor']),
         use(2, 'Ada Example', ['version|Lab A-preview', 'line|Lab']),
@@ -410,4 +414,59 @@ test('the download holds public records and their attribution only', () => {
   assert.equal(download.attribution.length, attributions.length);
   for (const entry of download.attribution)
     assert.match(entry.checkedAt, /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test('a record a tag rule gave no job has its own row, apart from no job', () => {
+  const drawn = {
+    ...core.measured[0],
+    id: 'hn:6',
+    job: '',
+    how: 'tag',
+    via: 'task:make-images',
+    x: { themes: [], tags: ['drawing-test'] },
+  };
+  const none = {
+    ...core.measured[4],
+    id: 'hn:7',
+    x: { tags: ['drawing-test'] },
+  };
+  assert.deepEqual(
+    [...byJob([drawn, none])].map(([row, records]) => [row, records.length]),
+    [
+      ['tag:drawing-test', 1],
+      ['', 1],
+    ],
+  );
+  // The evidence says why it has no job and keeps the label it came with.
+  assert.equal(
+    tagNoJobText(drawn),
+    'none: Drawing test (source label task:make-images)',
+  );
+  const index = indexComments([
+    {
+      id: 6,
+      createdAt: '2026-10-05T10:00:00Z',
+      assessments: [
+        {
+          kind: 'model',
+          target: 'a',
+          sentiment: 'positive',
+          aspects: [],
+          confidence: 'high',
+        },
+      ],
+    },
+  ]);
+  const crowd = {
+    ...core.crowd,
+    comments: { ...core.crowd.comments, '': [4, 5, 6] },
+    noJob: { 'drawing-test': [6] },
+  };
+  assert.deepEqual(
+    [...crowdInFilters(index, crowd, openFilter)].map(([row, set]) => [
+      row,
+      [...set],
+    ]),
+    [['tag:drawing-test', [6]]],
+  );
 });

@@ -195,6 +195,9 @@ export const coreSchema = z
       // Comments with no job that need reading until the next review, by the
       // old job their label gave; they are also under '' in `comments`.
       pending: z.record(jobId, z.array(z.number().int().positive())),
+      // Comments a tag rule gave no job, whatever job their label gave, by
+      // tag; they are also under '' in `comments`.
+      noJob: z.record(jobId, z.array(z.number().int().positive())),
       // Per tag, the comments its rule matched by the targets they name and
       // month.
       tags: z.record(
@@ -227,6 +230,9 @@ export const coreSchema = z
       // Records whose old job was split or became a field, by that old job:
       // no job until the next review, counted apart from records with none.
       pending: z.array(z.strictObject({ old: jobId, counts: sourceCounts })),
+      // Records a tag rule gave no job, by tag, counted apart from records
+      // whose label gave none.
+      tagged: z.array(z.strictObject({ tag: jobId, counts: sourceCounts })),
     }),
     usage: usageSchema.nullable(),
     namedBehindSignIn: z.boolean(),
