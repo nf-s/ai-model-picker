@@ -693,7 +693,7 @@ Run step 1 of [Hacker News comments](#hacker-news-comments): the run must be fin
 npm test && npm run hn:test && npm run arxiv:test && npm run format:check
 ```
 
-Expected: every command passes, ending with `All matched files use Prettier code style!`. The format check skips `.claude/worktrees/` (`.prettierignore`), so generated files in other worktrees do not count; if it lists files only under a folder that Git ignores, report it rather than changing or deleting files that are not yours.
+Expected: every command passes, ending with `All matched files use Prettier code style!`. One records test, `test_core_names_nobody_and_differs_only_by_the_flag`, fails now and then with an `AssertionError` whose two strings differ only in a time ending in `+00:00`: its two builds fell in different seconds. Run the same command once more; if that test or any other fails again, stop and report. The format check skips `.claude/worktrees/` (`.prettierignore`), so generated files in other worktrees do not count; if it lists files only under a folder that Git ignores, report it rather than changing or deleting files that are not yours.
 
 ### 2. Build
 
@@ -869,7 +869,9 @@ curl -s -o /dev/null -w '%{http_code} %{content_type}\n' 'https://ai-model-picke
 
 `cf-cache-status: HIT` with an `age` and a long `s-maxage` on the first, and `200 text/html` on the second (a query string bypasses the cached copy), mean the new deployment does not hold the file but the edge cache still serves the earlier release's copy. It stays fetchable at that address until the cached copy expires: the `s-maxage` in seconds minus the `age`, from the time of the request. Do not purge, roll back or upload again on your own. Record it in `docs/verification.md` as a dated failed check with that latest expiry time, tell the owner, and finish the remaining checks. Any other result for the second command is a failure of the deployment itself: stop and report.
 
-To avoid this, give a file that is about to be removed a short cache lifetime in the release before the one that removes it: a `Cache-Control: no-store` rule for it in `public/_headers`, then check that its live `cache-control` header shows no long `s-maxage`. An edge copy then cannot outlive the removal.
+A short cache lifetime does not prevent this. On 24 November 2026 the release that went from four comment files to three left `/hn-comments-4.json` answering from the edge cache (`cf-cache-status: HIT`, an `age` of about 11 hours) although its cached response carried `cache-control: no-store`; its headers give no expiry time.
+
+The same applies to comment files. If `commentParts` in the live snapshot is lower than in the previous release (the last record in [verification](verification.md)), run the two commands above for each comment file above the new count, with `arxiv-snapshot.json` replaced by `hn-comments-<n>.json`. A cached copy that the query-string address answers with `200 text/html` is the same state: the app reads only the parts the snapshot names. Record each file's `age` and finish the checks. Any other result for the query-string address is a failure of the deployment itself: stop and report.
 
 ```sh
 curl -sI https://ai-model-picker.pages.dev/hn-comments-1.json | grep -i -E '^(cache-control|x-robots-tag)'
