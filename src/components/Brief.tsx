@@ -48,6 +48,7 @@ import type { BandContext } from './Bands';
 import { EvidenceButton } from './EvidenceDrawer';
 import type { EvidenceSpec } from './EvidenceDrawer';
 import { formatDay } from './FilterBar';
+import { ModelTableInfo } from './ModelTableInfo';
 import { namedNote, OutcomeBar, useNamed } from './Named';
 import { RankNote } from './ModelFilter';
 import './brief.css';
@@ -616,6 +617,7 @@ function BriefTable({
           <thead>
             <tr>
               <th>Model</th>
+              <th className="rd-num">In $/M</th>
               <th className="rd-num">Out $/M</th>
               {brief.usesCost && primary?.kind === 'benchmark' && (
                 <th className="rd-num">
@@ -672,6 +674,10 @@ function BriefTable({
                       row !== brief.lead &&
                       ' · interval overlaps the highest'}
                   </div>
+                  <ModelTableInfo id={row.model.id} ratesShown />
+                </td>
+                <td className="rd-num">
+                  {row.model.input === null ? '—' : dollars(row.model.input)}
                 </td>
                 <td className="rd-num">
                   {row.model.output === null ? '—' : dollars(row.model.output)}
@@ -793,22 +799,24 @@ function UsageBlock({
                 </td>
                 <td className="rd-num">{shareText(tag.share)}</td>
                 <td>
-                  {tag.top.map((top, i) => {
-                    const model = data.modelById.get(top.modelId);
-                    return (
-                      <span key={top.route}>
-                        {i > 0 && ' · '}
-                        {model ? (
-                          <a href={modelHref(model.id)}>{model.name}</a>
-                        ) : (
-                          <span className="rd-muted">
-                            {top.route} (not in the model list)
-                          </span>
-                        )}{' '}
-                        {shareText(top.share)}
-                      </span>
-                    );
-                  })}
+                  <ul className="rd-usage-models">
+                    {tag.top.map((top) => {
+                      const model = data.modelById.get(top.modelId);
+                      return (
+                        <li key={top.route}>
+                          {model ? (
+                            <a href={modelHref(model.id)}>{model.name}</a>
+                          ) : (
+                            <span className="rd-muted">
+                              {top.route} (not in the model list)
+                            </span>
+                          )}{' '}
+                          {shareText(top.share)}
+                          {model && <ModelTableInfo id={model.id} />}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </td>
               </tr>
             ))}

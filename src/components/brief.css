@@ -94,6 +94,14 @@
 .rd-usage summary {
   cursor: pointer;
 }
+.rd-usage-models {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 @media (max-width: 1000px) {
   .rd-cards {
     grid-template-columns: minmax(0, 1fr);

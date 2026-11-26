@@ -35,6 +35,7 @@ import Bands, {
 } from './Bands';
 import type { BandContext, BandJob } from './Bands';
 import { EvidenceButton } from './EvidenceDrawer';
+import { ModelTableInfo } from './ModelTableInfo';
 import { namedNote, NamedUnavailable, useNamed } from './Named';
 import './switch.css';
 
@@ -209,9 +210,11 @@ function Comparison({
                 <th />
                 <th className="rd-num">
                   <a href={modelHref(a.id, job.id)}>{a.name}</a>
+                  <ModelTableInfo id={a.id} ratesShown />
                 </th>
                 <th className="rd-num">
                   <a href={modelHref(b.id, job.id)}>{b.name}</a>
+                  <ModelTableInfo id={b.id} ratesShown />
                 </th>
                 <th>Difference</th>
                 <th className="rd-num">Cost per task</th>

@@ -35,6 +35,7 @@ import { routeHref } from '../lib/route';
 import { percent } from '../lib/site-data';
 import { EvidenceButton } from './EvidenceDrawer';
 import type { EvidenceSpec } from './EvidenceDrawer';
+import { ModelTableInfo } from './ModelTableInfo';
 import {
   NamedCard,
   namedNote,
@@ -529,7 +530,12 @@ function PreferenceTable({
         <thead>
           <tr>
             <th>Stated preference against</th>
-            <th className="rd-num">For {target.name}</th>
+            <th className="rd-num">
+              For {target.name}
+              {target.key.startsWith('model|') && (
+                <ModelTableInfo id={target.key.slice(6)} />
+              )}
+            </th>
             <th className="rd-num">For the other</th>
           </tr>
         </thead>
@@ -542,6 +548,9 @@ function PreferenceTable({
                   {other}
                   {pair.other.startsWith('line|') && (
                     <span className="rd-note"> (line, any version)</span>
+                  )}
+                  {pair.other.startsWith('model|') && (
+                    <ModelTableInfo id={pair.other.slice(6)} />
                   )}
                 </td>
                 <td className="rd-num">

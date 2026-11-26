@@ -1,0 +1,33 @@
+.rd-model-table-info {
+  margin-top: 3px;
+  color: var(--rd-ink2);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+}
+.rd-model-table-info summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--rd-accent);
+}
+.rd-model-table-info dl {
+  display: grid;
+  grid-template-columns: max-content minmax(8em, 1fr);
+  gap: 5px 10px;
+  min-width: 17rem;
+  max-width: 32rem;
+  margin: 6px 0;
+  padding: 8px;
+  border: 1px solid var(--rd-line);
+  border-radius: 5px;
+  background: var(--rd-panel);
+}
+.rd-model-table-info dt {
+  color: var(--rd-ink3);
+}
+.rd-model-table-info dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

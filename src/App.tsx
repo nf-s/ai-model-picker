@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Account from './components/Account';
 import AppGuide from './components/AppGuide';
-import Benchmark from './components/Benchmark';
+import Benchmark, { BenchmarkDirectory } from './components/Benchmark';
 import Brief from './components/Brief';
 import DataPage from './components/DataPage';
 import EvidenceDrawer, { EvidenceContext } from './components/EvidenceDrawer';
@@ -36,11 +36,12 @@ type View = Route['view'];
 // page. Expert articles moved onto person pages; their old address opens
 // People.
 const views: { route: Route; label: string; also?: View }[] = [
-  { route: { view: 'brief', job: null }, label: 'Brief', also: 'benchmark' },
+  { route: { view: 'brief', job: null }, label: 'Brief' },
   {
     route: { view: 'model', target: null, job: null, comments: false },
     label: 'Models',
   },
+  { route: { view: 'benchmarks' }, label: 'Benchmarks', also: 'benchmark' },
   { route: { view: 'switch', a: null, b: null, job: null }, label: 'Switch' },
   { route: { view: 'people', name: null, job: null }, label: 'People' },
   { route: { view: 'search', words: '', job: null }, label: 'Search' },
@@ -272,6 +273,9 @@ export default function App({ access }: { access: Access }) {
                 filter={filter}
                 scope={scope}
               />
+            )}
+            {route.view === 'benchmarks' && (
+              <BenchmarkDirectory coreData={coreData} />
             )}
             {route.view === 'benchmark' && (
               <Benchmark

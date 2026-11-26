@@ -21,12 +21,80 @@ import {
   standing,
 } from '../lib/site-data';
 import { RankNote } from './ModelFilter';
+import { ModelTableInfo } from './ModelTableInfo';
 import Reports from './Reports';
 import './benchmark.css';
 
 type Row = { result: BenchmarkResult; rank: number; best: boolean };
 
 const benchmarkHref = (id: string) => routeHref({ view: 'benchmark', id });
+const directoryHref = routeHref({ view: 'benchmarks' });
+
+export function BenchmarkDirectory({ coreData }: { coreData: CoreData }) {
+  const imported =
+    coreData.status === 'ready' ? importedIndex(coreData.core) : [];
+  const entries = [
+    ...benchmarks.map((benchmark) => ({
+      id: benchmark.id,
+      name: benchmark.name,
+      what: benchmark.description,
+      unit: benchmark.unit,
+      source: benchmark.source,
+    })),
+    ...imported.flatMap((group) =>
+      group.benchmarks.map((benchmark) => ({
+        ...benchmark,
+        source: group.name,
+      })),
+    ),
+  ];
+  return (
+    <div className="rd-page rd-bm">
+      <header className="rd-page-head">
+        <h1>Benchmarks</h1>
+      </header>
+      <div
+        className="rd-panel rd-bm-wrap"
+        role="region"
+        aria-label="Benchmark directory"
+        tabIndex={0}
+      >
+        <table className="rd-table rd-bm-table">
+          <thead>
+            <tr>
+              <th scope="col">Benchmark</th>
+              <th scope="col">Measures</th>
+              <th scope="col">Unit</th>
+              <th scope="col">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr key={entry.id}>
+                <th scope="row">
+                  <a href={benchmarkHref(entry.id)}>{entry.name}</a>
+                </th>
+                <td>{entry.what}</td>
+                <td>{entry.unit}</td>
+                <td>{entry.source}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {coreData.status === 'loading' && (
+        <p className="rd-note" role="status">
+          Loading imported benchmarks…
+        </p>
+      )}
+      {coreData.status === 'failed' && (
+        <p className="rd-note" role="status">
+          The imported benchmarks could not be loaded.
+        </p>
+      )}
+    </div>
+  );
+}
 
 // Every benchmark with a page, by source: the published results (with the
 // restricted payload's for an approved account), then each imported source.
@@ -39,6 +107,11 @@ function BenchmarkNav({
 }) {
   return (
     <nav className="rd-bm-nav" aria-label="Benchmarks">
+      <div className="rd-bm-chips">
+        <a className="rd-chip" href={directoryHref}>
+          All benchmarks
+        </a>
+      </div>
       <div className="rd-bm-group">
         <span>Published results</span>
         <div className="rd-bm-chips">
@@ -290,6 +363,7 @@ function PublishedBenchmark({
                   Rank
                 </th>
                 <th scope="col">Model</th>
+                <th scope="col">API price and context</th>
                 <th scope="col">Configuration</th>
                 <th scope="col" className="rd-num">
                   {benchmark.unit}
@@ -331,6 +405,9 @@ function PublishedBenchmark({
                       </a>
                       {model && <small>{model.provider}</small>}
                     </th>
+                    <td>
+                      <ModelTableInfo id={result.modelId} />
+                    </td>
                     <td className="rd-bm-config">
                       {result.configuration}
                       {result.details && <small>{result.details}</small>}
@@ -559,6 +636,7 @@ function ImportedBenchmark({
                   Rank
                 </th>
                 <th scope="col">Model</th>
+                <th scope="col">API price and context</th>
                 <th scope="col">Configuration</th>
                 <th scope="col" className="rd-num">
                   {benchmark.unit}
@@ -600,6 +678,9 @@ function ImportedBenchmark({
                       </a>
                       {model && <small>{model.provider}</small>}
                     </th>
+                    <td>
+                      <ModelTableInfo id={row.modelId} />
+                    </td>
                     <td className="rd-bm-config">{row.config}</td>
                     <td className="rd-num rd-bm-score">
                       <strong>{row.value}</strong>

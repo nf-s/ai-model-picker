@@ -20,6 +20,7 @@ import { adviceForTask } from '../lib/practitioner';
 import { benchmarkLabel, formatScore } from '../lib/site-data';
 import type { Scope } from '../lib/model-filter';
 import { EvidenceButton } from './EvidenceDrawer';
+import { ModelTableInfo } from './ModelTableInfo';
 import { AdviceCard, NamedUnavailable, namedNote, useNamed } from './Named';
 import PractitionerFindings from './PractitionerFindings';
 import './app-guide.css';
@@ -74,15 +75,18 @@ function ModelLink({ choice, core }: { choice: AppChoice; core: Core | null }) {
   const model = models.find((entry) => entry.id === modelId);
   const total = core ? labelTotal(core, modelKey(modelId)) : 0;
   return (
-    <span className="rd-ag-model">
-      <a href={modelHref(modelId)}>{model?.name ?? modelId}</a>
-      {total ? (
-        <span className="rd-muted">
-          {' '}
-          · {total.toLocaleString()} HN comments
-        </span>
-      ) : null}
-    </span>
+    <>
+      <span className="rd-ag-model">
+        <a href={modelHref(modelId)}>{model?.name ?? modelId}</a>
+        {total ? (
+          <span className="rd-muted">
+            {' '}
+            · {total.toLocaleString()} HN comments
+          </span>
+        ) : null}
+      </span>
+      <ModelTableInfo id={modelId} />
+    </>
   );
 }
 
@@ -154,6 +158,7 @@ function Evidence({ task }: { task: GuideTask }) {
                     {formatScore(result.score, benchmark)}
                   </span>
                 )}
+                {model && <ModelTableInfo id={model.id} />}
               </div>
               <p>{item.note}</p>
               <p className="rd-note">
@@ -235,6 +240,7 @@ function Detail({
                 <strong>
                   {option.choice.name} · {option.choice.setting}
                 </strong>
+                <ModelLink choice={option.choice} core={core} />
                 <p>
                   {option.when} {option.tradeoff}
                 </p>

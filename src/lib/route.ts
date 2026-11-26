@@ -34,6 +34,7 @@ export type Route =
   | ({ view: 'people'; name: string | null; job: string | null } & Retired)
   // Word search; the job filters the results.
   | ({ view: 'search'; words: string; job: string | null } & Retired)
+  | { view: 'benchmarks' }
   | { view: 'benchmark'; id: string }
   | { view: 'apps' }
   // `papers` marks the line saying why arXiv papers were removed, where old
@@ -144,6 +145,7 @@ export function parseRoute(hash: string): Route {
   // arXiv papers left the app; old Papers links open the Data page at the
   // line that says why.
   if (view === 'papers') return { view: 'data', section: 'papers' };
+  if (view === 'benchmarks' && value === null) return { view };
   if (view === 'benchmark' && value) return { view, id: value };
   if (view === 'apps') return { view };
   if (view === 'people') return { view, name: value, job, ...retired };
@@ -165,6 +167,7 @@ export function routeHref(route: Route) {
       : '';
     return `#/brief/${encodeURIComponent(route.job)}${surface}`;
   }
+  if (route.view === 'benchmarks') return '#/benchmarks';
   if (route.view === 'benchmark')
     return `#/benchmark/${encodeURIComponent(route.id)}`;
   if (route.view === 'apps') return '#/apps';

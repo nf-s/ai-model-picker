@@ -46,6 +46,7 @@ import type { BandContext, BandJob } from './Bands';
 import Threads from './comment-views/Threads';
 import { EvidenceButton } from './EvidenceDrawer';
 import { formatDay } from './FilterBar';
+import { ModelTableInfo } from './ModelTableInfo';
 import { namedNote, OutcomeBar, useNamed } from './Named';
 import { SentimentBar } from './parts';
 import './model.css';
@@ -752,6 +753,7 @@ function ModelList({ ctx }: { ctx: BandContext }) {
                 <tr key={model.id}>
                   <td>
                     <a href={modelHref(model.id)}>{model.name}</a>
+                    <ModelTableInfo id={model.id} ratesShown />
                   </td>
                   <td>{model.provider}</td>
                   <td>{model.status || 'not settled'}</td>

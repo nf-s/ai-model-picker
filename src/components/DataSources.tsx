@@ -31,6 +31,7 @@ import { BenchmarkName, commentSpec, measuredSpec, namedSpec } from './Bands';
 import { EvidenceButton } from './EvidenceDrawer';
 import type { EvidenceSpec } from './EvidenceDrawer';
 import { formatDay } from './FilterBar';
+import { ModelTableInfo } from './ModelTableInfo';
 import { NamedUnavailable, namedNote, useNamed } from './Named';
 import { searchFilter } from './Search';
 
@@ -355,6 +356,9 @@ function UsageRow({ usage, data }: { usage: CoreUsage; data: BriefData }) {
                       <a href={modelHref(row.modelId)}>
                         {data.modelById.get(row.modelId)?.name ?? row.modelId}
                       </a>
+                      {data.modelById.has(row.modelId) && (
+                        <ModelTableInfo id={row.modelId} />
+                      )}
                     </td>
                     <td className="rd-num">{row.tokens.toLocaleString()}</td>
                     <td className="rd-num">{(row.share * 100).toFixed(1)}%</td>

@@ -32,11 +32,16 @@ test('old Papers links open the Data page at the line on removed papers', () => 
     assert.deepEqual(parseRoute(routeHref(route)), route);
 });
 
-test('other views are unchanged', () => {
+test('the benchmark directory and detail links are bookmarkable', () => {
+  const directory: Route = { view: 'benchmarks' };
+  assert.equal(routeHref(directory), '#/benchmarks');
+  assert.deepEqual(parseRoute(routeHref(directory)), directory);
   assert.deepEqual(parseRoute('#/benchmark/swe'), {
     view: 'benchmark',
     id: 'swe',
   });
+  const detail: Route = { view: 'benchmark', id: 'test / benchmark?' };
+  assert.deepEqual(parseRoute(routeHref(detail)), detail);
 });
 
 const model = (

@@ -36,6 +36,7 @@ import { percent } from '../lib/site-data';
 import { namedSpec, RecordsStatus } from './Bands';
 import { EvidenceButton } from './EvidenceDrawer';
 import { formatDay } from './FilterBar';
+import { ModelTableInfo } from './ModelTableInfo';
 import {
   NamedCard,
   namedNote,
@@ -131,7 +132,15 @@ function scopeText(ctx: PageContext) {
 function TargetName({ data, keyText }: { data: BriefData; keyText: string }) {
   const kind = keyKind(keyText);
   const name = keyLabel(data, keyText);
-  if (kind === 'model') return <a href={modelHref(keyText.slice(6))}>{name}</a>;
+  if (kind === 'model') {
+    const id = keyText.slice(6);
+    return (
+      <>
+        <a href={modelHref(id)}>{name}</a>
+        <ModelTableInfo id={id} />
+      </>
+    );
+  }
   if (kind === 'line')
     return (
       <>
