@@ -5,6 +5,7 @@ advice-only, line and version rules, jobs by review, a public-safe core.json and
 import builtins
 import contextlib
 import copy
+import datetime
 import hashlib
 import io
 import json
@@ -13,6 +14,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -274,10 +276,14 @@ class TestMain(unittest.TestCase):
                 '--search-out', str(self.root / name / 'search'), '--search-local', str(self.root / name / 'search.sqlite')]
 
     def test_core_names_nobody_and_differs_only_by_the_flag(self):
-        printed = self.run_main(*self.outputs('with'))
-        self.assertIn('Named records (private, behind sign-in): 5 use records (1 left out as advice-only), 3 method advice', printed)
-        printed = self.run_main('--people-root', str(self.empty), *self.outputs('without'))
-        self.assertIn('no named records; core.json says none exist', printed)
+        # Both builds represent the same release, including the timestamp in each search shard.
+        moment = datetime.datetime(2026, 11, 23, tzinfo=datetime.timezone.utc)
+        clock = SimpleNamespace(datetime=SimpleNamespace(now=lambda zone: moment.astimezone(zone)), timezone=datetime.timezone)
+        with patch.dict(main.__globals__, datetime=clock):
+            with_people = self.run_main(*self.outputs('with'))
+            without_people = self.run_main('--people-root', str(self.empty), *self.outputs('without'))
+        self.assertIn('Named records (private, behind sign-in): 5 use records (1 left out as advice-only), 3 method advice', with_people)
+        self.assertIn('no named records; core.json says none exist', without_people)
         self.assertFalse((self.root / 'without/named-private.json').exists())
         core_with = json.loads((self.root / 'with/core.json').read_text(encoding='utf-8'))
         core_without = json.loads((self.root / 'without/core.json').read_text(encoding='utf-8'))

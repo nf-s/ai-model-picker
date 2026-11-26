@@ -693,7 +693,7 @@ Run step 1 of [Hacker News comments](#hacker-news-comments): the run must be fin
 npm test && npm run hn:test && npm run arxiv:test && npm run format:check
 ```
 
-Expected: every command passes, ending with `All matched files use Prettier code style!`. One records test, `test_core_names_nobody_and_differs_only_by_the_flag`, fails now and then with an `AssertionError` whose two strings differ only in a time ending in `+00:00`: its two builds fell in different seconds. Run the same command once more; if that test or any other fails again, stop and report. The format check skips `.claude/worktrees/` (`.prettierignore`), so generated files in other worktrees do not count; if it lists files only under a folder that Git ignores, report it rather than changing or deleting files that are not yours.
+Expected: every command passes, ending with `All matched files use Prettier code style!`. If a test fails, stop and report. The format check skips `.claude/worktrees/` (`.prettierignore`), so generated files in other worktrees do not count; if it lists files only under a folder that Git ignores, report it rather than changing or deleting files that are not yours.
 
 ### 2. Build
 
